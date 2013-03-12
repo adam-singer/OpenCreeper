@@ -1,5 +1,5 @@
 ﻿/*!
- * Open Creeper v1.0
+ * Open Creeper v1.0.1
  * http://alexanderzeillinger.github.com/OpenCreeper/
  *
  * Copyright 2012, Alexander Zeillinger
@@ -16,7 +16,6 @@ engine = {
     fps_totalTime: null,
     fps_updateTime: null,
     fps_updateFrames: null,
-    fps_drawTime: null,
     canvas: null, // at the top, contains everything but the terrain
     canvasBuffer: null,
     canvasTiles: null, // at the bottom, contains the terrain and is only drawn once for performance reasons, no buffer needed
@@ -35,6 +34,7 @@ engine = {
     guiCanvasMaxY: 0,
     images: null,
     sounds: null,
+    animationRequest: null,
     imageSrcs: null,
     /**
      * @author Alexander Zeillinger
@@ -137,7 +137,6 @@ engine = {
         this.fps_totalTime = 0;
         this.fps_updateTime = 0;
         this.fps_updateFrames = 0;
-        this.fps_drawTime = 0;
     },
     update: function () {
         // update FPS
@@ -148,22 +147,12 @@ engine = {
         this.fps_frames++;
         this.fps_updateTime += this.fps_delta;
         this.fps_updateFrames++;
-        this.fps_drawTime += this.fps_delta;
 
         // update FPS display
         if (this.fps_updateTime > 1000) {
             $("#fps").html("FPS: " + Math.floor(1000 * this.fps_frames / this.fps_totalTime) + " average, " + Math.floor(1000 * this.fps_updateFrames / this.fps_updateTime) + " currently, " + (game.speed * this.FPS) + " desired");
-            this.fps_updateTime = 0;
+            this.fps_updateTime -= 1000;
             this.fps_updateFrames = 0;
-        }
-    },
-    canDraw: function () {
-        if (this.fps_drawTime > this.delta) {
-            this.fps_drawTime -= this.delta;
-            return true;
-        }
-        else {
-            return false;
         }
     }
 };
@@ -1592,6 +1581,8 @@ var game = {
 
         engine.ctx.drawImage(engine.canvasBuffer, 0, 0); // copy from buffer to context
         // double buffering taken from: http://www.youtube.com/watch?v=FEkBldQnNUc
+
+        engine.animationRequest = requestAnimationFrame(game.draw);
     }
 };
 
@@ -2422,6 +2413,7 @@ function stop() {
 
 function run() {
     game.running = setInterval(gameloop, 1000 / game.speed / engine.FPS);
+    engine.animationRequest = requestAnimationFrame(draw);
 }
 
 function faster() {
@@ -2712,10 +2704,6 @@ function restart() {
 function gameloop() {
     engine.update();
     game.update();
-
-    if (engine.canDraw()) {
-        game.draw();
-    }
 }
 
 /*function request() {
@@ -2755,4 +2743,133 @@ Object.prototype.clone = function() {
         } else newObj[i] = this[i]
     } return newObj;
 };
- 
+
+// may not be a member function of "game" in order to be called by requestAnimationFrame
+function draw() {
+    game.drawGUI();
+
+    // clear canvas
+    engine.ctxBuffer.clearRect(0, 0, engine.canvas.width, engine.canvas.height);
+    engine.ctx.clearRect(0, 0, engine.canvas.width, engine.canvas.height);
+
+    game.drawCollectionAreas();
+    game.drawCreep();
+
+    // draw emitters
+    for (var i = 0; i < game.emitters.length; i++) {
+        game.emitters[i].draw();
+    }
+
+    // draw spore towers
+    for (var i = 0; i < game.sporetowers.length; i++) {
+        game.sporetowers[i].draw();
+    }
+
+    // draw node connections
+    for (var i = 0; i < game.buildings.length; i++) {
+        var centerI = game.buildings[i].getCenter();
+        var centerID = new Vector(512 + centerI.x - game.scroll.x * game.tileSize, 384 + centerI.y - game.scroll.y * game.tileSize);
+        for (var j = 0; j < game.buildings.length; j++) {
+            if (i != j) {
+                var centerJ = game.buildings[j].getCenter();
+                var centerJD = new Vector(512 + centerJ.x - game.scroll.x * game.tileSize, 384 + centerJ.y - game.scroll.y * game.tileSize);
+                var allowedDistance = 10 * game.tileSize;
+                if (game.buildings[i].type == "Relay" && game.buildings[j].type == "Relay") {
+                    allowedDistance = 20 * game.tileSize;
+                }
+                if (Math.pow(centerJD.x - centerID.x, 2) + Math.pow(centerJD.y - centerID.y, 2) < Math.pow(allowedDistance, 2)) {
+                    engine.ctxBuffer.strokeStyle = '#000';
+                    engine.ctxBuffer.lineWidth = 3;
+                    engine.ctxBuffer.beginPath();
+                    engine.ctxBuffer.moveTo(centerID.x, centerID.y);
+                    engine.ctxBuffer.lineTo(centerJD.x, centerJD.y);
+                    engine.ctxBuffer.stroke();
+
+                    engine.ctxBuffer.strokeStyle = '#fff';
+                    if (!game.buildings[i].built || !game.buildings[j].built)
+                        engine.ctxBuffer.strokeStyle = '#aaa';
+                    engine.ctxBuffer.lineWidth = 2;
+                    engine.ctxBuffer.beginPath();
+                    engine.ctxBuffer.moveTo(centerID.x, centerID.y);
+                    engine.ctxBuffer.lineTo(centerJD.x, centerJD.y);
+                    engine.ctxBuffer.stroke();
+                }
+            }
+        }
+    }
+
+    // draw movement indicators
+    for (var i = 0; i < game.buildings.length; i++) {
+        game.buildings[i].drawMovementIndicators();
+    }
+
+    // draw buildings
+    for (var i = 0; i < game.buildings.length; i++) {
+        game.buildings[i].draw();
+    }
+
+    // draw radius
+    for (var i = 0; i < game.buildings.length; i++) {
+        game.buildings[i].drawRadius();
+    }
+
+    // draw shells
+    for (var i = 0; i < game.shells.length; i++) {
+        game.shells[i].draw();
+    }
+
+    // draw smokes
+    for (var i = 0; i < game.smokes.length; i++) {
+        game.smokes[i].draw();
+    }
+
+    // draw explosions
+    for (var i = 0; i < game.explosions.length; i++) {
+        game.explosions[i].draw();
+    }
+
+    // draw spores
+    for (var i = 0; i < game.spores.length; i++) {
+        game.spores[i].draw();
+    }
+
+    if (engine.mouse.active) {
+
+        // if a building is built and selected draw a green box and a line at mouse position as the reposition target
+        for (var i = 0; i < game.buildings.length; i++) {
+            game.buildings[i].drawRepositionInfo();
+        }
+
+        // draw attack symbol
+        game.drawAttackSymbol();
+
+        if (game.activeSymbol != -1) {
+            game.drawPositionInfo();
+        }
+    }
+
+    // draw packets
+    for (var i = 0; i < game.packets.length; i++) {
+        game.packets[i].draw();
+    }
+
+    // draw ships
+    for (var i = 0; i < game.ships.length; i++) {
+        game.ships[i].draw(engine.ctxBuffer);
+    }
+
+    // draw building hover/selection box
+    for (var i = 0; i < game.buildings.length; i++) {
+        game.buildings[i].drawBox();
+    }
+
+    // draw ship hover/selection box
+    for (var i = 0; i < game.ships.length; i++) {
+        game.ships[i].drawBox();
+    }
+
+    engine.ctx.drawImage(engine.canvasBuffer, 0, 0); // copy from buffer to context
+    // double buffering taken from: http://www.youtube.com/watch?v=FEkBldQnNUc
+
+    requestAnimationFrame(draw);
+};
