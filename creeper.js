@@ -33,9 +33,18 @@ engine = {
     guiCanvasMinY: 0,
     guiCanvasMaxY: 0,
     images: null,
-    sounds: null,
+    sounds: [],
     animationRequest: null,
     imageSrcs: null,
+    mouse: {
+        x: 0,
+        y: 0,
+        active: false
+    },
+    mouseGUI: {
+        x: 0,
+        y: 0
+    },
     /**
      * @author Alexander Zeillinger
      *
@@ -93,17 +102,21 @@ engine = {
             this.images[this.imageSrcs[i]].src = "images/" + this.imageSrcs[i] + ".png";
         }
     },
-    addSound: function (name, type) {
-        this.sounds[name] = new Audio("sounds/" + name + "." + type);
+    addSound: function(name, type) {
+        this.sounds[name] = [];
+        for (var i = 0; i < 5; i++) {
+            this.sounds[name][i] = new Audio("sounds/" + name + "." + type);
+        }
     },
-    mouse: {
-        x: 0,
-        y: 0,
-        active: false
-    },
-    mouseGUI: {
-        x: 0,
-        y: 0
+    playSound: function(name) {
+        for(var i = 0; i < 5; i++)
+        {
+            if(this.sounds[name][i].ended == true || this.sounds[name][i].currentTime == 0)
+            {
+                this.sounds[name][i].play();
+                return;
+            }
+        }
     },
     initMouse: function () {
         this.canvasMinX = $("#mainCanvas").offset().left;
@@ -572,7 +585,7 @@ var game = {
                         }
                     }
                     if (target) {
-                        engine.sounds["shot"].play();
+                        engine.playSound("shot");
                         var shell = new Shell(center.x, center.y, "shell", target.x * this.tileSize + this.tileSize / 2, target.y * this.tileSize + this.tileSize / 2);
                         shell.init();
                         this.shells.push(shell);
@@ -595,7 +608,7 @@ var game = {
                             this.spores[i].health -= 2;
                             if (this.spores[i].health <= 0) {
                                 this.spores[i].remove = true;
-                                engine.sounds["explosion"].play();
+                                engine.playSound("explosion");
                                 this.explosions.push(new Explosion(sporeCenter.x, sporeCenter.y));
                             }
                         }
@@ -1758,7 +1771,7 @@ function Building(pX, pY, pImage, pType) {
 
             if (this.health < 0) {
                 game.removeBuilding(this);
-                engine.sounds["explosion"].play();
+                engine.playSound("explosion");
                 game.explosions.push(new Explosion(this.x * game.tileSize, this.y * game.tileSize));
                 if (this == game.base) {
                     $('#lose').toggle();
@@ -2048,7 +2061,7 @@ function Shell(pX, pY, pImage, pTX, pTY) {
             this.remove = true;
 
             game.explosions.push(new Explosion(this.tx, this.ty));
-            engine.sounds["explosion"].play();
+            engine.playSound("explosion");
 
             for (var i = Math.floor(this.tx / game.tileSize) - 4; i < Math.floor(this.tx / game.tileSize) + 5; i++) {
                 for (var j = Math.floor(this.ty / game.tileSize) - 4; j < Math.floor(this.ty / game.tileSize) + 5; j++) {
@@ -2114,7 +2127,7 @@ function Spore(pX, pY, pImage, pTX, pTY) {
         if (this.x > this.tx - 2 && this.x < this.tx + 2 && this.y > this.ty - 2 && this.y < this.ty + 2) {
             // if the target is reached explode and remove
             this.remove = true;
-            engine.sounds["explosion"].play();
+            engine.playSound("explosion");
 
             for (var i = Math.floor(this.tx / game.tileSize) - 1; i < Math.floor(this.tx / game.tileSize) + 3; i++) {
                 for (var j = Math.floor(this.ty / game.tileSize) - 1; j < Math.floor(this.ty / game.tileSize) + 3; j++) {
@@ -2562,7 +2575,7 @@ function onClickGUI(evt) {
     for (var i = 0; i < game.ships.length; i++)
         game.ships[i].selected = false;
 
-    engine.sounds["click"].play();
+    engine.playSound("click");
     for (var i = 0; i < game.symbols.length; i++) {
         game.symbols[i].setActive();
     }
@@ -2595,7 +2608,7 @@ function onClick(evt) {
         var position = game.getTilePositionScrolled();
         if (game.canBePlaced(game.symbols[game.activeSymbol].size)) {
             game.addBuilding(position.x, position.y, game.symbols[game.activeSymbol].imageID, type, -1);
-            engine.sounds["click"].play();
+            engine.playSound("click");
         }
     }
 }
