@@ -64,8 +64,8 @@ engine = {
         this.ctxTiles = this.canvasTiles.getContext('2d');
         this.ctxGUI = this.canvasGUI.getContext('2d');
 
-        this.images = new Array();
-        this.sounds = new Array();
+        this.images = [];
+        this.sounds = [];
 
         // load sounds
         this.addSound("shot", "wav");
@@ -92,7 +92,7 @@ engine = {
         var loadedImages = 0;
         var numImages = this.imageSrcs.length - 1;
 
-        for(var i = 0; i < this.imageSrcs.length; i++) {
+        for (var i = 0; i < this.imageSrcs.length; i++) {
             this.images[this.imageSrcs[i]] = new Image();
             this.images[this.imageSrcs[i]].onload = function() {
                 if(++loadedImages >= numImages) {
@@ -207,17 +207,17 @@ var game = {
     sporetowers: null,
     packetQueue: null,
     init: function () {
-        this.buildings = new Array();
-        this.packets = new Array();
-        this.shells = new Array();
-        this.spores = new Array();
-        this.ships = new Array();
-        this.smokes = new Array();
-        this.explosions = new Array();
-        this.symbols = new Array();
-        this.emitters = new Array();
-        this.sporetowers = new Array();
-        this.packetQueue = new Array();
+        this.buildings = [];
+        this.packets = [];
+        this.shells = [];
+        this.spores = [];
+        this.ships = [];
+        this.smokes = [];
+        this.explosions = [];
+        this.symbols = [];
+        this.emitters = [];
+        this.sporetowers = [];
+        this.packetQueue = [];
         this.reset();
         this.setupUI();
     },
@@ -531,7 +531,7 @@ var game = {
 
                     // find closest random target
                     for (var r = 0; r < this.buildings[t].weaponRadius + 1; r++) {
-                        var targets = new Array();
+                        var targets = [];
                         var radius = r * this.tileSize;
                         for (var i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
                             for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
