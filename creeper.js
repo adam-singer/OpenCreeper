@@ -271,6 +271,52 @@ var game = {
     getTilePositionScrolled: function () {
         return new Vector(Math.floor((engine.mouse.x - 512) / this.tileSize) + this.scroll.x, Math.floor((engine.mouse.y  - 384) / this.tileSize) + this.scroll.y);
     },
+    pause: function() {
+        this.paused = true;
+    },
+    unpause: function() {
+        this.paused = false;
+    },
+    stop: function() {
+        clearInterval(this.running);
+    },
+    run: function() {
+        this.running = setInterval(update, 1000 / this.speed / engine.FPS);
+        engine.animationRequest = requestAnimationFrame(draw);
+    },
+    restart: function() {
+        this.stop();
+        this.reset();
+        this.run();
+    },
+    faster: function() {
+        if (this.speed < 2) {
+            this.speed *= 2;
+            this.stop();
+            this.run();
+            this.updateSpeedElement();
+        }
+    },
+    slower: function() {
+        if (this.speed > 1) {
+            this.speed /= 2;
+            this.stop();
+            this.run();
+            this.updateSpeedElement();
+        }
+    },
+    /*zoomIn: function() {
+        if (this.zoom < 1) {
+            this.zoom *= 2;
+            this.drawTerrain();
+        }
+    },
+    zoomOut: function() {
+        if (this.zoom > .5) {
+            this.zoom /= 2;
+            this.drawTerrain();
+        }
+    },*/
     createWorld: function () {
         this.world.tiles = new Array(this.world.size.x);
         for (var i = 0; i < this.world.size.x; i++) {
@@ -290,7 +336,7 @@ var game = {
             }
         }
 
-        var building = new Building(45, 30, "base", "Base", 0);
+        var building = new Building(45, 30, "base", "Base");
         building.health = 40;
         building.maxHealth = 40;
         building.nodeRadius = 10;
@@ -373,7 +419,7 @@ var game = {
     removeBuilding: function (building) {
         this.explosions.push(new Explosion(building.x * game.tileSize, building.y * game.tileSize));
         if (building.type == "Base") {
-            stop();
+            this.stop();
         }
         if (building.type == "Collector") {
             this.updateCollection(building, "remove");
@@ -401,6 +447,18 @@ var game = {
 
         var index = this.buildings.indexOf(building);
         this.buildings.splice(index, 1);
+    },
+    activateBuilding: function() {
+        for (var i = 0; i < this.buildings.length; i++) {
+            if (this.buildings[i].selected)
+                this.buildings[i].active = true;
+        }
+    },
+    deactivateBuilding: function() {
+        for (var i = 0; i < this.buildings.length; i++) {
+            if (this.buildings[i].selected)
+                this.buildings[i].active = false;
+        }
     },
     updateEnergyElement: function () {
         $('#energy').html("Energy: " + this.currentEnergy + "/" + this.maxEnergy);
@@ -784,7 +842,7 @@ var game = {
      * Used for A*, finds all neighbouring nodes of a given node.
      */
     getNeighbours: function (node, target) {
-        var neighbours = [];
+        var neighbours = [], centerI, centerNode;
         //if (node.built) {
         for (var i = 0; i < this.buildings.length; i++) {
             // the neighbour must not be moving
@@ -920,7 +978,7 @@ var game = {
             //$('#other').append("-- total routes: " + routes.length + "<br/><br/>");
 
             // find routes that end at the same node, remove those with the longer distance travelled
-            var remove = [];
+            //var remove = [];
             for (var i = 0; i < routes.length; i++) {
                 for (var j = 0; j < routes.length; j++) {
                     if (i != j) {
@@ -1039,10 +1097,7 @@ var game = {
                 }
             }
         }
-        if (count > 0)
-            return false;
-        else
-            return true;
+        return (count <= 0);
     },
     updatePacketQueue: function() {
         for (var i = 0; i < this.packetQueue.length; i++) {
@@ -1421,7 +1476,7 @@ var game = {
         engine.canvas["gui"].context.fillRect(555, 110 - this.world.tiles[Math.floor(engine.mouse.x / this.tileSize)][Math.floor(engine.mouse.y / this.tileSize)].height * 10, 25, -this.world.tiles[Math.floor(engine.mouse.x / this.tileSize)][Math.floor(engine.mouse.y / this.tileSize)].creep / 25 * 10);
         engine.canvas["gui"].context.fillStyle = "rgba(255, 255, 255, 1)";
         for (var i = 1; i < 11; i++) {
-            engine.canvas["gui"].context.fillText(i, 550, 120 - i * 10);
+            engine.canvas["gui"].context.fillText(i.toString(), 550, 120 - i * 10);
             engine.canvas["gui"].context.beginPath();
             engine.canvas["gui"].context.moveTo(555, 120 - i * 10);
             engine.canvas["gui"].context.lineTo(580, 120 - i * 10);
@@ -1627,9 +1682,7 @@ function UISymbol(pX, pY, pImage, pKey, pSize, pPackets) {
     };
     this.checkHovered = function () {
         this.hovered = false;
-        if (engine.mouseGUI.x > this.x && engine.mouseGUI.x < this.x + this.width && engine.mouseGUI.y > this.y && engine.mouseGUI.y < this.y + this.height) {
-            this.hovered = true;
-        }
+        this.hovered = (engine.mouseGUI.x > this.x && engine.mouseGUI.x < this.x + this.width && engine.mouseGUI.y > this.y && engine.mouseGUI.y < this.y + this.height);
     };
     this.setActive = function () {
         this.active = false;
@@ -1741,7 +1794,7 @@ function Building(pX, pY, pImage, pType) {
                 game.explosions.push(new Explosion(this.x * game.tileSize, this.y * game.tileSize));
                 if (this == game.base) {
                     $('#lose').toggle();
-                    stop();
+                    game.stop();
                 }
             }
         }
@@ -2398,36 +2451,14 @@ function init() {
         //engine.sounds["music"].loop = true;
         //engine.sounds["music"].play();
 
-        stop();
-        run();
+        game.stop();
+        game.run();
     });
 }
 
-function stop() {
-    clearInterval(game.running);
-}
-
-function run() {
-    game.running = setInterval(gameloop, 1000 / game.speed / engine.FPS);
-    engine.animationRequest = requestAnimationFrame(draw);
-}
-
-function faster() {
-    if (game.speed < 2) {
-        game.speed *= 2;
-        stop();
-        run();
-        game.updateSpeedElement();
-    }
-}
-
-function slower() {
-    if (game.speed > 1) {
-        game.speed /= 2;
-        stop();
-        run();
-        game.updateSpeedElement();
-    }
+function update() {
+    engine.update();
+    game.update();
 }
 
 function onMouseMove(evt) {
@@ -2442,7 +2473,7 @@ function onMouseMoveGUI(evt) {
     }
 }
 
-function keyDown(evt) {
+function onKeyDown(evt) {
     // select instruction with keypress
     var key = game.keyMap["k" + evt.keyCode];
     for (var i = 0; i < game.symbols.length; i++) {
@@ -2466,9 +2497,9 @@ function keyDown(evt) {
     // pause/unpause
     if (evt.keyCode == 80) {
         if (game.paused)
-            unpauseGame();
+            game.unpause();
         else
-            pauseGame();
+            game.pause();
     }
 
     // ESC - deselect all
@@ -2611,7 +2642,7 @@ function onDoubleClick(evt) {
         }
 }
 
-function rightClick() {
+function onRightClick() {
     // unselect all currently selected buildings
     for (var i = 0; i < game.buildings.length; i++) {
         game.buildings[i].selected = false;
@@ -2653,53 +2684,6 @@ function onMouseUp() {
             game.ships[i].ty = position.y * game.tileSize;
         }
     }
-}
-
-function deactivateBuilding() {
-    for (var i = 0; i < game.buildings.length; i++) {
-        if (game.buildings[i].selected)
-            game.buildings[i].active = false;
-    }
-}
-
-function activateBuilding() {
-    for (var i = 0; i < game.buildings.length; i++) {
-        if (game.buildings[i].selected)
-            game.buildings[i].active = true;
-    }
-}
-
-function pauseGame() {
-    game.paused = true;
-}
-
-function unpauseGame() {
-    game.paused = false;
-}
-
-/*function zoomIn() {
-    if (game.zoom < 1) {
-        game.zoom *= 2;
-        game.drawTerrain();
-    }
-}
-
-function zoomOut() {
-    if (game.zoom > .5) {
-        game.zoom /= 2;
-        game.drawTerrain();
-    }
-}*/
-
-function restart() {
-    stop();
-    game.reset();
-    run();
-}
-
-function gameloop() {
-    engine.update();
-    game.update();
 }
 
 /*function request() {

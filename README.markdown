@@ -7,26 +7,11 @@ Of course you can download everything and play locally and offline.
 
 ## About
 
-Open Creeper is an open source JavaScript game heavily inspired by Creeper World 3 by Knuckle Cracker which is currently in development.
+Open Creeper is an open source JavaScript game heavily inspired by Creeper World 3 by Knuckle Cracker.
 I wrote this to improve my skills with JavaScript and it may also serve as an educational resource for others.
 That being said it is not a full game and can not be won as no winning conditions are implemented.
-Also a lot of gameplay features that you will find in CW3 are not implemented, like:
 
-- Terraforming
-- Orbitals
-- Nullifier
-- Disarm building
-- Multiple command nodes
-- Guppy
-- AntiCreeper
-- Saving/Loading
-- Group movement
-- Storyline
-- Achievements
-- Statistics
-- Upgrades
-- Titans
-- Zoom
+If you like this kind of games I suggest you buy and play the original Creeper World games.
 
 ## Development
 
