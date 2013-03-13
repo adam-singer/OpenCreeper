@@ -271,9 +271,11 @@ var game = {
         return new Vector(Math.floor((engine.mouse.x - 512) / this.tileSize) + this.scroll.x, Math.floor((engine.mouse.y  - 384) / this.tileSize) + this.scroll.y);
     },
     pause: function() {
+        $('#paused').show();
         this.paused = true;
     },
     unpause: function() {
+        $('#paused').hide();
         this.paused = false;
     },
     stop: function() {
