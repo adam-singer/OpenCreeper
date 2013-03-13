@@ -6,8 +6,7 @@
  * Dual licensed under the MIT or GPL licenses.
  */
 
-var engine;
-engine = {
+var engine = {
     FPS: 60,
     delta: 1000 / 60,
     fps_delta: null,
@@ -473,6 +472,7 @@ var game = {
         this.activeSymbol = -1;
         for (var i = 0; i < this.symbols.length; i++)
             this.symbols[i].active = false;
+        $("#mainCanvas").css('cursor', 'default');
     },
     setupUI: function () {
         this.symbols.push(new UISymbol(0 * 81, 0, "cannon", "Q", 3, 25));
@@ -2484,6 +2484,10 @@ function onKeyDown(evt) {
         }
     }
 
+    if (game.activeSymbol != -1) {
+        $("#mainCanvas").css('cursor', 'none');
+    }
+
     // delete building
     if (evt.keyCode == 46) {
         for (var i = 0; i < game.buildings.length; i++) {
@@ -2593,6 +2597,10 @@ function onClickGUI(evt) {
     for (var i = 0; i < game.symbols.length; i++) {
         game.symbols[i].setActive();
     }
+
+    if (game.activeSymbol != -1) {
+        $("#mainCanvas").css('cursor', 'none');
+    }
 }
 
 function onClick(evt) {
@@ -2621,7 +2629,7 @@ function onClick(evt) {
         var type = game.symbols[game.activeSymbol].imageID.substring(0, 1).toUpperCase() + game.symbols[game.activeSymbol].imageID.substring(1);
         var position = game.getTilePositionScrolled();
         if (game.canBePlaced(game.symbols[game.activeSymbol].size)) {
-            game.addBuilding(position.x, position.y, game.symbols[game.activeSymbol].imageID, type, -1);
+            game.addBuilding(position.x, position.y, game.symbols[game.activeSymbol].imageID, type);
             engine.playSound("click");
         }
     }
