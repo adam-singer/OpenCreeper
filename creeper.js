@@ -1,5 +1,5 @@
 ﻿/*!
- * Open Creeper v1.0.1
+ * Open Creeper v1.0.2
  * http://alexanderzeillinger.github.com/OpenCreeper/
  *
  * Copyright 2012, Alexander Zeillinger
@@ -847,15 +847,12 @@ var game = {
         var neighbours = [], centerI, centerNode;
         //if (node.built) {
         for (var i = 0; i < this.buildings.length; i++) {
-            //console.log("Node: " + node.x + "/" + node.y + " - Loop Building: " + this.buildings[i].x + "/" + this.buildings[i].y);
-            // the neighbour must not be moving
             if (this.buildings[i].x == node.x && this.buildings[i].y == node.y) {
-                //console.log("is me");
+                // console.log("is me");
             } else {
                 // if the node is not the target AND built it is a valid neighbour
-                //console.log("not me");
-                if (!this.buildings[i].moving) {
-                    //console.log("not moving");
+                // also the neighbour must not be moving
+                if (!this.buildings[i].moving && this.buildings[i].type != "Base") {
                      if (this.buildings[i] != target) {
                           if (this.buildings[i].built) {
                               centerI = this.buildings[i].getCenter();
@@ -875,7 +872,6 @@ var game = {
                      }
                      // if it is the target it is a valid neighbour
                      else {
-                         //console.log("neighbour is target");
                          centerI = this.buildings[i].getCenter();
                          centerNode = node.getCenter();
                          var dx = centerI.x - centerNode.x;
@@ -933,15 +929,19 @@ var game = {
 
             If there is no route the packet will be removed
          */
-        while (routes.length > 0 && routes[0].nodes[routes[0].nodes.length - 1] != packet.target) {
+        while (routes.length > 0) {
 
-            //console.log("routes length: " + routes.length);
+            if (routes[0].nodes[routes[0].nodes.length - 1] == packet.target) {
+                //console.log("6) target node found");
+                break;
+            }
+
             // remove the first route from the list of routes
             var oldRoute = routes.shift();
 
             // get the last node of the route
             var lastNode = oldRoute.nodes[oldRoute.nodes.length - 1];
-            //console.log("1) currently at: " + lastNode.type + ", length: " + oldRoute.nodes.length);
+            //console.log("1) currently at: " + lastNode.type + ": " + lastNode.x + "/" + lastNode.y + ", route length: " + oldRoute.nodes.length);
 
             // find all neighbours of this node
             var neighbours = this.getNeighbours(lastNode, packet.target);
@@ -993,13 +993,13 @@ var game = {
                 for (var j = 0; j < routes.length; j++) {
                     if (i != j) {
                         if (routes[i].nodes[routes[i].nodes.length - 1] == routes[j].nodes[routes[j].nodes.length - 1]) {
-                            //$('#other').append("5) found duplicate route to " + routes[i].nodes[routes[i].nodes.length - 1].type + ", removing longer<br/>");
+                            //console.log("5) found duplicate route to " + routes[i].nodes[routes[i].nodes.length - 1].type + ", removing longer");
                             if (routes[i].distanceTravelled < routes[j].distanceTravelled) {
-                                routes.splice(routes.indexOf(routes[j]));
+                                routes.splice(routes.indexOf(routes[j]), 1);
                                 //remove.push(routes[j]);
                             }
                             else if (routes[i].distanceTravelled > routes[j].distanceTravelled) {
-                                routes.splice(routes.indexOf(routes[i]));
+                                routes.splice(routes.indexOf(routes[i]), 1);
                                 //remove.push(routes[i]);
                             }
 
@@ -2705,7 +2705,7 @@ function onMouseUp() {
     }
 }
 
-function request() {
+/*function request() {
     var building = null;
     for (var i = 0; i < game.buildings.length; i++)
         if (game.buildings[i].selected)
@@ -2723,7 +2723,7 @@ function request() {
         game.packetQueue.push(packet);
     }
     console.log("--> end finding initial route");
-}
+}*/
 
 /**
  * Some helper functions below
