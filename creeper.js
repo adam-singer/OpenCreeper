@@ -39,7 +39,7 @@ var engine = {
         this.canvas["main"] = new Canvas($("#mainCanvas"));
 
         // buffer
-        engine.canvas["buffer"] = new Canvas($("<canvas width='1024' height='768'>"));
+        engine.canvas["buffer"] = new Canvas($("<canvas width='1280' height='720'>"));
 
         // tiles: at the bottom, contains the terrain and is only drawn once
         engine.canvas["tiles"] = new Canvas($("#tilesCanvas"));
@@ -99,7 +99,7 @@ var engine = {
         if (evt.pageX > this.canvas["main"].left && evt.pageX < this.canvas["main"].right && evt.pageY > this.canvas["main"].top && evt.pageY < this.canvas["main"].bottom) {
             this.mouse.x = evt.pageX - this.canvas["main"].left;
             this.mouse.y = evt.pageY - this.canvas["main"].top;
-            $("#mouse").html("Mouse: " + this.mouse.x + "/" + this.mouse.y + " - " + (Math.floor((this.mouse.x - 512) / game.tileSize) + game.scroll.x) + "/" + (Math.floor((this.mouse.y  - 384) / game.tileSize) + game.scroll.y));
+            $("#mouse").html("Mouse: " + this.mouse.x + "/" + this.mouse.y + " - " + (Math.floor((this.mouse.x - 640) / game.tileSize) + game.scroll.x) + "/" + (Math.floor((this.mouse.y  - 368) / game.tileSize) + game.scroll.y));
         }
     },
     updateMouseGUI: function (evt) {
@@ -232,8 +232,8 @@ var game = {
     world: {
         tiles: null,
         size: {
-            x: 64,
-            y: 64
+            x: 128,
+            y: 128
         }
     },
     alert: {
@@ -242,8 +242,8 @@ var game = {
         message: null
     },
     scroll: {
-        x: 32,
-        y: 24
+        x: 40,
+        y: 23
     },
     keyMap: {"k81": "Q",
         "k87": "W",
@@ -268,7 +268,7 @@ var game = {
         return new Vector(Math.floor(engine.mouse.x / this.tileSize), Math.floor(engine.mouse.y / this.tileSize));
     },
     getTilePositionScrolled: function () {
-        return new Vector(Math.floor((engine.mouse.x - 512) / this.tileSize) + this.scroll.x, Math.floor((engine.mouse.y  - 384) / this.tileSize) + this.scroll.y);
+        return new Vector(Math.floor((engine.mouse.x - 640) / this.tileSize) + this.scroll.x, Math.floor((engine.mouse.y  - 368) / this.tileSize) + this.scroll.y);
     },
     pause: function() {
         $('#paused').show();
@@ -498,8 +498,8 @@ var game = {
         engine.canvas["tiles"].context.strokeStyle = "rgba(0,0,0,0.125)";
         engine.canvas["tiles"].context.lineWidth = 1;
 
-        for (var i = -32; i < 32; i++) {
-            for (var j = -24; j < 24; j++) {
+        for (var i = -40; i < 40; i++) {
+            for (var j = -23; j < 22; j++) {
 
                 var iS = i + this.scroll.x;
                 var jS = j + this.scroll.y;
@@ -529,11 +529,11 @@ var game = {
                             right = 1;
 
                         if (height > 0)
-                            engine.canvas["tiles"].context.drawImage(engine.images["terrain"], 15 * this.tileSize, (this.world.tiles[iS][jS].height - 1) * this.tileSize, this.tileSize, this.tileSize, 512 + i * this.tileSize, 384 + j * this.tileSize, this.tileSize, this.tileSize);
+                            engine.canvas["tiles"].context.drawImage(engine.images["terrain"], 15 * this.tileSize, (this.world.tiles[iS][jS].height - 1) * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
                         // save index for later use
                         this.world.tiles[iS][jS].index = index;
-                        engine.canvas["tiles"].context.drawImage(engine.images["terrain"], index * this.tileSize, this.world.tiles[iS][jS].height * this.tileSize, this.tileSize, this.tileSize, 512 + i * this.tileSize, 384 + j * this.tileSize, this.tileSize, this.tileSize);
+                        engine.canvas["tiles"].context.drawImage(engine.images["terrain"], index * this.tileSize, this.world.tiles[iS][jS].height * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
 
                         // grid (debug)
                         //engine.canvas["tiles"].context.strokeRect(i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
@@ -1253,8 +1253,8 @@ var game = {
         engine.canvas["buffer"].context.save();
         engine.canvas["buffer"].context.globalAlpha = .5;
 
-        for (var i = -32; i < 32; i++) {
-            for (var j = -24; j < 24; j++) {
+        for (var i = -40; i < 40; i++) {
+            for (var j = -23; j < 22; j++) {
 
                 var iS = i + this.scroll.x;
                 var jS = j + this.scroll.y;
@@ -1281,7 +1281,7 @@ var game = {
                             right = this.world.tiles[iS + 1][jS].collection;
 
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
-                        engine.canvas["buffer"].context.drawImage(engine.images["terrain"], index * this.tileSize, 10 * this.tileSize, this.tileSize, this.tileSize, 512 + i * this.tileSize, 384 + j * this.tileSize, this.tileSize, this.tileSize);
+                        engine.canvas["buffer"].context.drawImage(engine.images["terrain"], index * this.tileSize, 10 * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
                     }
                 }
             }
@@ -1298,8 +1298,8 @@ var game = {
         engine.canvas["buffer"].context.lineWidth = 1;
         engine.canvas["buffer"].context.fillStyle = '#fff';
 
-        for (var i = -32; i < 32; i++) {
-            for (var j = -24; j < 24; j++) {
+        for (var i = -40; i < 40; i++) {
+            for (var j = -23; j < 22; j++) {
 
                 var iS = i + this.scroll.x;
                 var jS = j + this.scroll.y;
@@ -1332,7 +1332,7 @@ var game = {
                         //}
 
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
-                        engine.canvas["buffer"].context.drawImage(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, 512 + i * this.tileSize, 384 + j * this.tileSize, this.tileSize, this.tileSize);
+                        engine.canvas["buffer"].context.drawImage(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
                     }
 
                     // creep value
@@ -1515,11 +1515,11 @@ var game = {
         // draw node connections
         for (var i = 0; i < this.buildings.length; i++) {
             var centerI = this.buildings[i].getCenter();
-            var centerID = new Vector(512 + centerI.x - game.scroll.x * game.tileSize, 384 + centerI.y - game.scroll.y * game.tileSize);
+            var centerID = new Vector(640 + centerI.x - game.scroll.x * game.tileSize, 368 + centerI.y - game.scroll.y * game.tileSize);
             for (var j = 0; j < this.buildings.length; j++) {
                 if (i != j) {
                     var centerJ = this.buildings[j].getCenter();
-                    var centerJD = new Vector(512 + centerJ.x - game.scroll.x * game.tileSize, 384 + centerJ.y - game.scroll.y * game.tileSize);
+                    var centerJD = new Vector(640 + centerJ.x - game.scroll.x * game.tileSize, 368 + centerJ.y - game.scroll.y * game.tileSize);
                     var allowedDistance = 10 * this.tileSize;
                     if (this.buildings[i].type == "Relay" && this.buildings[j].type == "Relay") {
                         allowedDistance = 20 * this.tileSize;
@@ -1730,7 +1730,7 @@ function Building(pX, pY, pImage, pType) {
     this.canMove = false;
     this.canShoot = false;
     this.updateHoverState = function () {
-        if (engine.mouse.x > 512 + (this.x - game.scroll.x) * game.tileSize && engine.mouse.x < 512 + (this.x - game.scroll.x) * game.tileSize + game.tileSize * this.size - 1 && engine.mouse.y > 384 + (this.y - game.scroll.y) * game.tileSize && engine.mouse.y < 384 + (this.y - game.scroll.y) * game.tileSize + game.tileSize * this.size - 1) {
+        if (engine.mouse.x > 640 + (this.x - game.scroll.x) * game.tileSize && engine.mouse.x < 640 + (this.x - game.scroll.x) * game.tileSize + game.tileSize * this.size - 1 && engine.mouse.y > 368 + (this.y - game.scroll.y) * game.tileSize && engine.mouse.y < 368 + (this.y - game.scroll.y) * game.tileSize + game.tileSize * this.size - 1) {
             this.hovered = true;
             return true;
         }
@@ -1743,7 +1743,7 @@ function Building(pX, pY, pImage, pType) {
         if (this.hovered || this.selected) {
             engine.canvas["buffer"].context.lineWidth = 1;
             engine.canvas["buffer"].context.strokeStyle = "#000";
-            engine.canvas["buffer"].context.strokeRect(512 + (this.x - game.scroll.x) * game.tileSize, 384 + (this.y - game.scroll.y) * game.tileSize, game.tileSize * this.size, game.tileSize * this.size);
+            engine.canvas["buffer"].context.strokeRect(640 + (this.x - game.scroll.x) * game.tileSize, 368 + (this.y - game.scroll.y) * game.tileSize, game.tileSize * this.size, game.tileSize * this.size);
         }
     };
     this.move = function () {
@@ -1774,8 +1774,8 @@ function Building(pX, pY, pImage, pType) {
     };
     this.getDrawCenter = function () {
         var center = this.getCenter();
-        var x = 512 + center.x - game.scroll.x * game.tileSize;
-        var y = 384 + center.y - game.scroll.y * game.tileSize;
+        var x = 640 + center.x - game.scroll.x * game.tileSize;
+        var y = 368 + center.y - game.scroll.y * game.tileSize;
         return new Vector(x, y);
     };
     this.takeDamage = function () {
@@ -1893,17 +1893,17 @@ function Building(pX, pY, pImage, pType) {
         if (!this.built) {
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .5;
-            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], 512 + (this.x - game.scroll.x) * game.tileSize, 384 + (this.y - game.scroll.y) * game.tileSize, engine.images[this.imageID].width, engine.images[this.imageID].height);
+            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], 640 + (this.x - game.scroll.x) * game.tileSize, 368 + (this.y - game.scroll.y) * game.tileSize, engine.images[this.imageID].width, engine.images[this.imageID].height);
             if (this.type == "Cannon") {
-                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], 512 + (this.x - game.scroll.x) * game.tileSize, 384 + (this.y - game.scroll.y) * game.tileSize, engine.images[this.imageID].width, engine.images[this.imageID].height);
+                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], 640 + (this.x - game.scroll.x) * game.tileSize, 368 + (this.y - game.scroll.y) * game.tileSize, engine.images[this.imageID].width, engine.images[this.imageID].height);
             }
             engine.canvas["buffer"].context.restore();
         }
         else {
-            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], 512 + (this.x - game.scroll.x) * game.tileSize, 384 + (this.y - game.scroll.y) * game.tileSize, engine.images[this.imageID].width, engine.images[this.imageID].height);
+            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], 640 + (this.x - game.scroll.x) * game.tileSize, 368 + (this.y - game.scroll.y) * game.tileSize, engine.images[this.imageID].width, engine.images[this.imageID].height);
             if (this.type == "Cannon") {
                 engine.canvas["buffer"].context.save();
-                engine.canvas["buffer"].context.translate(512 + (this.x - game.scroll.x) * game.tileSize + 24, 384 + (this.y - game.scroll.y) * game.tileSize + 24);
+                engine.canvas["buffer"].context.translate(640 + (this.x - game.scroll.x) * game.tileSize + 24, 368 + (this.y - game.scroll.y) * game.tileSize + 24);
                 engine.canvas["buffer"].context.rotate(this.targetAngle);
                 engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], -24, -24);
                 engine.canvas["buffer"].context.restore();
@@ -1916,17 +1916,17 @@ function Building(pX, pY, pImage, pType) {
         // draw ammo bar
         if (this.canShoot) {
             engine.canvas["buffer"].context.fillStyle = '#000';
-            engine.canvas["buffer"].context.fillRect(512 + (this.x - game.scroll.x) * game.tileSize + 2, 384 + (this.y - game.scroll.y) * game.tileSize, 44, 4);
+            engine.canvas["buffer"].context.fillRect(640 + (this.x - game.scroll.x) * game.tileSize + 2, 368 + (this.y - game.scroll.y) * game.tileSize, 44, 4);
             engine.canvas["buffer"].context.fillStyle = '#f00';
-            engine.canvas["buffer"].context.fillRect(512 + (this.x - game.scroll.x) * game.tileSize + 3, 384 + (this.y - game.scroll.y) * game.tileSize + 1, (42 / this.maxAmmo) * this.ammo, 2);
+            engine.canvas["buffer"].context.fillRect(640 + (this.x - game.scroll.x) * game.tileSize + 3, 368 + (this.y - game.scroll.y) * game.tileSize + 1, (42 / this.maxAmmo) * this.ammo, 2);
         }
 
         // draw health bar (only if health is below maxHealth)
         if (this.health < this.maxHealth) {
             engine.canvas["buffer"].context.fillStyle = '#000';
-            engine.canvas["buffer"].context.fillRect(512 + (this.x - game.scroll.x) * game.tileSize + 2, 384 + (this.y - game.scroll.y) * game.tileSize + game.tileSize * this.size - 4, game.tileSize * this.size - 4, 4);
+            engine.canvas["buffer"].context.fillRect(640 + (this.x - game.scroll.x) * game.tileSize + 2, 368 + (this.y - game.scroll.y) * game.tileSize + game.tileSize * this.size - 4, game.tileSize * this.size - 4, 4);
             engine.canvas["buffer"].context.fillStyle = '#0f0';
-            engine.canvas["buffer"].context.fillRect(512 + (this.x - game.scroll.x) * game.tileSize + 3, 384 + (this.y - game.scroll.y) * game.tileSize + game.tileSize * this.size - 3, ((game.tileSize * this.size - 6) / this.maxHealth) * this.health, 2);
+            engine.canvas["buffer"].context.fillRect(640 + (this.x - game.scroll.x) * game.tileSize + 3, 368 + (this.y - game.scroll.y) * game.tileSize + game.tileSize * this.size - 3, ((game.tileSize * this.size - 6) / this.maxHealth) * this.health, 2);
         }
 
         // draw shots
@@ -2044,7 +2044,7 @@ function Packet(pX, pY, pImage, pType) {
         this.speed.y = (dy / distance) * game.packetSpeed;
     };
     this.draw = function () {
-        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], 512 + this.x - game.scroll.x * game.tileSize - 8, 384 + this.y - game.scroll.y * game.tileSize - 8);
+        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], 640 + this.x - game.scroll.x * game.tileSize - 8, 368 + this.y - game.scroll.y * game.tileSize - 8);
     }
 }
 Packet.prototype = new GameObject;
@@ -2102,7 +2102,7 @@ function Shell(pX, pY, pImage, pTX, pTY) {
     };
     this.draw = function () {
         engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.translate(512 + this.x - game.scroll.x * game.tileSize + 8, 384 + this.y - game.scroll.y * game.tileSize + 8);
+        engine.canvas["buffer"].context.translate(640 + this.x - game.scroll.x * game.tileSize + 8, 368 + this.y - game.scroll.y * game.tileSize + 8);
         engine.canvas["buffer"].context.rotate(this.rotation * (Math.PI / 180));
         engine.canvas["buffer"].context.drawImage(engine.images["shell"], -8, -8);
         engine.canvas["buffer"].context.restore();
@@ -2172,7 +2172,7 @@ function Spore(pX, pY, pImage, pTX, pTY) {
     };
     this.draw = function () {
         engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.translate(512 + this.x - game.scroll.x * game.tileSize + 16, 384 + this.y - game.scroll.y * game.tileSize + 16);
+        engine.canvas["buffer"].context.translate(640 + this.x - game.scroll.x * game.tileSize + 16, 368 + this.y - game.scroll.y * game.tileSize + 16);
         engine.canvas["buffer"].context.rotate(this.rotation * (Math.PI / 180));
         engine.canvas["buffer"].context.drawImage(engine.images["spore"], -16, -16);
         engine.canvas["buffer"].context.restore();
@@ -2311,12 +2311,12 @@ function Ship(pX, pY, pImage, pType, pHome) {
         if (this.status == 1 && this.selected) {
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .5;
-            engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], 512 + this.tx - game.scroll.x * game.tileSize - game.tileSize, 384 + this.ty - game.scroll.y * game.tileSize - game.tileSize);
+            engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], 640 + this.tx - game.scroll.x * game.tileSize - game.tileSize, 368 + this.ty - game.scroll.y * game.tileSize - game.tileSize);
             engine.canvas["buffer"].context.restore();
         }
 
         engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.translate(512 + this.x - game.scroll.x * game.tileSize + 24, 384 + this.y - game.scroll.y * game.tileSize + 24);
+        engine.canvas["buffer"].context.translate(640 + this.x - game.scroll.x * game.tileSize + 24, 368 + this.y - game.scroll.y * game.tileSize + 24);
         engine.canvas["buffer"].context.rotate((this.angle + 90) * (Math.PI / 180));
         engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -24, -24);
         engine.canvas["buffer"].context.restore();
@@ -2334,7 +2334,7 @@ function Emitter(pX, pY, pS) {
     this.position = new Vector(pX, pY);
     this.strength = pS;
     this.draw = function () {
-        engine.canvas["buffer"].context.drawImage(engine.images["emitter"], 512 + (this.position.x - game.scroll.x) * game.tileSize, 384 + (this.position.y - game.scroll.y) * game.tileSize, 48, 48);
+        engine.canvas["buffer"].context.drawImage(engine.images["emitter"], 640 + (this.position.x - game.scroll.x) * game.tileSize, 368 + (this.position.y - game.scroll.y) * game.tileSize, 48, 48);
     };
     this.spawn = function () {
         game.world.tiles[this.position.x + 1][this.position.y + 1].creep = this.strength;
@@ -2350,7 +2350,7 @@ function Sporetower(pX, pY) {
     this.position = new Vector(pX, pY);
     this.health = 100;
     this.draw = function () {
-        engine.canvas["buffer"].context.drawImage(engine.images["sporetower"], 512 + (this.position.x - game.scroll.x) * game.tileSize, 384 + (this.position.y - game.scroll.y) * game.tileSize, 48, 48);
+        engine.canvas["buffer"].context.drawImage(engine.images["sporetower"], 640 + (this.position.x - game.scroll.x) * game.tileSize, 368 + (this.position.y - game.scroll.y) * game.tileSize, 48, 48);
     };
     this.spawn = function () {
         var target = game.buildings[Math.floor(Math.random() * game.buildings.length)];
@@ -2373,7 +2373,7 @@ function Smoke(pX, pY) {
     this.remove = false;
     this.frame = 0;
     this.draw = function () {
-        engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, 512 + this.x - game.scroll.x * game.tileSize - 24, 384 + this.y - game.scroll.y * game.tileSize - 24, 48, 48);
+        engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, 640 + this.x - game.scroll.x * game.tileSize - 24, 368 + this.y - game.scroll.y * game.tileSize - 24, 48, 48);
     };
 }
 
@@ -2390,7 +2390,7 @@ function Explosion(pX, pY) {
     this.remove = false;
     this.frame = 0;
     this.draw = function () {
-        engine.canvas["buffer"].context.drawImage(engine.images["explosion"], (this.frame % 8) * 64, Math.floor(this.frame / 8) * 64, 64, 64, 512 + this.x - game.scroll.x * game.tileSize - 32, 384 + this.y - game.scroll.y * game.tileSize - 32, 64, 64);
+        engine.canvas["buffer"].context.drawImage(engine.images["explosion"], (this.frame % 8) * 64, Math.floor(this.frame / 8) * 64, 64, 64, 640 + this.x - game.scroll.x * game.tileSize - 32, 368 + this.y - game.scroll.y * game.tileSize - 32, 64, 64);
     };
 }
 
@@ -2758,11 +2758,11 @@ function draw() {
     // draw node connections
     for (var i = 0; i < game.buildings.length; i++) {
         var centerI = game.buildings[i].getCenter();
-        var centerID = new Vector(512 + centerI.x - game.scroll.x * game.tileSize, 384 + centerI.y - game.scroll.y * game.tileSize);
+        var centerID = new Vector(640 + centerI.x - game.scroll.x * game.tileSize, 368 + centerI.y - game.scroll.y * game.tileSize);
         for (var j = 0; j < game.buildings.length; j++) {
             if (i != j) {
                 var centerJ = game.buildings[j].getCenter();
-                var centerJD = new Vector(512 + centerJ.x - game.scroll.x * game.tileSize, 384 + centerJ.y - game.scroll.y * game.tileSize);
+                var centerJD = new Vector(640 + centerJ.x - game.scroll.x * game.tileSize, 368 + centerJ.y - game.scroll.y * game.tileSize);
                 var allowedDistance = 10 * game.tileSize;
                 if (game.buildings[i].type == "Relay" && game.buildings[j].type == "Relay") {
                     allowedDistance = 20 * game.tileSize;

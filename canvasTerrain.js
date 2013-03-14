@@ -28,7 +28,7 @@ function create2DArray(d1, d2) {
 
 function generateTerrain() {
 	roughness = 1.5;
-	mapDimension = 64; // must be powers of 2
+	mapDimension = 128; // must be powers of 2
 	unitSize = 1;
 	mapType = 2; // 1 - 3		
 
