@@ -2138,7 +2138,7 @@ function Spore(pX, pY, pImage, pTX, pTY) {
         this.trailTimer++;
         if (this.trailTimer == 10) {
             this.trailTimer = 0;
-            game.smokes.push(new Smoke(this.x, this.y));
+            game.smokes.push(new Smoke(this.getCenter()));
         }
         this.rotation += 10;
         if (this.rotation > 359)
@@ -2367,13 +2367,13 @@ function Sporetower(pX, pY) {
  *
  * Smoke is created by weapon fire of Cannons, or exhaust trail of ships and spores.
  */
-function Smoke(pX, pY) {
-    this.x = pX;
-    this.y = pY;
+function Smoke(pVector) {
+    this.x = pVector.x;
+    this.y = pVector.y;
     this.remove = false;
     this.frame = 0;
     this.draw = function () {
-        engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, 640 + this.x - game.scroll.x * game.tileSize - 24, 368 + this.y - game.scroll.y * game.tileSize - 24, 48, 48);
+        engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, 640 + this.x - game.scroll.x * game.tileSize - 48, 368 + this.y - game.scroll.y * game.tileSize - 48, 48, 48);
     };
 }
 
