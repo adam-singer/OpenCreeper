@@ -847,41 +847,49 @@ var game = {
         var neighbours = [], centerI, centerNode;
         //if (node.built) {
         for (var i = 0; i < this.buildings.length; i++) {
+            //console.log("Node: " + node.x + "/" + node.y + " - Loop Building: " + this.buildings[i].x + "/" + this.buildings[i].y);
             // the neighbour must not be moving
-            if (this.buildings[i].x != node.x && this.buildings[i].y != node.y && !this.buildings[i].moving) {
+            if (this.buildings[i].x == node.x && this.buildings[i].y == node.y) {
+                //console.log("is me");
+            } else {
                 // if the node is not the target AND built it is a valid neighbour
-                if (this.buildings[i] != target) {
-                    if (this.buildings[i].built) {
-                        centerI = this.buildings[i].getCenter();
-                        centerNode = node.getCenter();
-                        var dx = centerI.x - centerNode.x;
-                        var dy = centerI.y - centerNode.y;
-                        var distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+                //console.log("not me");
+                if (!this.buildings[i].moving) {
+                    //console.log("not moving");
+                     if (this.buildings[i] != target) {
+                          if (this.buildings[i].built) {
+                              centerI = this.buildings[i].getCenter();
+                              centerNode = node.getCenter();
+                              var dx = centerI.x - centerNode.x;
+                              var dy = centerI.y - centerNode.y;
+                              var distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
 
-                        var allowedDistance = 10 * this.tileSize;
-                        if (node.type == "Relay" && this.buildings[i].type == "Relay") {
-                            allowedDistance = 20 * this.tileSize;
-                        }
-                        if (distance <= allowedDistance) {
-                            neighbours.push(this.buildings[i]);
-                        }
-                    }
-                }
-                // if it is the target it is a valid neighbour
-                else {
-                    centerI = this.buildings[i].getCenter();
-                    centerNode = node.getCenter();
-                    var dx = centerI.x - centerNode.x;
-                    var dy = centerI.y - centerNode.y;
-                    var distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+                              var allowedDistance = 10 * this.tileSize;
+                              if (node.type == "Relay" && this.buildings[i].type == "Relay") {
+                                  allowedDistance = 20 * this.tileSize;
+                              }
+                              if (distance <= allowedDistance) {
+                                  neighbours.push(this.buildings[i]);
+                              }
+                          }
+                     }
+                     // if it is the target it is a valid neighbour
+                     else {
+                         //console.log("neighbour is target");
+                         centerI = this.buildings[i].getCenter();
+                         centerNode = node.getCenter();
+                         var dx = centerI.x - centerNode.x;
+                         var dy = centerI.y - centerNode.y;
+                         var distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
 
-                    var allowedDistance = 10 * this.tileSize;
-                    if (node.type == "Relay" && this.buildings[i].type == "Relay") {
-                        allowedDistance = 20 * this.tileSize;
-                    }
-                    if (distance <= allowedDistance) {
-                        neighbours.push(this.buildings[i]);
-                    }
+                         var allowedDistance = 10 * this.tileSize;
+                         if (node.type == "Relay" && this.buildings[i].type == "Relay") {
+                             allowedDistance = 20 * this.tileSize;
+                         }
+                         if (distance <= allowedDistance) {
+                             neighbours.push(this.buildings[i]);
+                         }
+                     }
                 }
             }
         }
@@ -925,19 +933,19 @@ var game = {
 
             If there is no route the packet will be removed
          */
-        //$('#other').html("");
         while (routes.length > 0 && routes[0].nodes[routes[0].nodes.length - 1] != packet.target) {
 
+            //console.log("routes length: " + routes.length);
             // remove the first route from the list of routes
             var oldRoute = routes.shift();
 
             // get the last node of the route
             var lastNode = oldRoute.nodes[oldRoute.nodes.length - 1];
-            //$('#other').append("1) currently at: " + lastNode.type + ", length: " + oldRoute.nodes.length + "<br/>");
+            //console.log("1) currently at: " + lastNode.type + ", length: " + oldRoute.nodes.length);
 
             // find all neighbours of this node
             var neighbours = this.getNeighbours(lastNode, packet.target);
-            //$('#other').append("2) found neighbours: " + neighbours.length);
+            //console.log("2) neighbours found: " + neighbours.length);
 
             var newRoutes = 0;
             // extend the old route with each neighbour creating a new route each
@@ -976,8 +984,8 @@ var game = {
 
             }
 
-            //$('#other').append(", new routes: " + newRoutes + "<br/>");
-            //$('#other').append("-- total routes: " + routes.length + "<br/><br/>");
+            //console.log("3) new routes: " + newRoutes);
+            //console.log("4) total routes: " + routes.length);
 
             // find routes that end at the same node, remove those with the longer distance travelled
             //var remove = [];
@@ -1999,6 +2007,7 @@ function Packet(pX, pY, pImage, pType) {
         if (this.x > centerTarget.x - 2 && this.x < centerTarget.x + 2 && this.y > centerTarget.y - 2 && this.y < centerTarget.y + 2) {
             // if the final node was reached deliver and remove
             if (this.currentTarget == this.target) {
+                //console.log("target node reached!");
                 this.remove = true;
                 // deliver package
                 if (this.type == "Health") {
@@ -2696,16 +2705,25 @@ function onMouseUp() {
     }
 }
 
-/*function request() {
-    var building = game.buildings[7];
+function request() {
+    var building = null;
+    for (var i = 0; i < game.buildings.length; i++)
+        if (game.buildings[i].selected)
+            building = game.buildings[i];
+
     var center = game.base.getCenter();
     var packet = new Packet(center.x, center.y, "packet_health", "Health");
     packet.target = building;
     packet.currentTarget = game.base;
-    packet.currentTarget = game.findRoute(packet);
-    packet.calculateVector();
-    game.packets.push(packet);
-}*/
+    //packet.currentTarget = game.findRoute(packet);
+    //packet.calculateVector();
+    //game.packets.push(packet);
+    console.log("--> start finding initial route");
+    if (game.findRoute(packet) != null) {
+        game.packetQueue.push(packet);
+    }
+    console.log("--> end finding initial route");
+}
 
 /**
  * Some helper functions below
