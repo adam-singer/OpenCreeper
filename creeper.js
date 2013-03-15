@@ -565,7 +565,7 @@ var game = {
     },
     shoot: function () {
         for (var t = 0; t < this.buildings.length; t++) {
-            if (this.buildings[t].canShoot && this.buildings[t].active) {
+            if (this.buildings[t].canShoot && this.buildings[t].active && !this.buildings[t].moving) {
                 this.buildings[t].shooting = false;
                 this.buildings[t].shootTimer++;
                 var center = this.buildings[t].getCenter();
@@ -1083,6 +1083,8 @@ var game = {
             packet.calculateVector();
             this.packets.push(packet);
             this.updateEnergyElement();
+        } else {
+            packet.remove = true;
         }
     },
     /**
@@ -1168,7 +1170,7 @@ var game = {
 
         // request packets
         for (var i = 0; i < this.buildings.length; i++) {
-            if (this.buildings[i].active) {
+            if (this.buildings[i].active && !this.buildings[i].moving) {
                 this.buildings[i].requestTimer++;
                 // request health
                 if (this.buildings[i].type != "Base") {
@@ -2060,7 +2062,10 @@ function Packet(pX, pY, pImage, pType) {
             }
             else {
                 this.currentTarget = game.findRoute(this);
-                this.calculateVector();
+                if (this.currentTarget != null)
+                    this.calculateVector();
+                else
+                    this.remove = true;
             }
         }
     };
@@ -2800,28 +2805,30 @@ function draw() {
         var centerID = new Vector(640 + centerI.x - game.scroll.x * game.tileSize, 368 + centerI.y - game.scroll.y * game.tileSize);
         for (var j = 0; j < game.buildings.length; j++) {
             if (i != j) {
-                var centerJ = game.buildings[j].getCenter();
-                var centerJD = new Vector(640 + centerJ.x - game.scroll.x * game.tileSize, 368 + centerJ.y - game.scroll.y * game.tileSize);
-                var allowedDistance = 10 * game.tileSize;
-                if (game.buildings[i].type == "Relay" && game.buildings[j].type == "Relay") {
-                    allowedDistance = 20 * game.tileSize;
-                }
-                if (Math.pow(centerJD.x - centerID.x, 2) + Math.pow(centerJD.y - centerID.y, 2) < Math.pow(allowedDistance, 2)) {
-                    engine.canvas["buffer"].context.strokeStyle = '#000';
-                    engine.canvas["buffer"].context.lineWidth = 3;
-                    engine.canvas["buffer"].context.beginPath();
-                    engine.canvas["buffer"].context.moveTo(centerID.x, centerID.y);
-                    engine.canvas["buffer"].context.lineTo(centerJD.x, centerJD.y);
-                    engine.canvas["buffer"].context.stroke();
+                if (!game.buildings[i].moving && !game.buildings[j].moving) {
+                    var centerJ = game.buildings[j].getCenter();
+                    var centerJD = new Vector(640 + centerJ.x - game.scroll.x * game.tileSize, 368 + centerJ.y - game.scroll.y * game.tileSize);
+                    var allowedDistance = 10 * game.tileSize;
+                    if (game.buildings[i].type == "Relay" && game.buildings[j].type == "Relay") {
+                        allowedDistance = 20 * game.tileSize;
+                    }
+                    if (Math.pow(centerJD.x - centerID.x, 2) + Math.pow(centerJD.y - centerID.y, 2) < Math.pow(allowedDistance, 2)) {
+                        engine.canvas["buffer"].context.strokeStyle = '#000';
+                        engine.canvas["buffer"].context.lineWidth = 3;
+                        engine.canvas["buffer"].context.beginPath();
+                        engine.canvas["buffer"].context.moveTo(centerID.x, centerID.y);
+                        engine.canvas["buffer"].context.lineTo(centerJD.x, centerJD.y);
+                        engine.canvas["buffer"].context.stroke();
 
-                    engine.canvas["buffer"].context.strokeStyle = '#fff';
-                    if (!game.buildings[i].built || !game.buildings[j].built)
-                        engine.canvas["buffer"].context.strokeStyle = '#aaa';
-                    engine.canvas["buffer"].context.lineWidth = 2;
-                    engine.canvas["buffer"].context.beginPath();
-                    engine.canvas["buffer"].context.moveTo(centerID.x, centerID.y);
-                    engine.canvas["buffer"].context.lineTo(centerJD.x, centerJD.y);
-                    engine.canvas["buffer"].context.stroke();
+                        engine.canvas["buffer"].context.strokeStyle = '#fff';
+                        if (!game.buildings[i].built || !game.buildings[j].built)
+                            engine.canvas["buffer"].context.strokeStyle = '#aaa';
+                        engine.canvas["buffer"].context.lineWidth = 2;
+                        engine.canvas["buffer"].context.beginPath();
+                        engine.canvas["buffer"].context.moveTo(centerID.x, centerID.y);
+                        engine.canvas["buffer"].context.lineTo(centerJD.x, centerJD.y);
+                        engine.canvas["buffer"].context.stroke();
+                    }
                 }
             }
         }
