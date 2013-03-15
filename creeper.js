@@ -346,11 +346,32 @@ var game = {
         this.buildings.push(building);
         game.base = building;
 
+        var height = this.world.tiles[building.x][building.y].height;
+        for (var i = 0; i < 9; i++) {
+            for (var j = 0; j < 9; j++) {
+                this.world.tiles[building.x + i][building.y + j].height = height;
+            }
+        }
+
         this.calculateCollection();
 
-        this.emitters.push(new Emitter(9, 9, 10));
+        var emitter = new Emitter(9, 9, 10);
+        this.emitters.push(emitter);
+        height = this.world.tiles[emitter.position.x][emitter.position.y].height;
+        for (var i = 0; i < 3; i++) {
+            for (var j = 0; j < 3; j++) {
+                this.world.tiles[emitter.position.x + i][emitter.position.y + j].height = height;
+            }
+        }
 
-        this.sporetowers.push(new Sporetower(4, 13));
+        var sporetower = new Sporetower(4, 13);
+        this.sporetowers.push(sporetower);
+        height = this.world.tiles[sporetower.position.x][sporetower.position.y].height;
+        for (var i = 0; i < 3; i++) {
+            for (var j = 0; j < 3; j++) {
+                this.world.tiles[sporetower.position.x + i][sporetower.position.y + j].height = height;
+            }
+        }
     },
     addBuilding: function (x, y, type, name) {
         var building = new Building(x, y, type, name);
