@@ -271,10 +271,14 @@ var game = {
         return new Vector(Math.floor((engine.mouse.x - 640) / this.tileSize) + this.scroll.x, Math.floor((engine.mouse.y  - 368) / this.tileSize) + this.scroll.y);
     },
     pause: function() {
+        $('#pause').hide();
+        $('#unpause').show();
         $('#paused').show();
         this.paused = true;
     },
     unpause: function() {
+        $('#pause').show();
+        $('#unpause').hide();
         $('#paused').hide();
         this.paused = false;
     },
@@ -291,6 +295,8 @@ var game = {
         this.run();
     },
     faster: function() {
+        $('#buttonslower').show();
+        $('#buttonfaster').hide();
         if (this.speed < 2) {
             this.speed *= 2;
             this.stop();
@@ -299,6 +305,8 @@ var game = {
         }
     },
     slower: function() {
+        $('#buttonslower').hide();
+        $('#buttonfaster').show();
         if (this.speed > 1) {
             this.speed /= 2;
             this.stop();
@@ -1999,7 +2007,7 @@ function Building(pX, pY, pImage, pType) {
 
             engine.canvas["buffer"].context.beginPath();
             engine.canvas["buffer"].context.moveTo(this.x * game.tileSize, this.y * game.tileSize + game.tileSize * this.size);
-            engine.canvas["buffer"].context.lineTo(this.x * game.tileSize + game.tileSize * this.size, this.y);
+            engine.canvas["buffer"].context.lineTo(this.x * game.tileSize + game.tileSize * this.size, this.y * game.tileSize);
             engine.canvas["buffer"].context.stroke();
         }
     };
@@ -2651,13 +2659,28 @@ function onClick(evt) {
 
     // select a building if hovered
     if (!shipSelected) {
+        var buildingSelected = null;
         for (var i = 0; i < game.buildings.length; i++) {
             game.buildings[i].selected = game.buildings[i].hovered;
-            if (game.buildings[i].selected)
+            if (game.buildings[i].selected) {
                 $('#selection').html("Type: " + game.buildings[i].type + "<br/>" +
                     "Size: " + game.buildings[i].size + "<br/>" +
                     "Range: " + game.buildings[i].nodeRadius * game.tileSize + "<br/>" +
                     "Health/HR/MaxHealth: " + game.buildings[i].health + "/" + game.buildings[i].healthRequests + "/" + game.buildings[i].maxHealth);
+                buildingSelected = game.buildings[i];
+            }
+        }
+        if (buildingSelected) {
+            if (buildingSelected.active) {
+                $('#deactivate').show();
+                $('#activate').hide();
+            } else {
+                $('#deactivate').hide();
+                $('#activate').show();
+            }
+        } else {
+            $('#deactivate').hide();
+            $('#activate').hide();
         }
     }
 
@@ -2691,6 +2714,8 @@ function onRightClick() {
     // unselect all currently selected buildings
     for (var i = 0; i < game.buildings.length; i++) {
         game.buildings[i].selected = false;
+        $('#deactivate').hide();
+        $('#activate').hide();
     }
 
     // unselect all currently selected ships

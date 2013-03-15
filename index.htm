@@ -36,6 +36,7 @@
                 font-size: 12px;
 			}
 			#debug {
+                display: none;
 				padding: 10px;
 				background-color: rgba(255, 0, 0, 0.5);
 				position: fixed;
@@ -151,13 +152,13 @@
 		</div>
 
         <div id="buttons">
-            <input type="button" id="buttonslower" name="Slower" value="Slower" onclick="game.slower();">
-            <input type="button" id="buttonfaster" name="Faster" value="Faster" onclick="game.faster();">
-            <input type="button" id="deactivate" name="Deactivate" value="Deactivate" onclick="game.deactivateBuilding();">
-            <input type="button" id="activate" name="Activate" value="Activate" onclick="game.activateBuilding();">
+            <input type="button" id="buttonslower" name="Slower" value="Slower" onclick="game.slower();" style="display: none;">
+            <input type="button" id="buttonfaster" name="Faster" value="Faster" onclick="game.faster();"><br/>
             <input type="button" id="pause" name="Pause" value="Pause" onclick="game.pause();">
-            <input type="button" id="unpause" name="Unpause" value="Unpause" onclick="game.unpause();">
-            <input type="button" id="restart" name="Restart" value="Restart" onclick="game.restart();">
+            <input type="button" id="unpause" name="Unpause" value="Unpause" onclick="game.unpause();" style="display: none;"><br/>
+            <input type="button" id="restart" name="Restart" value="Restart" onclick="game.restart();"><br/>
+            <input type="button" id="deactivate" name="Deactivate" value="Deactivate" onclick="game.deactivateBuilding();" style="display: none;">
+            <input type="button" id="activate" name="Activate" value="Activate" onclick="game.activateBuilding();" style="display: none;">
             <!--<input type="button" id="zoomin" name="Zoom In" value="Zoom In" onclick="zoomIn();">
             <input type="button" id="zoomout" name="Zoom Out" value="Zoom Out" onclick="zoomOut();">-->
             <!--<input type="button" id="r" name="r" value="r" onclick="request();">-->
