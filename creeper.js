@@ -232,8 +232,8 @@ var game = {
     world: {
         tiles: null,
         size: {
-            x: 128,
-            y: 128
+            x: 150,
+            y: 150
         }
     },
     alert: {
@@ -332,12 +332,12 @@ var game = {
             this.world.tiles[i] = new Array(this.world.size.y);
         }
 
-        generateTerrain();
+        var terrain = generateTerrain();
 
         for (var i = 0; i < this.world.size.x; i++) {
             for (var j = 0; j < this.world.size.y; j++) {
                 this.world.tiles[i][j] = new Tile();
-                this.world.tiles[i][j].height = Math.ceil(map[i][j] * 10) - 1; // generated values are to high, this compensates it
+                this.world.tiles[i][j].height = Math.ceil(terrain[i][j] * 10); // generated values are to high, this compensates it
                 if (this.world.tiles[i][j].height > 9)
                     this.world.tiles[i][j].height = 9;
                 if (this.world.tiles[i][j].height < 0)
@@ -715,7 +715,7 @@ var game = {
     updateCreeper: function () {
         this.sporeTimer++;
         // generate a new spore with random target
-        if (this.sporeTimer >= (10000 / this.speed)) {
+        if (this.sporeTimer >= (1000 / this.speed)) {
             for (var i = 0; i < this.sporetowers.length; i++)
                 this.sporetowers[i].spawn();
             this.sporeTimer = 0;
@@ -1832,7 +1832,7 @@ function Building(pX, pY, pImage, pType) {
             if (this.health < 0) {
                 game.removeBuilding(this);
                 engine.playSound("explosion");
-                game.explosions.push(new Explosion(this.x * game.tileSize, this.y * game.tileSize));
+                game.explosions.push(new Explosion(this.getCenter().x, this.getCenter().y));
                 if (this == game.base) {
                     $('#lose').toggle();
                     game.stop();
@@ -1905,7 +1905,7 @@ function Building(pX, pY, pImage, pType) {
         }
     };
     this.shield = function () {
-        if (this.type == "Shield" && !this.moving) {
+        if (this.built && this.type == "Shield" && !this.moving) {
             var center = this.getCenter();
 
             for (var i = this.x - 9; i < this.x + 10; i++) {
@@ -2198,8 +2198,8 @@ function Spore(pX, pY, pImage, pTX, pTY) {
             this.remove = true;
             engine.playSound("explosion");
 
-            for (var i = Math.floor(this.tx / game.tileSize) - 1; i < Math.floor(this.tx / game.tileSize) + 3; i++) {
-                for (var j = Math.floor(this.ty / game.tileSize) - 1; j < Math.floor(this.ty / game.tileSize) + 3; j++) {
+            for (var i = Math.floor(this.tx / game.tileSize) - 2; i < Math.floor(this.tx / game.tileSize) + 2; i++) {
+                for (var j = Math.floor(this.ty / game.tileSize) - 2; j < Math.floor(this.ty / game.tileSize) + 2; j++) {
                     if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
                         var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.tx + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.ty + game.tileSize), 2);
                         if (distance < Math.pow(game.tileSize, 2)) {
@@ -2220,7 +2220,7 @@ function Spore(pX, pY, pImage, pTX, pTY) {
     };
     this.draw = function () {
         engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.translate(640 + this.x - game.scroll.x * game.tileSize + 16, 368 + this.y - game.scroll.y * game.tileSize + 16);
+        engine.canvas["buffer"].context.translate(640 + this.x - game.scroll.x * game.tileSize, 368 + this.y - game.scroll.y * game.tileSize);
         engine.canvas["buffer"].context.rotate(this.rotation * (Math.PI / 180));
         engine.canvas["buffer"].context.drawImage(engine.images["spore"], -16, -16);
         engine.canvas["buffer"].context.restore();
@@ -2404,7 +2404,7 @@ function Sporetower(pX, pY) {
     };
     this.spawn = function () {
         var target = game.buildings[Math.floor(Math.random() * game.buildings.length)];
-        var spore = new Spore(this.position.x * game.tileSize, this.position.y * game.tileSize, "spore", target.x * game.tileSize, target.y * game.tileSize);
+        var spore = new Spore(this.position.x * game.tileSize, this.position.y * game.tileSize, "spore", target.getCenter().x, target.getCenter().y);
         spore.init();
         game.spores.push(spore);
     };
