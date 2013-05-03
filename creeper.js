@@ -684,10 +684,10 @@ var game = {
         this.collection = 0;
 
         var height = this.world.tiles[building.x][building.y].height;
-        for (var i = building.x - 2; i < building.x + 4; i++) {
-            for (var j = building.y - 2; j < building.y + 4; j++) {
+        for (var i = building.x - 3; i < building.x + 5; i++) {
+            for (var j = building.y - 3; j < building.y + 5; j++) {
                 if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
-                    if (Math.pow((i * this.tileSize + this.tileSize / 2) - (building.x * this.tileSize + this.tileSize), 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - (building.y * this.tileSize + this.tileSize), 2) < Math.pow(this.tileSize * 3, 2)) {
+                    if (Math.pow((i * this.tileSize + this.tileSize / 2) - (building.x * this.tileSize + this.tileSize), 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - (building.y * this.tileSize + this.tileSize), 2) < Math.pow(this.tileSize * 4, 2)) {
                         if (this.world.tiles[i][j].height == height && this.world.tiles[i][j].enabled) {
                             if (action == "remove")
                                 this.world.tiles[i][j].collection = 0;
@@ -1436,8 +1436,8 @@ var game = {
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .25;
 
-            for (var i = -3; i < 3; i++) {
-                for (var j = -3; j < 3; j++) {
+            for (var i = -4; i < 4; i++) {
+                for (var j = -4; j < 4; j++) {
 
                     var iS = positionScrolled.x + 1 + i;
                     var jS = positionScrolled.y + 1 + j;
@@ -1447,7 +1447,7 @@ var game = {
 
                     if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
 
-                        if (Math.pow(iS + .5 - (positionScrolled.x + 1), 2) + Math.pow(jS + .5 - (positionScrolled.y + 1), 2) < Math.pow(3, 2)) {
+                        if (Math.pow(iS + .5 - (positionScrolled.x + 1), 2) + Math.pow(jS + .5 - (positionScrolled.y + 1), 2) < Math.pow(4, 2)) {
                             if (this.world.tiles[iS][jS].height == this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
                                 engine.canvas["buffer"].context.fillStyle = "#fff";
                             }
