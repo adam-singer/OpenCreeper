@@ -162,7 +162,7 @@ var game = {
     shieldTimer: 0,
     symbols: null,
     activeSymbol: -1,
-    packetSpeed: 1.5,
+    packetSpeed: 1,
     shellSpeed: 1,
     sporeSpeed: 1,
     buildingSpeed: .5,
@@ -216,7 +216,7 @@ var game = {
         this.explosionTimer = 0;
         this.shieldTimer = 0;
 
-        this.packetSpeed = 1.5;
+        this.packetSpeed = 3;
         this.shellSpeed = 1;
         this.sporeSpeed = 1;
         this.buildingSpeed = .5;
@@ -2030,12 +2030,12 @@ function Packet(pX, pY, pImage, pType) {
     this.remove = false;
     this.move = function () {
         // if the target is moving recalculate vector
-        if (this.currentTarget.moving)
+        //if (this.currentTarget.moving)
             this.calculateVector();
-        this.x += this.speed.x * game.speed;
-        this.y += this.speed.y * game.speed;
+        this.x += this.speed.x;
+        this.y += this.speed.y;
         var centerTarget = this.currentTarget.getCenter();
-        if (this.x > centerTarget.x - 2 && this.x < centerTarget.x + 2 && this.y > centerTarget.y - 2 && this.y < centerTarget.y + 2) {
+        if (this.x > centerTarget.x - 1 && this.x < centerTarget.x + 1 && this.y > centerTarget.y - 1 && this.y < centerTarget.y + 1) {
             // if the final node was reached deliver and remove
             if (this.currentTarget == this.target) {
                 //console.log("target node reached!");
@@ -2083,8 +2083,13 @@ function Packet(pX, pY, pImage, pType) {
         var dy = centerTarget.y - this.y;
         var distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
 
-        this.speed.x = (dx / distance) * game.packetSpeed;
-        this.speed.y = (dy / distance) * game.packetSpeed;
+        this.speed.x = (dx / distance) * game.packetSpeed * game.speed;
+        this.speed.y = (dy / distance) * game.packetSpeed * game.speed;
+
+        if (Math.abs(this.speed.x) > Math.abs(dx))
+            this.speed.x = dx;
+        if (Math.abs(this.speed.y) > Math.abs(dy))
+            this.speed.y = dy;
     };
     this.draw = function () {
         engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], 640 + this.x - game.scroll.x * game.tileSize - 8, 368 + this.y - game.scroll.y * game.tileSize - 8);
@@ -2291,8 +2296,10 @@ function Ship(pX, pY, pImage, pType, pHome) {
         var x = Math.cos(this.angle * Math.PI / 180);
         var y = Math.sin(this.angle * Math.PI / 180);
 
-        this.speed.x = x * game.shipSpeed;
-        this.speed.y = y * game.shipSpeed;
+        this.speed.x = x * game.shipSpeed * game.speed;
+        this.speed.y = y * game.shipSpeed * game.speed;
+
+
     };
     this.move = function () {
 
