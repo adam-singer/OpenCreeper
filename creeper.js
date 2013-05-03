@@ -1429,48 +1429,38 @@ var game = {
      */
     drawPositionInfo: function () {
         var position = this.getTilePosition();
+        var positionScrolled = this.getTilePositionScrolled();
 
         // draw collection preview
         if (this.symbols[this.activeSymbol].imageID == "collector" && this.canBePlaced(this.symbols[this.activeSymbol].size)) {
-          engine.canvas["buffer"].context.save();
-          engine.canvas["buffer"].context.globalAlpha = .25;
-          engine.canvas["buffer"].context.fillStyle = "#fff";
+            engine.canvas["buffer"].context.save();
+            engine.canvas["buffer"].context.globalAlpha = .25;
 
-          for (var i = -3; i < 3; i++) {
-            for (var j = -3; j < 3; j++) {
+            for (var i = -3; i < 3; i++) {
+                for (var j = -3; j < 3; j++) {
 
-              var iS = position.x + 1 + i;
-              var jS = position.y + 1 + j;
+                    var iS = positionScrolled.x + 1 + i;
+                    var jS = positionScrolled.y + 1 + j;
 
-              if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
+                    var iP = position.x + 1 + i;
+                    var jP = position.y + 1 + j;
 
-                if (Math.pow(iS + .5 - (position.x + 1), 2) + Math.pow(jS + .5 - (position.y + 1), 2) < Math.pow(3, 2)) {
-                    if (this.world.tiles[iS][jS].height == this.world.tiles[position.x][position.y].height) {
-                        engine.canvas["buffer"].context.fillRect(iS * this.tileSize, jS * this.tileSize, game.tileSize, game.tileSize);
+                    if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
+
+                        if (Math.pow(iS + .5 - (positionScrolled.x + 1), 2) + Math.pow(jS + .5 - (positionScrolled.y + 1), 2) < Math.pow(3, 2)) {
+                            if (this.world.tiles[iS][jS].height == this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
+                                engine.canvas["buffer"].context.fillStyle = "#fff";
+                            }
+                            else {
+                                engine.canvas["buffer"].context.fillStyle = "#f00";
+                            }
+                            engine.canvas["buffer"].context.fillRect(iP * this.tileSize, jP * this.tileSize, game.tileSize, game.tileSize);
+                        }
+
                     }
                 }
-
-                // auto-tiling
-                /*if (Math.pow(iS + .5 - (position.x + 1), 2) + Math.pow(jS + .5 - (position.y + 1), 2) < Math.pow(3.5, 2) && this.world.tiles[iS-1][jS-1].height == this.world.tiles[position.x][position.y].height) {
-                 var up = 0, down = 0, left = 0, right = 0;
-
-                 if (Math.pow(iS + .5 - (position.x + 1), 2) + Math.pow(jS - .5 - (position.y + 1), 2) < Math.pow(3.5, 2) && this.world.tiles[iS-1][jS-2].height == this.world.tiles[position.x][position.y].height)
-                 up = 1;
-                 if (Math.pow(iS + .5 - (position.x + 1), 2) + Math.pow(jS + 1.5 - (position.y + 1), 2) < Math.pow(3.5, 2) && this.world.tiles[iS-1][jS].height == this.world.tiles[position.x][position.y].height)
-                 down = 1;
-                 if (Math.pow(iS - .5 - (position.x + 1), 2) + Math.pow(jS + .5 - (position.y + 1), 2) < Math.pow(3.5, 2) && this.world.tiles[iS-2][jS-1].height == this.world.tiles[position.x][position.y].height)
-                 left = 1;
-                 if (Math.pow(iS + 1.5 - (position.x + 1), 2) + Math.pow(jS + .5 - (position.y + 1), 2) < Math.pow(3.5, 2) && this.world.tiles[iS][jS-1].height == this.world.tiles[position.x][position.y].height)
-                 right = 1;
-
-                 var index = (8 * down) + (4 * left) + (2 * up) + right;
-
-                 engine.canvas["buffer"].context.drawImage(engine.images["terrain"], index * this.tileSize, 10 * this.tileSize, this.tileSize, this.tileSize, iS * this.tileSize, jS * this.tileSize, this.tileSize, this.tileSize);
-                 }*/
-              }
             }
-          }
-          engine.canvas["buffer"].context.restore();
+            engine.canvas["buffer"].context.restore();
         }
 
         engine.canvas["buffer"].context.save();
