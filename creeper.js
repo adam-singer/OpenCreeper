@@ -2661,12 +2661,27 @@ function onClickGUI(evt) {
 }
 
 function onClick(evt) {
+    var position = game.getTilePosition();
+
     var shipSelected = false;
     // select a ship if hovered
     for (var i = 0; i < game.ships.length; i++) {
         game.ships[i].selected = game.ships[i].hovered;
         if (game.ships[i].selected)
             shipSelected = true;
+    }
+
+    for (var i = 0; i < game.buildings.length; i++) {
+      if (game.buildings[i].built && game.buildings[i].selected && game.buildings[i].canMove) {
+        // check if it can be placed
+        if (game.canBePlaced(game.buildings[i].size, game.buildings[i])) {
+          game.buildings[i].moving = true;
+          game.buildings[i].tx = position.x;
+          game.buildings[i].ty = position.y;
+          game.buildings[i].calculateVector();
+          //game.buildings[i].selected = false;
+        }
+      }
     }
 
     // select a building if hovered
@@ -2746,7 +2761,7 @@ function onMouseDown() {
 function onMouseUp() {
     var position = game.getTilePosition();
 
-    for (var i = 0; i < game.buildings.length; i++) {
+    /*for (var i = 0; i < game.buildings.length; i++) {
         if (game.buildings[i].built && game.buildings[i].selected && game.buildings[i].canMove) {
             // check if it can be placed
             if (game.canBePlaced(game.buildings[i].size, game.buildings[i])) {
@@ -2757,7 +2772,7 @@ function onMouseUp() {
                 //game.buildings[i].selected = false;
             }
         }
-    }
+    }*/
 
     for (var i = 0; i < game.ships.length; i++) {
         if (game.ships[i].selected) {
