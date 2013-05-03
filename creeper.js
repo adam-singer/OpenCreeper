@@ -354,7 +354,7 @@ var game = {
         this.buildings.push(building);
         game.base = building;
 
-        var height = this.world.tiles[building.x][building.y].height;
+        var height = this.world.tiles[building.x + 3][building.y + 3].height;
         for (var i = 0; i < 9; i++) {
             for (var j = 0; j < 9; j++) {
                 this.world.tiles[building.x + i][building.y + j].height = height;
@@ -447,8 +447,10 @@ var game = {
         this.buildings.push(building);
     },
     removeBuilding: function (building) {
-        this.explosions.push(new Explosion(building.x * game.tileSize, building.y * game.tileSize));
+        this.explosions.push(new Explosion(building.getCenter().x, building.getCenter().y));
+        engine.playSound("explosion");
         if (building.type == "Base") {
+            $('#lose').toggle();
             this.stop();
         }
         if (building.type == "Collector") {
@@ -1831,12 +1833,6 @@ function Building(pX, pY, pImage, pType) {
 
             if (this.health < 0) {
                 game.removeBuilding(this);
-                engine.playSound("explosion");
-                game.explosions.push(new Explosion(this.getCenter().x, this.getCenter().y));
-                if (this == game.base) {
-                    $('#lose').toggle();
-                    game.stop();
-                }
             }
         }
     };
