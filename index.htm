@@ -111,13 +111,15 @@
 			$(function() {
 				init();
 				$('#time').stopwatch().stopwatch('start');
-				$("#mainCanvas").mousemove(onMouseMove);
-                $("#guiCanvas").mousemove(onMouseMoveGUI);
-				$("#mainCanvas").mouseup(onMouseUp).mousedown(onMouseDown);				
-				$("#mainCanvas").click(onClick);
-                $("#guiCanvas").click(onClickGUI);
-                $("#guiCanvas").mouseleave(onLeaveGUI);
-                $("#mainCanvas").mouseenter(onEnter).mouseleave(onLeave);
+                var mainCanvas = $("#mainCanvas");
+                var guiCanvas = $("#guiCanvas");
+                mainCanvas.mousemove(onMouseMove);
+                guiCanvas.mousemove(onMouseMoveGUI);
+                mainCanvas.mouseup(onMouseUp).mousedown(onMouseDown);
+                mainCanvas.click(onClick);
+                guiCanvas.click(onClickGUI);
+                guiCanvas.mouseleave(onLeaveGUI);
+                mainCanvas.mouseenter(onEnter).mouseleave(onLeave);
                 $(document).rightClick(onRightClick);
 				$(document).keydown(onKeyDown);
                 $(document).keyup(onKeyUp);
