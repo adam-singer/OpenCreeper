@@ -717,7 +717,7 @@ var game = {
     updateCreeper: function () {
         this.sporeTimer++;
         // generate a new spore with random target
-        if (this.sporeTimer >= (1000 / this.speed)) {
+        if (this.sporeTimer >= (10000 / this.speed)) {
             for (var i = 0; i < this.sporetowers.length; i++)
                 this.sporetowers[i].spawn();
             this.sporeTimer = 0;
@@ -2399,7 +2399,9 @@ function Sporetower(pX, pY) {
         engine.canvas["buffer"].context.drawImage(engine.images["sporetower"], 640 + (this.position.x - game.scroll.x) * game.tileSize, 368 + (this.position.y - game.scroll.y) * game.tileSize, 48, 48);
     };
     this.spawn = function () {
-        var target = game.buildings[Math.floor(Math.random() * game.buildings.length)];
+        do {
+            var target = game.buildings[Math.floor(Math.random() * game.buildings.length)];
+        } while (!target.built);
         var spore = new Spore(this.position.x * game.tileSize, this.position.y * game.tileSize, "spore", target.getCenter().x, target.getCenter().y);
         spore.init();
         game.spores.push(spore);
