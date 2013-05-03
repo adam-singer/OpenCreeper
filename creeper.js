@@ -2334,7 +2334,7 @@ function Ship(pX, pY, pImage, pType, pHome) {
             this.trailTimer++;
             if (this.trailTimer == 10) {
                 this.trailTimer = 0;
-                game.smokes.push(new Smoke(this.x + 24, this.y + 24));
+                game.smokes.push(new Smoke(new Vector(this.x + 24, this.y + 24)));
             }
 
             this.weaponTimer++;
