@@ -245,6 +245,12 @@ var game = {
         x: 40,
         y: 23
     },
+    scrolling: {
+        up: false,
+        down: false,
+        left: false,
+        right: false
+    },
     keyMap: {"k81": "Q",
         "k87": "W",
         "k69": "E",
@@ -1283,6 +1289,34 @@ var game = {
             this.updateSmokes();
             this.updateExplosions();
             this.updateShips();
+        }
+
+        // scroll left
+        if (this.scrolling.left) {
+            if (this.scroll.x > 0)
+                this.scroll.x -= 1;
+            this.drawTerrain();
+        }
+
+        // scroll right
+        if (this.scrolling.right) {
+            if (this.scroll.x < this.world.size.x)
+                this.scroll.x += 1;
+            this.drawTerrain();
+        }
+
+        // scroll up
+        if (this.scrolling.up) {
+            if (this.scroll.y > 0)
+                this.scroll.y -= 1;
+            this.drawTerrain();
+        }
+
+        // scroll down
+        if (this.scrolling.down) {
+            if (this.scroll.y < this.world.size.y)
+                this.scroll.y += 1;
+            this.drawTerrain();
         }
     },
     /**
@@ -2574,33 +2608,14 @@ function onKeyDown(evt) {
         }
     }
 
-    // scroll left
-    if (evt.keyCode == 37) {
-        if (game.scroll.x > 0)
-            game.scroll.x -= 1;
-        game.drawTerrain();
-    }
-
-    // scroll right
-    if (evt.keyCode == 39) {
-        if (game.scroll.x < game.world.size.x)
-            game.scroll.x += 1;
-        game.drawTerrain();
-    }
-
-    // scroll up
-    if (evt.keyCode == 38) {
-        if (game.scroll.y > 0)
-            game.scroll.y -= 1;
-        game.drawTerrain();
-    }
-
-    // scroll down
-    if (evt.keyCode == 40) {
-        if (game.scroll.y < game.world.size.y)
-            game.scroll.y += 1;
-        game.drawTerrain();
-    }
+    if(evt.keyCode == 37)
+        game.scrolling.left = true;
+    if(evt.keyCode == 38)
+        game.scrolling.up = true;
+    if(evt.keyCode == 39)
+        game.scrolling.right = true;
+    if(evt.keyCode == 40)
+        game.scrolling.down = true;
 
     // lower terrain
     if (evt.keyCode == 78) {
@@ -2627,6 +2642,17 @@ function onKeyDown(evt) {
         game.drawTerrain();
     }
 
+}
+
+function onKeyUp(evt) {
+    if(evt.keyCode == 37)
+      game.scrolling.left = false;
+    if(evt.keyCode == 38)
+      game.scrolling.up = false;
+    if(evt.keyCode == 39)
+      game.scrolling.right = false;
+    if(evt.keyCode == 40)
+      game.scrolling.down = false;
 }
 
 function onEnter(evt) {
