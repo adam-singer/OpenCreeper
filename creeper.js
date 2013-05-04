@@ -532,16 +532,16 @@ var game = {
         $("#mainCanvas").css('cursor', 'default');
     },
     setupUI: function () {
-        this.symbols.push(new UISymbol(0 * 81, 0, "cannon", "Q", 3, 25));
-        this.symbols.push(new UISymbol(1 * 81, 0, "collector", "W", 2, 5));
-        this.symbols.push(new UISymbol(2 * 81, 0, "reactor", "E", 3, 50));
-        this.symbols.push(new UISymbol(3 * 81, 0, "storage", "R", 3, 8));
-        this.symbols.push(new UISymbol(4 * 81, 0, "shield", "T", 3, 50));
+        this.symbols.push(new UISymbol(0 * 81, 0, "cannon", "Q", 3, 25, 6));
+        this.symbols.push(new UISymbol(1 * 81, 0, "collector", "W", 2, 5, 4));
+        this.symbols.push(new UISymbol(2 * 81, 0, "reactor", "E", 3, 50, 0));
+        this.symbols.push(new UISymbol(3 * 81, 0, "storage", "R", 3, 8, 0));
+        this.symbols.push(new UISymbol(4 * 81, 0, "shield", "T", 3, 50, 10));
 
-        this.symbols.push(new UISymbol(0 * 81, 56, "relay", "A", 2, 10));
-        this.symbols.push(new UISymbol(1 * 81, 56, "mortar", "S", 3, 40));
-        this.symbols.push(new UISymbol(2 * 81, 56, "beam", "D", 3, 20));
-        this.symbols.push(new UISymbol(3 * 81, 56, "bomber", "F", 3, 75));
+        this.symbols.push(new UISymbol(0 * 81, 56, "relay", "A", 2, 10, 8));
+        this.symbols.push(new UISymbol(1 * 81, 56, "mortar", "S", 3, 40, 12));
+        this.symbols.push(new UISymbol(2 * 81, 56, "beam", "D", 3, 20, 12));
+        this.symbols.push(new UISymbol(3 * 81, 56, "bomber", "F", 3, 75, 0));
     },
     /**
      * @author Alexander Zeillinger
@@ -1462,12 +1462,18 @@ var game = {
         var positionScrolled = this.getTilePositionScrolled();
 
         // draw collection preview
-        if (this.symbols[this.activeSymbol].imageID == "collector" && this.canBePlaced(this.symbols[this.activeSymbol].size)) {
+        if (this.canBePlaced(this.symbols[this.activeSymbol].size) &&
+            (this.symbols[this.activeSymbol].imageID == "collector" ||
+             this.symbols[this.activeSymbol].imageID == "cannon" ||
+             this.symbols[this.activeSymbol].imageID == "mortar" ||
+             this.symbols[this.activeSymbol].imageID == "shield" ||
+             this.symbols[this.activeSymbol].imageID == "beam") ) {
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .25;
 
-            for (var i = -4; i < 4; i++) {
-                for (var j = -4; j < 4; j++) {
+            var radius = this.symbols[this.activeSymbol].radius;
+            for (var i = -radius; i < radius; i++) {
+                for (var j = -radius; j < radius; j++) {
 
                     var iS = positionScrolled.x + 1 + i;
                     var jS = positionScrolled.y + 1 + j;
@@ -1477,12 +1483,27 @@ var game = {
 
                     if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
 
-                        if (Math.pow(iS + .5 - (positionScrolled.x + 1), 2) + Math.pow(jS + .5 - (positionScrolled.y + 1), 2) < Math.pow(4, 2)) {
-                            if (this.world.tiles[iS][jS].height == this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
-                                engine.canvas["buffer"].context.fillStyle = "#fff";
+                        if (Math.pow(iS + .5 - (positionScrolled.x + 1), 2) + Math.pow(jS + .5 - (positionScrolled.y + 1), 2) < Math.pow(radius, 2)) {
+                            if (this.symbols[this.activeSymbol].imageID == "collector") {
+                                if (this.world.tiles[iS][jS].height == this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
+                                    engine.canvas["buffer"].context.fillStyle = "#fff";
+                                }
+                                else {
+                                    engine.canvas["buffer"].context.fillStyle = "#f00";
+                                }
                             }
-                            else {
-                                engine.canvas["buffer"].context.fillStyle = "#f00";
+                            if (this.symbols[this.activeSymbol].imageID == "cannon") {
+                                if (this.world.tiles[iS][jS].height <= this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
+                                    engine.canvas["buffer"].context.fillStyle = "#fff";
+                                }
+                                else {
+                                    engine.canvas["buffer"].context.fillStyle = "#f00";
+                                }
+                            }
+                            if (this.symbols[this.activeSymbol].imageID == "mortar" ||
+                                this.symbols[this.activeSymbol].imageID == "shield" ||
+                                this.symbols[this.activeSymbol].imageID == "beam") {
+                                engine.canvas["buffer"].context.fillStyle = "#fff";
                             }
                             engine.canvas["buffer"].context.fillRect(iP * this.tileSize, jP * this.tileSize, game.tileSize, game.tileSize);
                         }
@@ -1742,7 +1763,7 @@ function GameObject(pX, pY, pImage) {
  *
  * Building symbols in the GUI
  */
-function UISymbol(pX, pY, pImage, pKey, pSize, pPackets) {
+function UISymbol(pX, pY, pImage, pKey, pSize, pPackets, pRadius) {
     this.x = pX;
     this.y = pY;
     this.imageID = pImage;
@@ -1753,6 +1774,7 @@ function UISymbol(pX, pY, pImage, pKey, pSize, pPackets) {
     this.height = 55;
     this.size = pSize;
     this.packets = pPackets;
+    this.radius = pRadius;
     this.draw = function (pContext) {
         if (this.active) {
             pContext.fillStyle = "#696";
