@@ -351,7 +351,15 @@ var game = {
             }
         }
 
-        var building = new Building(45, 30, "base", "Base");
+        do {
+            var baseX = Math.floor(Math.random() * this.world.size.x);
+            var baseY = Math.floor(Math.random() * this.world.size.y);
+        } while (this.world.tiles[baseX][baseY].height < 5);
+
+        this.scroll.x = baseX + 5;
+        this.scroll.y = baseY + 5;
+
+        var building = new Building(baseX, baseY, "base", "Base");
         building.health = 40;
         building.maxHealth = 40;
         building.nodeRadius = 10;
@@ -369,7 +377,12 @@ var game = {
 
         this.calculateCollection();
 
-        var emitter = new Emitter(9, 9, 10);
+        do {
+            var baseX = Math.floor(Math.random() * this.world.size.x);
+            var baseY = Math.floor(Math.random() * this.world.size.y);
+        } while (this.world.tiles[baseX][baseY].height > 4);
+
+        var emitter = new Emitter(baseX, baseY, 10);
         this.emitters.push(emitter);
         height = this.world.tiles[emitter.position.x][emitter.position.y].height;
         for (var i = 0; i < 3; i++) {
@@ -378,7 +391,12 @@ var game = {
             }
         }
 
-        var sporetower = new Sporetower(4, 13);
+        do {
+            var baseX = Math.floor(Math.random() * this.world.size.x);
+            var baseY = Math.floor(Math.random() * this.world.size.y);
+        } while (this.world.tiles[baseX][baseY].height < 7);
+
+        var sporetower = new Sporetower(baseX, baseY);
         this.sporetowers.push(sporetower);
         height = this.world.tiles[sporetower.position.x][sporetower.position.y].height;
         for (var i = 0; i < 3; i++) {
