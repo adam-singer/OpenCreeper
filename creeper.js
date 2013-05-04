@@ -471,8 +471,13 @@ var game = {
         this.buildings.push(building);
     },
     removeBuilding: function (building) {
-        this.explosions.push(new Explosion(building.getCenter().x, building.getCenter().y));
-        engine.playSound("explosion");
+
+        // only explode building when it has been built
+        if (building.built) {
+            this.explosions.push(new Explosion(building.getCenter().x, building.getCenter().y));
+            engine.playSound("explosion");
+        }
+
         if (building.type == "Base") {
             $('#lose').toggle();
             this.stop();
