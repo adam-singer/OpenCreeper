@@ -1077,9 +1077,19 @@ var game = {
         }
 
         // if a route is left set the second element as the next node for the packet
-        if (routes.length > 0)
+        if (routes.length > 0) {
             //packet.currentTarget = routes[0].nodes[1];
+
+            // adjust speed if packet is travelling between relays
+            if (routes[0].nodes[1].type == "Relay") {
+                packet.speedMultiplier = 2;
+            }
+            else {
+                packet.speedMultiplier = 1;
+            }
+
             return routes[0].nodes[1];
+        }
         else {
             if (packet.type == "Ammo")
                 packet.target.ammoRequests -= 4;
@@ -2075,6 +2085,7 @@ function Packet(pX, pY, pImage, pType) {
     this.currentTarget = null;
     this.type = pType;
     this.remove = false;
+    this.speedMultiplier = 1;
     this.move = function () {
         // if the target is moving recalculate vector
         //if (this.currentTarget.moving)
@@ -2130,8 +2141,8 @@ function Packet(pX, pY, pImage, pType) {
         var dy = centerTarget.y - this.y;
         var distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
 
-        this.speed.x = (dx / distance) * game.packetSpeed * game.speed;
-        this.speed.y = (dy / distance) * game.packetSpeed * game.speed;
+        this.speed.x = (dx / distance) * game.packetSpeed * game.speed * this.speedMultiplier;
+        this.speed.y = (dy / distance) * game.packetSpeed * game.speed * this.speedMultiplier;
 
         if (Math.abs(this.speed.x) > Math.abs(dx))
             this.speed.x = dx;
