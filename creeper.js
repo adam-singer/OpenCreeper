@@ -1131,36 +1131,38 @@ var game = {
 
         var position = this.getTilePositionScrolled();
 
-        var height = this.world.tiles[position.x][position.y].height;
+        if (position.x > -1 && position.x < this.world.size.x && position.y > -1 && position.y < this.world.size.y) {
+            var height = this.world.tiles[position.x][position.y].height;
 
-        // 1. check for collision with another building
-        for (var i = 0; i < this.buildings.length; i++) {
-            if (building && building == this.buildings[i])
-                continue;
-            var x1 = this.buildings[i].x * this.tileSize;
-            var x2 = this.buildings[i].x * this.tileSize + this.buildings[i].size * this.tileSize - 1;
-            var y1 = this.buildings[i].y * this.tileSize;
-            var y2 = this.buildings[i].y * this.tileSize + this.buildings[i].size * this.tileSize - 1;
+            // 1. check for collision with another building
+            for (var i = 0; i < this.buildings.length; i++) {
+                if (building && building == this.buildings[i])
+                    continue;
+                var x1 = this.buildings[i].x * this.tileSize;
+                var x2 = this.buildings[i].x * this.tileSize + this.buildings[i].size * this.tileSize - 1;
+                var y1 = this.buildings[i].y * this.tileSize;
+                var y2 = this.buildings[i].y * this.tileSize + this.buildings[i].size * this.tileSize - 1;
 
-            var cx1 = position.x * this.tileSize;
-            var cx2 = position.x * this.tileSize + size * this.tileSize - 1;
-            var cy1 = position.y * this.tileSize;
-            var cy2 = position.y * this.tileSize + size * this.tileSize - 1;
+                var cx1 = position.x * this.tileSize;
+                var cx2 = position.x * this.tileSize + size * this.tileSize - 1;
+                var cy1 = position.y * this.tileSize;
+                var cy2 = position.y * this.tileSize + size * this.tileSize - 1;
 
-            if (((cx1 >= x1 && cx1 <= x2) || (cx2 >= x1 && cx2 <= x2)) && ((cy1 >= y1 && cy1 <= y2) || (cy2 >= y1 && cy2 <= y2)))
-                count++;
-        }
+                if (((cx1 >= x1 && cx1 <= x2) || (cx2 >= x1 && cx2 <= x2)) && ((cy1 >= y1 && cy1 <= y2) || (cy2 >= y1 && cy2 <= y2)))
+                    count++;
+            }
 
-        // 2. check if all tiles have the same height and are not corners
-        for (var i = position.x; i < position.x + size; i++) {
-            for (var j = position.y; j < position.y + size; j++) {
-                if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y) {
-                    if (!this.world.tiles[i][j].enabled)
-                        count++;
-                    if (this.world.tiles[i][j].height != height)
-                        count++;
-                    if (!(this.world.tiles[i][j].index == 7 || this.world.tiles[i][j].index == 11 || this.world.tiles[i][j].index == 13 || this.world.tiles[i][j].index == 14 || this.world.tiles[i][j].index == 15))
-                        count++;
+            // 2. check if all tiles have the same height and are not corners
+            for (var i = position.x; i < position.x + size; i++) {
+                for (var j = position.y; j < position.y + size; j++) {
+                    if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y) {
+                        if (!this.world.tiles[i][j].enabled)
+                            count++;
+                        if (this.world.tiles[i][j].height != height)
+                            count++;
+                        if (!(this.world.tiles[i][j].index == 7 || this.world.tiles[i][j].index == 11 || this.world.tiles[i][j].index == 13 || this.world.tiles[i][j].index == 14 || this.world.tiles[i][j].index == 15))
+                            count++;
+                    }
                 }
             }
         }
@@ -1209,7 +1211,7 @@ var game = {
                 // request health
                 if (this.buildings[i].type != "Base") {
                     var healthAndRequestDelta = this.buildings[i].maxHealth - this.buildings[i].health - this.buildings[i].healthRequests;
-                    if (healthAndRequestDelta > 0 && this.buildings[i].requestTimer > 100) {
+                    if (healthAndRequestDelta > 0 && this.buildings[i].requestTimer > 50) {
                         this.buildings[i].requestTimer = 0;
                         this.queuePacket(this.buildings[i], "Health");
                     }
@@ -1217,7 +1219,7 @@ var game = {
                 // request ammo
                 if (this.buildings[i].canShoot) {
                     var ammoAndRequestDelta = this.buildings[i].maxAmmo - this.buildings[i].ammo - this.buildings[i].ammoRequests;
-                    if (ammoAndRequestDelta > 0 && this.buildings[i].requestTimer > 100 && this.buildings[i].built) {
+                    if (ammoAndRequestDelta > 0 && this.buildings[i].requestTimer > 50 && this.buildings[i].built) {
                         this.buildings[i].requestTimer = 0;
                         this.queuePacket(this.buildings[i], "Ammo");
                     }
