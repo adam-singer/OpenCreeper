@@ -769,8 +769,8 @@ var game = {
         var minimum = .001;
 
         this.creeperTimer++;
-        if (this.creeperTimer > (150 / this.speed)) {
-            this.creeperTimer -= (150 / this.speed);
+        if (this.creeperTimer > (125 / this.speed)) {
+            this.creeperTimer -= (125 / this.speed);
 
             for (var i = 0; i < this.world.size.x; i++) {
                 for (var j = 0; j < this.world.size.y; j++) {
@@ -2823,7 +2823,7 @@ function onMouseDown() {
 }
 
 function onMouseUp() {
-    var position = game.getTilePosition();
+    var position = game.getTilePositionScrolled();
 
     /*for (var i = 0; i < game.buildings.length; i++) {
         if (game.buildings[i].built && game.buildings[i].selected && game.buildings[i].canMove) {
