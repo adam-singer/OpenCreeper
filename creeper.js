@@ -645,7 +645,7 @@ var game = {
                             this.buildings[t].targetY = targets[0].y * this.tileSize + this.tileSize / 2;
                             this.buildings[t].ammo -= 1;
                             this.buildings[t].shooting = true;
-                            this.smokes.push(new Smoke(this.buildings[t].targetX, this.buildings[t].targetY));
+                            this.smokes.push(new Smoke(new Vector(this.buildings[t].targetX, this.buildings[t].targetY)));
                             break;
                         }
                     }
