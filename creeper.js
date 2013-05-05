@@ -1960,32 +1960,23 @@ function Building(pX, pY, pImage, pType) {
         }
     };
     this.drawRepositionInfo = function () {
-        var center = this.getCenter();
+        var center = this.getDrawCenter();
         var position = game.getTilePosition();
         // only armed buildings can move
         if (this.built && this.selected && this.canMove) {
-            if (game.canBePlaced(this.size, this)) {
-                // draw rectangle
+            if (game.canBePlaced(this.size, this))
                 engine.canvas["buffer"].context.strokeStyle = "rgba(0,255,0,0.5)";
-                engine.canvas["buffer"].context.strokeRect(position.x * game.tileSize, position.y * game.tileSize, game.tileSize * this.size, game.tileSize * this.size);
-                // draw line
-                engine.canvas["buffer"].context.strokeStyle = "rgba(255,255,255,0.5)";
-                engine.canvas["buffer"].context.beginPath();
-                engine.canvas["buffer"].context.moveTo(center.x, center.y);
-                engine.canvas["buffer"].context.lineTo(position.x * game.tileSize + (game.tileSize / 2) * this.size, position.y * game.tileSize + (game.tileSize / 2) * this.size);
-                engine.canvas["buffer"].context.stroke();
-            }
-            else {
-                // draw rectangle
+            else
                 engine.canvas["buffer"].context.strokeStyle = "rgba(255,0,0,0.5)";
-                engine.canvas["buffer"].context.strokeRect(position.x * game.tileSize, position.y * game.tileSize, game.tileSize * this.size, game.tileSize * this.size);
-                // draw line
-                engine.canvas["buffer"].context.strokeStyle = "rgba(255,255,255,0.5)";
-                engine.canvas["buffer"].context.beginPath();
-                engine.canvas["buffer"].context.moveTo(center.x, center.y);
-                engine.canvas["buffer"].context.lineTo(position.x * game.tileSize + (game.tileSize / 2) * this.size, position.y * game.tileSize + (game.tileSize / 2) * this.size);
-                engine.canvas["buffer"].context.stroke();
-            }
+
+            // draw rectangle
+            engine.canvas["buffer"].context.strokeRect(position.x * game.tileSize, position.y * game.tileSize, game.tileSize * this.size, game.tileSize * this.size);
+            // draw line
+            engine.canvas["buffer"].context.strokeStyle = "rgba(255,255,255,0.5)";
+            engine.canvas["buffer"].context.beginPath();
+            engine.canvas["buffer"].context.moveTo(center.x, center.y);
+            engine.canvas["buffer"].context.lineTo(position.x * game.tileSize + (game.tileSize / 2) * this.size, position.y * game.tileSize + (game.tileSize / 2) * this.size);
+            engine.canvas["buffer"].context.stroke();
         }
     };
     this.shield = function () {
@@ -2735,7 +2726,7 @@ function onClickGUI(evt) {
 }
 
 function onClick(evt) {
-    var position = game.getTilePosition();
+    var position = game.getTilePositionScrolled();
 
     var shipSelected = false;
     // select a ship if hovered
@@ -2788,7 +2779,6 @@ function onClick(evt) {
     // when there is an active symbol place building
     if (game.activeSymbol != -1) {
         var type = game.symbols[game.activeSymbol].imageID.substring(0, 1).toUpperCase() + game.symbols[game.activeSymbol].imageID.substring(1);
-        var position = game.getTilePositionScrolled();
         if (game.canBePlaced(game.symbols[game.activeSymbol].size)) {
             game.addBuilding(position.x, position.y, game.symbols[game.activeSymbol].imageID, type);
             engine.playSound("click");
