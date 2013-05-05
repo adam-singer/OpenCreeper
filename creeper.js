@@ -598,6 +598,10 @@ var game = {
                         // grid (debug)
                         //engine.canvas["tiles"].context.strokeRect(i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
                     }
+                    else {
+                        engine.canvas["tiles"].context.fillStyle = "#000";
+                        engine.canvas["tiles"].context.fillRect(640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
+                    }
                 }
             }
         }
@@ -2658,28 +2662,27 @@ function onKeyDown(evt) {
     if(evt.keyCode == 40)
         game.scrolling.down = true;
 
-    // lower terrain
+    var position = game.getTilePositionScrolled();
+
+    // lower terrain ("N")
     if (evt.keyCode == 78) {
-        if (game.world.tiles[Math.floor(engine.mouse.x / game.tileSize)][Math.floor(engine.mouse.y / game.tileSize)].height > 1) {
-            game.world.tiles[Math.floor(engine.mouse.x / game.tileSize)][Math.floor(engine.mouse.y / game.tileSize)].height -= 1;
+        if (game.world.tiles[position.x][position.y].height > 1) {
+            game.world.tiles[position.x][position.y].height -= 1;
             game.drawTerrain();
         }
     }
 
-    // raise terrain
+    // raise terrain ("M")
     if (evt.keyCode == 77) {
-        if (game.world.tiles[Math.floor(engine.mouse.x / game.tileSize)][Math.floor(engine.mouse.y / game.tileSize)].height < 9) {
-            game.world.tiles[Math.floor(engine.mouse.x / game.tileSize)][Math.floor(engine.mouse.y / game.tileSize)].height += 1;
+        if (game.world.tiles[position.x][position.y].height < 9) {
+            game.world.tiles[position.x][position.y].height += 1;
             game.drawTerrain();
         }
     }
 
-    // enable/disable terrain
+    // enable/disable terrain ("B")
     if (evt.keyCode == 66) {
-        if (game.world.tiles[Math.floor(engine.mouse.x / game.tileSize)][Math.floor(engine.mouse.y / game.tileSize)].enabled)
-            game.world.tiles[Math.floor(engine.mouse.x / game.tileSize)][Math.floor(engine.mouse.y / game.tileSize)].enabled = false;
-        else
-            game.world.tiles[Math.floor(engine.mouse.x / game.tileSize)][Math.floor(engine.mouse.y / game.tileSize)].enabled = true;
+        game.world.tiles[position.x][position.y].enabled = !game.world.tiles[position.x][position.y].enabled;
         game.drawTerrain();
     }
 
