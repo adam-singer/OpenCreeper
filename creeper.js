@@ -1589,6 +1589,8 @@ var game = {
      * Draws the GUI with symbols, height and creep meter.
      */
     drawGUI: function () {
+        var position = game.getTilePositionScrolled();
+
         engine.canvas["gui"].clear();
         for (var i = 0; i < this.symbols.length; i++) {
             this.symbols[i].draw(engine.canvas["gui"].context);
@@ -1601,9 +1603,9 @@ var game = {
         engine.canvas["gui"].context.strokeStyle = '#fff';
         engine.canvas["gui"].context.lineWidth = 1;
         engine.canvas["gui"].context.fillStyle = "rgba(205, 133, 63, 1)";
-        engine.canvas["gui"].context.fillRect(555, 110, 25, -this.world.tiles[Math.floor(engine.mouse.x / this.tileSize)][Math.floor(engine.mouse.y / this.tileSize)].height * 10);
+        engine.canvas["gui"].context.fillRect(555, 110, 25, -this.world.tiles[position.x][position.y].height * 10);
         engine.canvas["gui"].context.fillStyle = "rgba(0, 0, 255, 1)";
-        engine.canvas["gui"].context.fillRect(555, 110 - this.world.tiles[Math.floor(engine.mouse.x / this.tileSize)][Math.floor(engine.mouse.y / this.tileSize)].height * 10, 25, -this.world.tiles[Math.floor(engine.mouse.x / this.tileSize)][Math.floor(engine.mouse.y / this.tileSize)].creep / 25 * 10);
+        engine.canvas["gui"].context.fillRect(555, 110 - this.world.tiles[position.x][position.y].height * 10, 25, -this.world.tiles[position.x][position.y].creep);
         engine.canvas["gui"].context.fillStyle = "rgba(255, 255, 255, 1)";
         for (var i = 1; i < 11; i++) {
             engine.canvas["gui"].context.fillText(i.toString(), 550, 120 - i * 10);
@@ -1613,7 +1615,7 @@ var game = {
             engine.canvas["gui"].context.stroke();
         }
         engine.canvas["gui"].context.textAlign = 'left';
-        engine.canvas["gui"].context.fillText(this.world.tiles[Math.floor(engine.mouse.x / this.tileSize)][Math.floor(engine.mouse.y / this.tileSize)].creep.toFixed(2), 605, 10);
+        engine.canvas["gui"].context.fillText(this.world.tiles[position.x][position.y].creep.toFixed(2), 605, 10);
     },
     /**
      * @author Alexander Zeillinger
