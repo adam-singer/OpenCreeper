@@ -573,19 +573,19 @@ var game = {
                         var up = 0, down = 0, left = 0, right = 0;
                         if (jS - 1 < 0)
                             up = 1;
-                        else if (this.world.tiles[iS][jS - 1].height >= height)
+                        else if (this.world.tiles[iS][jS - 1].height >= height && this.world.tiles[iS][jS - 1].enabled)
                             up = 1;
                         if (jS + 1 > this.world.size.y - 1)
                             down = 1;
-                        else if (this.world.tiles[iS][jS + 1].height >= height)
+                        else if (this.world.tiles[iS][jS + 1].height >= height && this.world.tiles[iS][jS + 1].enabled)
                             down = 1;
                         if (iS - 1 < 0)
                             left = 1;
-                        else if (this.world.tiles[iS - 1][jS].height >= height)
+                        else if (this.world.tiles[iS - 1][jS].height >= height && this.world.tiles[iS - 1][jS].enabled)
                             left = 1;
                         if (iS + 1 > this.world.size.x - 1)
                             right = 1;
-                        else if (this.world.tiles[iS + 1][jS].height >= height)
+                        else if (this.world.tiles[iS + 1][jS].height >= height && this.world.tiles[iS + 1][jS].enabled)
                             right = 1;
 
                         if (height > 0)
