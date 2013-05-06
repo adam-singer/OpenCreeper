@@ -1294,26 +1294,22 @@ var game = {
     },
     updateSmokes: function () {
         this.smokeTimer++;
-        if (this.smokeTimer > 5) {
+        if (this.smokeTimer > 3) {
             this.smokeTimer = 0;
             for (var i = 0; i < this.smokes.length; i++) {
                 this.smokes[i].frame++;
                 if (this.smokes[i].frame == 36)
-                    this.smokes[i].remove = true;
-                if (this.smokes[i].remove)
                     this.smokes.splice(i, 1);
             }
         }
     },
     updateExplosions: function () {
         this.explosionTimer++;
-        if (this.explosionTimer > 5) {
+        if (this.explosionTimer == 1) {
             this.explosionTimer = 0;
             for (var i = 0; i < this.explosions.length; i++) {
                 this.explosions[i].frame++;
                 if (this.explosions[i].frame == 44)
-                    this.explosions[i].remove = true;
-                if (this.explosions[i].remove)
                     this.explosions.splice(i, 1);
             }
         }
@@ -2543,12 +2539,10 @@ function Sporetower(pX, pY) {
  * Smoke is created by weapon fire of Cannons, or exhaust trail of ships and spores.
  */
 function Smoke(pVector) {
-    this.x = pVector.x;
-    this.y = pVector.y;
-    this.remove = false;
+    this.position = pVector;
     this.frame = 0;
     this.draw = function () {
-        engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, 640 + this.x - game.scroll.x * game.tileSize - 48, 368 + this.y - game.scroll.y * game.tileSize - 48, 48, 48);
+        engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, 640 + this.position.x - game.scroll.x * game.tileSize - 48, 368 + this.position.y - game.scroll.y * game.tileSize - 48, 48, 48);
     };
 }
 
@@ -2560,12 +2554,10 @@ function Smoke(pVector) {
  * Created on explosion of buildings, spores and shells
  */
 function Explosion(pX, pY) {
-    this.x = pX;
-    this.y = pY;
-    this.remove = false;
+    this.position = new Vector(pX, pY);
     this.frame = 0;
     this.draw = function () {
-        engine.canvas["buffer"].context.drawImage(engine.images["explosion"], (this.frame % 8) * 64, Math.floor(this.frame / 8) * 64, 64, 64, 640 + this.x - game.scroll.x * game.tileSize - 32, 368 + this.y - game.scroll.y * game.tileSize - 32, 64, 64);
+        engine.canvas["buffer"].context.drawImage(engine.images["explosion"], (this.frame % 8) * 64, Math.floor(this.frame / 8) * 64, 64, 64, 640 + this.position.x - game.scroll.x * game.tileSize - 32, 368 + this.position.y - game.scroll.y * game.tileSize - 32, 64, 64);
     };
 }
 
