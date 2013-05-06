@@ -274,7 +274,19 @@ var game = {
         return new Vector(Math.floor(engine.mouse.x / this.tileSize), Math.floor(engine.mouse.y / this.tileSize));
     },
     getTilePositionScrolled: function () {
-        return new Vector(Math.floor((engine.mouse.x - 640) / this.tileSize) + this.scroll.x, Math.floor((engine.mouse.y  - 368) / this.tileSize) + this.scroll.y);
+        var position = new Vector(Math.floor((engine.mouse.x - 640) / this.tileSize) + this.scroll.x, Math.floor((engine.mouse.y  - 368) / this.tileSize) + this.scroll.y);
+
+        if (position.x < 0)
+            position.x = 0;
+        if (position.x > game.world.size.x)
+            position.x = game.world.size.x;
+        if (position.y < 0)
+            position.y = 0;
+        if (position.y > game.world.size.y)
+            position.y = game.world.size.y;
+
+        return position;
+
     },
     pause: function() {
         $('#pause').hide();
@@ -352,8 +364,8 @@ var game = {
         }
 
         do {
-            var baseX = Math.floor(Math.random() * this.world.size.x);
-            var baseY = Math.floor(Math.random() * this.world.size.y);
+            var baseX = Math.floor(Math.random() * (this.world.size.x - 9));
+            var baseY = Math.floor(Math.random() * (this.world.size.y - 9));
         } while (this.world.tiles[baseX][baseY].height < 5);
 
         this.scroll.x = baseX + 5;
@@ -378,8 +390,8 @@ var game = {
         this.calculateCollection();
 
         do {
-            var baseX = Math.floor(Math.random() * this.world.size.x);
-            var baseY = Math.floor(Math.random() * this.world.size.y);
+            var baseX = Math.floor(Math.random() * (this.world.size.x - 3));
+            var baseY = Math.floor(Math.random() * (this.world.size.y - 3));
         } while (this.world.tiles[baseX][baseY].height > 4);
 
         var emitter = new Emitter(baseX, baseY, 10);
@@ -392,8 +404,8 @@ var game = {
         }
 
         do {
-            var baseX = Math.floor(Math.random() * this.world.size.x);
-            var baseY = Math.floor(Math.random() * this.world.size.y);
+            var baseX = Math.floor(Math.random() * (this.world.size.x - 3));
+            var baseY = Math.floor(Math.random() * (this.world.size.y - 3));
         } while (this.world.tiles[baseX][baseY].height < 7);
 
         var sporetower = new Sporetower(baseX, baseY);
@@ -589,19 +601,19 @@ var game = {
                             right = 1;
 
                         if (height > 0)
-                            engine.canvas["tiles"].context.drawImage(engine.images["terrain"], 15 * this.tileSize, (this.world.tiles[iS][jS].height - 1) * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
+                            engine.canvas["tiles"].context.drawImage(engine.images["terrain"], 15 * (this.tileSize + 6) + 3, (this.world.tiles[iS][jS].height - 1) * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
                         // save index for later use
                         this.world.tiles[iS][jS].index = index;
-                        engine.canvas["tiles"].context.drawImage(engine.images["terrain"], index * this.tileSize, this.world.tiles[iS][jS].height * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
+                        engine.canvas["tiles"].context.drawImage(engine.images["terrain"], index * (this.tileSize + 6) + 3, this.world.tiles[iS][jS].height * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
 
                         // grid (debug)
                         //engine.canvas["tiles"].context.strokeRect(i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
                     }
-                    else {
+                    /*else {
                         engine.canvas["tiles"].context.fillStyle = "#000";
                         engine.canvas["tiles"].context.fillRect(640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
-                    }
+                    }*/
                 }
             }
         }
@@ -1395,7 +1407,7 @@ var game = {
                             right = this.world.tiles[iS + 1][jS].collection;
 
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
-                        engine.canvas["buffer"].context.drawImage(engine.images["terrain"], index * this.tileSize, 10 * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
+                        engine.canvas["buffer"].context.drawImage(engine.images["terrain"], index * (this.tileSize + 6) + 3, 10 * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
                     }
                 }
             }
