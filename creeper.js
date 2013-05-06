@@ -645,8 +645,8 @@ var game = {
                             var dx = targets[0].x * this.tileSize + this.tileSize / 2 - center.x;
                             var dy = targets[0].y * this.tileSize + this.tileSize / 2 - center.y;
                             this.buildings[t].targetAngle = Math.atan2(dy, dx) + Math.PI / 2; // * 180 / Math.PI;
-                            this.buildings[t].targetX = targets[0].x * this.tileSize + this.tileSize / 2;
-                            this.buildings[t].targetY = targets[0].y * this.tileSize + this.tileSize / 2;
+                            this.buildings[t].targetX = targets[0].x;
+                            this.buildings[t].targetY = targets[0].y;
                             this.buildings[t].ammo -= 1;
                             this.buildings[t].shooting = true;
                             this.smokes.push(new Smoke(new Vector(this.buildings[t].targetX, this.buildings[t].targetY)));
@@ -691,8 +691,8 @@ var game = {
                         var distance = Math.pow(sporeCenter.x - center.x, 2) + Math.pow(sporeCenter.y - center.y, 2);
 
                         if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
-                            this.buildings[t].targetX = sporeCenter.x;
-                            this.buildings[t].targetY = sporeCenter.y;
+                            this.buildings[t].targetX = 640 + sporeCenter.x - (game.scroll.x * game.tileSize);
+                            this.buildings[t].targetY = 368 + sporeCenter.y - (game.scroll.y * game.tileSize);
                             this.buildings[t].ammo -= .1;
                             this.buildings[t].shooting = true;
                             this.spores[i].health -= 2;
@@ -2070,7 +2070,7 @@ function Building(pX, pY, pImage, pType) {
                 engine.canvas["buffer"].context.strokeStyle = "#f00";
                 engine.canvas["buffer"].context.beginPath();
                 engine.canvas["buffer"].context.moveTo(center.x, center.y);
-                engine.canvas["buffer"].context.lineTo(this.targetX, this.targetY);
+                engine.canvas["buffer"].context.lineTo(640 + (this.targetX - game.scroll.x) * game.tileSize , 368 + (this.targetY - game.scroll.y) * game.tileSize);
                 engine.canvas["buffer"].context.stroke();
             }
             if (this.type == "Beam") {
@@ -2311,9 +2311,7 @@ function Spore(pX, pY, pImage, pTX, pTY) {
         }
     };
     this.getCenter = function () {
-        var x = this.x + 16;
-        var y = this.y + 16;
-        return new Vector(x, y);
+        return new Vector(this.x, this.y);
     };
     this.draw = function () {
         engine.canvas["buffer"].context.save();
