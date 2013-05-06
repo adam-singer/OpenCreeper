@@ -416,7 +416,7 @@ var game = {
             building.canMove = true;
         }
         if (building.type == "Bomber") {
-            building.maxHealth = 75;
+            building.maxHealth = 5;
             building.size = 3;
         }
         if (building.type == "Storage") {
@@ -2350,7 +2350,10 @@ function Ship(pX, pY, pImage, pType, pHome) {
     this.trailTimer = 0;
     this.weaponTimer = 0;
     this.updateHoverState = function () {
-        if (engine.mouse.x > this.x && engine.mouse.x < this.x + 47 && engine.mouse.y > this.y && engine.mouse.y < this.y + 47) {
+        if (engine.mouse.x > 640 + (this.x - game.scroll.x * game.tileSize) &&
+            engine.mouse.x < 640 + (this.x - game.scroll.x * game.tileSize) + 47 &&
+            engine.mouse.y > 368 + (this.y - game.scroll.y * game.tileSize) &&
+            engine.mouse.y < 368 + (this.y - game.scroll.y * game.tileSize) + 47) {
             this.hovered = true;
             return true;
         }
@@ -2365,6 +2368,11 @@ function Ship(pX, pY, pImage, pType, pHome) {
             engine.canvas["buffer"].context.strokeStyle = "#f00";
             engine.canvas["buffer"].context.strokeRect(this.x, this.y, 47, 47);
         }
+    };
+    this.getDrawCenter = function () {
+        var x = 640 + this.x - game.scroll.x * game.tileSize + 24;
+        var y = 368 + this.y - game.scroll.y * game.tileSize + 24;
+        return new Vector(x, y);
     };
     this.turnToTarget = function () {
         var dx = this.tx - this.x;
@@ -2459,7 +2467,21 @@ function Ship(pX, pY, pImage, pType, pHome) {
         }
     };
     this.draw = function () {
+        if (this.hovered) {
+            engine.canvas["buffer"].context.strokeStyle = "#f00";
+            engine.canvas["buffer"].context.beginPath();
+            engine.canvas["buffer"].context.arc(this.getDrawCenter().x, this.getDrawCenter().y, 24, 0, Math.PI * 2, true);
+            engine.canvas["buffer"].context.closePath();
+            engine.canvas["buffer"].context.stroke();
+        }
+
         if (this.status == 1 && this.selected) {
+            engine.canvas["buffer"].context.strokeStyle = "#fff";
+            engine.canvas["buffer"].context.beginPath();
+            engine.canvas["buffer"].context.arc(this.getDrawCenter().x, this.getDrawCenter().y, 24, 0, Math.PI * 2, true);
+            engine.canvas["buffer"].context.closePath();
+            engine.canvas["buffer"].context.stroke();
+
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .5;
             engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], 640 + this.tx - game.scroll.x * game.tileSize - game.tileSize, 368 + this.ty - game.scroll.y * game.tileSize - game.tileSize);
@@ -2752,6 +2774,22 @@ function onClickGUI(evt) {
 function onClick(evt) {
     var position = game.getTilePositionScrolled();
 
+    for (var i = 0; i < game.ships.length; i++) {
+        if (game.ships[i].selected) {
+            game.ships[i].tx = position.x * game.tileSize;
+            game.ships[i].ty = position.y * game.tileSize;
+            if (position.x - 1 == game.ships[i].home.x &&
+                position.y - 1 == game.ships[i].home.y) {
+                game.ships[i].status = 2;
+                console.log("returning home");
+            }
+            else {
+                game.ships[i].status = 1;
+            }
+
+        }
+    }
+
     var shipSelected = false;
     // select a ship if hovered
     for (var i = 0; i < game.ships.length; i++) {
@@ -2862,13 +2900,13 @@ function onMouseUp() {
         }
     }*/
 
-    for (var i = 0; i < game.ships.length; i++) {
+    /*for (var i = 0; i < game.ships.length; i++) {
         if (game.ships[i].selected) {
             game.ships[i].status = 1;
             game.ships[i].tx = position.x * game.tileSize;
             game.ships[i].ty = position.y * game.tileSize;
         }
-    }
+    }*/
 }
 
 /*function request() {
