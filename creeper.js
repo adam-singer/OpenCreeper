@@ -352,14 +352,15 @@ var game = {
         }
 
         do {
-            var baseX = Math.floor(Math.random() * (this.world.size.x - 9));
-            var baseY = Math.floor(Math.random() * (this.world.size.y - 9));
-        } while (this.world.tiles[baseX][baseY].height < 5);
+            var randomPosition = new Vector(
+                Math.floor(Math.random() * (this.world.size.x - 9)),
+                Math.floor(Math.random() * (this.world.size.y - 9)));
+        } while (this.world.tiles[randomPosition.x][randomPosition.y].height < 5);
 
-        this.scroll.x = baseX + 5;
-        this.scroll.y = baseY + 5;
+        this.scroll.x = randomPosition.x + 5;
+        this.scroll.y = randomPosition.y + 5;
 
-        var building = new Building(baseX, baseY, "base", "Base");
+        var building = new Building(randomPosition.x, randomPosition.y, "base", "Base");
         building.health = 40;
         building.maxHealth = 40;
         building.nodeRadius = 10;
@@ -378,11 +379,12 @@ var game = {
         this.calculateCollection();
 
         do {
-            var baseX = Math.floor(Math.random() * (this.world.size.x - 3));
-            var baseY = Math.floor(Math.random() * (this.world.size.y - 3));
-        } while (this.world.tiles[baseX][baseY].height > 4);
+            var randomPosition = new Vector(
+                Math.floor(Math.random() * (this.world.size.x - 3)),
+                Math.floor(Math.random() * (this.world.size.y - 3)));
+        } while (this.world.tiles[randomPosition.x][randomPosition.y].height > 4);
 
-        var emitter = new Emitter(baseX, baseY, 10);
+        var emitter = new Emitter(randomPosition, 10);
         this.emitters.push(emitter);
         height = this.world.tiles[emitter.position.x][emitter.position.y].height;
         for (var i = 0; i < 3; i++) {
@@ -392,11 +394,12 @@ var game = {
         }
 
         do {
-            var baseX = Math.floor(Math.random() * (this.world.size.x - 3));
-            var baseY = Math.floor(Math.random() * (this.world.size.y - 3));
-        } while (this.world.tiles[baseX][baseY].height < 7);
+            var randomPosition = new Vector(
+                Math.floor(Math.random() * (this.world.size.x - 3)),
+                Math.floor(Math.random() * (this.world.size.y - 3)));
+        } while (this.world.tiles[randomPosition.x][randomPosition.y].height < 7);
 
-        var sporetower = new Sporetower(baseX, baseY);
+        var sporetower = new Sporetower(randomPosition);
         this.sporetowers.push(sporetower);
         height = this.world.tiles[sporetower.position.x][sporetower.position.y].height;
         for (var i = 0; i < 3; i++) {
@@ -474,7 +477,7 @@ var game = {
 
         // only explode building when it has been built
         if (building.built) {
-            this.explosions.push(new Explosion(building.getCenter().x, building.getCenter().y));
+            this.explosions.push(new Explosion(building.getCenter()));
             engine.playSound("explosion");
         }
 
@@ -644,12 +647,12 @@ var game = {
 
                             var dx = targets[0].x * this.tileSize + this.tileSize / 2 - center.x;
                             var dy = targets[0].y * this.tileSize + this.tileSize / 2 - center.y;
-                            this.buildings[t].targetAngle = Math.atan2(dy, dx) + Math.PI / 2; // * 180 / Math.PI;
-                            this.buildings[t].targetX = targets[0].x;
-                            this.buildings[t].targetY = targets[0].y;
+                            this.buildings[t].targetAngle = Math.atan2(dy, dx) + Math.PI / 2;
+                            this.buildings[t].weaponTargetPosition.x = 640 + (targets[0].x * this.tileSize) - this.scroll.x * this.tileSize + this.tileSize / 2;
+                            this.buildings[t].weaponTargetPosition.y = 368 + (targets[0].y * this.tileSize) - this.scroll.y * this.tileSize + this.tileSize / 2;
                             this.buildings[t].ammo -= 1;
                             this.buildings[t].shooting = true;
-                            this.smokes.push(new Smoke(new Vector(this.buildings[t].targetX, this.buildings[t].targetY)));
+                            this.smokes.push(new Smoke(new Vector(targets[0].x * this.tileSize, targets[0].y * this.tileSize)));
                             break;
                         }
                     }
@@ -691,15 +694,15 @@ var game = {
                         var distance = Math.pow(sporeCenter.x - center.x, 2) + Math.pow(sporeCenter.y - center.y, 2);
 
                         if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
-                            this.buildings[t].targetX = 640 + sporeCenter.x - (game.scroll.x * game.tileSize);
-                            this.buildings[t].targetY = 368 + sporeCenter.y - (game.scroll.y * game.tileSize);
+                            this.buildings[t].weaponTargetPosition.x = 640 + sporeCenter.x - this.scroll.x * this.tileSize;
+                            this.buildings[t].weaponTargetPosition.y = 368 + sporeCenter.y - this.scroll.y * this.tileSize;
                             this.buildings[t].ammo -= .1;
                             this.buildings[t].shooting = true;
                             this.spores[i].health -= 2;
                             if (this.spores[i].health <= 0) {
                                 this.spores[i].remove = true;
                                 engine.playSound("explosion");
-                                this.explosions.push(new Explosion(sporeCenter.x, sporeCenter.y));
+                                this.explosions.push(new Explosion(sporeCenter));
                             }
                         }
                     }
@@ -921,9 +924,7 @@ var game = {
                           if (this.buildings[i].built) {
                               centerI = this.buildings[i].getCenter();
                               centerNode = node.getCenter();
-                              var dx = centerI.x - centerNode.x;
-                              var dy = centerI.y - centerNode.y;
-                              var distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+                              var distance = Helper.distance(centerI, centerNode);
 
                               var allowedDistance = 10 * this.tileSize;
                               if (node.type == "Relay" && this.buildings[i].type == "Relay") {
@@ -938,9 +939,7 @@ var game = {
                      else {
                          centerI = this.buildings[i].getCenter();
                          centerNode = node.getCenter();
-                         var dx = centerI.x - centerNode.x;
-                         var dy = centerI.y - centerNode.y;
-                         var distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+                         var distance = Helper.distance(centerI, centerNode);
 
                          var allowedDistance = 10 * this.tileSize;
                          if (node.type == "Relay" && this.buildings[i].type == "Relay") {
@@ -1133,7 +1132,6 @@ var game = {
     sendPacket: function (packet) {
         packet.currentTarget = this.findRoute(packet);
         if (packet.currentTarget != null) {
-            packet.calculateVector();
             this.packets.push(packet);
             this.updateEnergyElement();
         } else {
@@ -1856,8 +1854,7 @@ function Building(pX, pY, pImage, pType) {
     this.shooting = false;
     this.selected = false;
     this.hovered = false;
-    this.targetX = 0;
-    this.targetY = 0;
+    this.weaponTargetPosition = new Vector(0, 0);
     this.type = pType;
     this.health = 0;
     this.maxHealth = 0;
@@ -1875,19 +1872,16 @@ function Building(pX, pY, pImage, pType) {
     this.active = true;
     this.moving = false;
     this.speed = new Vector(0, 0);
-    this.tx = 0;
-    this.ty = 0;
+    this.moveTargetPosition = new Vector(0, 0);
     this.canMove = false;
     this.canShoot = false;
     this.updateHoverState = function () {
-        if (engine.mouse.x > 640 + (this.x - game.scroll.x) * game.tileSize && engine.mouse.x < 640 + (this.x - game.scroll.x) * game.tileSize + game.tileSize * this.size - 1 && engine.mouse.y > 368 + (this.y - game.scroll.y) * game.tileSize && engine.mouse.y < 368 + (this.y - game.scroll.y) * game.tileSize + game.tileSize * this.size - 1) {
-            this.hovered = true;
-            return true;
-        }
-        else {
-            this.hovered = false;
-            return false;
-        }
+        this.hovered = (engine.mouse.x > 640 + (this.x - game.scroll.x) * game.tileSize &&
+            engine.mouse.x < 640 + (this.x - game.scroll.x) * game.tileSize + game.tileSize * this.size - 1 &&
+            engine.mouse.y > 368 + (this.y - game.scroll.y) * game.tileSize &&
+            engine.mouse.y < 368 + (this.y - game.scroll.y) * game.tileSize + game.tileSize * this.size - 1);
+
+        return this.hovered;
     };
     this.drawBox = function () {
         if (this.hovered || this.selected) {
@@ -1900,21 +1894,25 @@ function Building(pX, pY, pImage, pType) {
         if (this.moving) {
             this.x += this.speed.x;
             this.y += this.speed.y;
-            if (this.x * game.tileSize > this.tx * game.tileSize - 3 && this.x * game.tileSize < this.tx * game.tileSize + 3 && this.y * game.tileSize > this.ty * game.tileSize - 3 && this.y * game.tileSize < this.ty * game.tileSize + 3) {
+            if (this.x * game.tileSize > this.moveTargetPosition.x * game.tileSize - 3 &&
+                this.x * game.tileSize < this.moveTargetPosition.x * game.tileSize + 3 &&
+                this.y * game.tileSize > this.moveTargetPosition.y * game.tileSize - 3 &&
+                this.y * game.tileSize < this.moveTargetPosition.y * game.tileSize + 3) {
                 this.moving = false;
-                this.x = this.tx;
-                this.y = this.ty;
+                this.x = this.moveTargetPosition.x;
+                this.y = this.moveTargetPosition.y;
             }
         }
     };
     this.calculateVector = function () {
-        if (this.tx != this.x || this.ty != this.y) {
-            var dx = this.tx * game.tileSize - this.x * game.tileSize;
-            var dy = this.ty * game.tileSize - this.y * game.tileSize;
-            var distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        if (this.moveTargetPosition.x != this.x || this.moveTargetPosition.y != this.y) {
+            var targetPosition = new Vector(this.moveTargetPosition.x * game.tileSize, this.moveTargetPosition.y * game.tileSize);
+            var ownPosition = new Vector(this.x * game.tileSize, this.y * game.tileSize);
+            var delta = new Vector(targetPosition.x - ownPosition.x, targetPosition.y - ownPosition.y);
+            var distance = Helper.distance(targetPosition, ownPosition);
 
-            this.speed.x = (dx / distance) * game.buildingSpeed * game.speed / game.tileSize;
-            this.speed.y = (dy / distance) * game.buildingSpeed * game.speed / game.tileSize;
+            this.speed.x = (delta.x / distance) * game.buildingSpeed * game.speed / game.tileSize;
+            this.speed.y = (delta.y / distance) * game.buildingSpeed * game.speed / game.tileSize;
         }
     };
     this.getCenter = function () {
@@ -1971,12 +1969,12 @@ function Building(pX, pY, pImage, pType) {
             var center = this.getCenter();
             // draw box
             engine.canvas["buffer"].context.fillStyle = "rgba(0,255,0,0.5)";
-            engine.canvas["buffer"].context.fillRect(this.tx * game.tileSize, this.ty * game.tileSize, this.size * game.tileSize, this.size * game.tileSize);
+            engine.canvas["buffer"].context.fillRect(this.moveTargetPosition.x * game.tileSize, this.moveTargetPosition.y * game.tileSize, this.size * game.tileSize, this.size * game.tileSize);
             // draw line
             engine.canvas["buffer"].context.strokeStyle = "rgba(255,255,255,0.5)";
             engine.canvas["buffer"].context.beginPath();
             engine.canvas["buffer"].context.moveTo(center.x, center.y);
-            engine.canvas["buffer"].context.lineTo(this.tx * game.tileSize + (game.tileSize / 2) * this.size, this.ty * game.tileSize + (game.tileSize / 2) * this.size);
+            engine.canvas["buffer"].context.lineTo(this.moveTargetPosition.x * game.tileSize + (game.tileSize / 2) * this.size, this.moveTargetPosition.y * game.tileSize + (game.tileSize / 2) * this.size);
             engine.canvas["buffer"].context.stroke();
         }
     };
@@ -2070,7 +2068,7 @@ function Building(pX, pY, pImage, pType) {
                 engine.canvas["buffer"].context.strokeStyle = "#f00";
                 engine.canvas["buffer"].context.beginPath();
                 engine.canvas["buffer"].context.moveTo(center.x, center.y);
-                engine.canvas["buffer"].context.lineTo(640 + (this.targetX - game.scroll.x) * game.tileSize , 368 + (this.targetY - game.scroll.y) * game.tileSize);
+                engine.canvas["buffer"].context.lineTo(this.weaponTargetPosition.x, this.weaponTargetPosition.y);
                 engine.canvas["buffer"].context.stroke();
             }
             if (this.type == "Beam") {
@@ -2078,14 +2076,14 @@ function Building(pX, pY, pImage, pType) {
                 engine.canvas["buffer"].context.lineWidth = 4;
                 engine.canvas["buffer"].context.beginPath();
                 engine.canvas["buffer"].context.moveTo(center.x, center.y);
-                engine.canvas["buffer"].context.lineTo(this.targetX, this.targetY);
+                engine.canvas["buffer"].context.lineTo(this.weaponTargetPosition.x, this.weaponTargetPosition.y);
                 engine.canvas["buffer"].context.stroke();
 
                 engine.canvas["buffer"].context.strokeStyle = '#fff';
                 engine.canvas["buffer"].context.lineWidth = 2;
                 engine.canvas["buffer"].context.beginPath();
                 engine.canvas["buffer"].context.moveTo(center.x, center.y);
-                engine.canvas["buffer"].context.lineTo(this.targetX, this.targetY);
+                engine.canvas["buffer"].context.lineTo(this.weaponTargetPosition.x, this.weaponTargetPosition.y);
                 engine.canvas["buffer"].context.stroke();
             }
         }
@@ -2126,11 +2124,11 @@ function Packet(pX, pY, pImage, pType) {
     this.remove = false;
     this.speedMultiplier = 1;
     this.move = function () {
-        // if the target is moving recalculate vector
-        //if (this.currentTarget.moving)
-            this.calculateVector();
+        this.calculateVector();
+
         this.x += this.speed.x;
         this.y += this.speed.y;
+
         var centerTarget = this.currentTarget.getCenter();
         if (this.x > centerTarget.x - 1 && this.x < centerTarget.x + 1 && this.y > centerTarget.y - 1 && this.y < centerTarget.y + 1) {
             // if the final node was reached deliver and remove
@@ -2167,26 +2165,24 @@ function Packet(pX, pY, pImage, pType) {
             }
             else {
                 this.currentTarget = game.findRoute(this);
-                if (this.currentTarget != null)
-                    this.calculateVector();
-                else
+                if (this.currentTarget == null)
                     this.remove = true;
             }
         }
     };
     this.calculateVector = function () {
-        var centerTarget = this.currentTarget.getCenter();
-        var dx = centerTarget.x - this.x;
-        var dy = centerTarget.y - this.y;
-        var distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        var targetPosition = this.currentTarget.getCenter();
+        var ownPosition = new Vector(this.x, this.y);
+        var delta = new Vector(targetPosition.x - ownPosition.x, targetPosition.y - ownPosition.y);
+        var distance = Helper.distance(targetPosition, ownPosition);
 
-        this.speed.x = (dx / distance) * game.packetSpeed * game.speed * this.speedMultiplier;
-        this.speed.y = (dy / distance) * game.packetSpeed * game.speed * this.speedMultiplier;
+        this.speed.x = (delta.x / distance) * game.packetSpeed * game.speed * this.speedMultiplier;
+        this.speed.y = (delta.y / distance) * game.packetSpeed * game.speed * this.speedMultiplier;
 
-        if (Math.abs(this.speed.x) > Math.abs(dx))
-            this.speed.x = dx;
-        if (Math.abs(this.speed.y) > Math.abs(dy))
-            this.speed.y = dy;
+        if (Math.abs(this.speed.x) > Math.abs(delta.x))
+            this.speed.x = delta.x;
+        if (Math.abs(this.speed.y) > Math.abs(delta.y))
+            this.speed.y = delta.y;
     };
     this.draw = function () {
         engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], 640 + this.x - game.scroll.x * game.tileSize - 8, 368 + this.y - game.scroll.y * game.tileSize - 8);
@@ -2209,12 +2205,13 @@ function Shell(pX, pY, pImage, pTX, pTY) {
     this.remove = false;
     this.rotation = 0;
     this.init = function () {
-        var dx = this.tx - this.x;
-        var dy = this.ty - this.y;
-        var distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        var targetPosition = new Vector(this.tx, this.ty);
+        var ownPosition = new Vector(this.x, this.y);
+        var delta = new Vector(targetPosition.x - ownPosition.x, targetPosition.y - ownPosition.y);
+        var distance = Helper.distance(targetPosition, ownPosition);
 
-        this.speed.x = (dx / distance) * game.shellSpeed * game.speed;
-        this.speed.y = (dy / distance) * game.shellSpeed * game.speed;
+        this.speed.x = (delta.x / distance) * game.shellSpeed * game.speed;
+        this.speed.y = (delta.y / distance) * game.shellSpeed * game.speed;
     };
     this.move = function () {
         this.rotation += 10;
@@ -2226,7 +2223,7 @@ function Shell(pX, pY, pImage, pTX, pTY) {
             // if the target is reached explode and remove
             this.remove = true;
 
-            game.explosions.push(new Explosion(this.tx, this.ty));
+            game.explosions.push(new Explosion(new Vector(this.tx, this.ty)));
             engine.playSound("explosion");
 
             for (var i = Math.floor(this.tx / game.tileSize) - 4; i < Math.floor(this.tx / game.tileSize) + 5; i++) {
@@ -2248,7 +2245,7 @@ function Shell(pX, pY, pImage, pTX, pTY) {
     this.draw = function () {
         engine.canvas["buffer"].context.save();
         engine.canvas["buffer"].context.translate(640 + this.x - game.scroll.x * game.tileSize + 8, 368 + this.y - game.scroll.y * game.tileSize + 8);
-        engine.canvas["buffer"].context.rotate(this.rotation * (Math.PI / 180));
+        engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.rotation));
         engine.canvas["buffer"].context.drawImage(engine.images["shell"], -8, -8);
         engine.canvas["buffer"].context.restore();
     };
@@ -2272,9 +2269,11 @@ function Spore(pX, pY, pImage, pTX, pTY) {
     this.health = 100;
     this.trailTimer = 0;
     this.init = function () {
+        var targetPosition = new Vector(this.tx, this.ty);
+        var ownPosition = new Vector(this.x, this.y);
         var dx = this.tx - this.x;
         var dy = this.ty - this.y;
-        var distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        var distance = Helper.distance(targetPosition, ownPosition);
 
         this.speed.x = (dx / distance) * game.sporeSpeed * game.speed;
         this.speed.y = (dy / distance) * game.sporeSpeed * game.speed;
@@ -2313,11 +2312,17 @@ function Spore(pX, pY, pImage, pTX, pTY) {
     this.getCenter = function () {
         return new Vector(this.x, this.y);
     };
+    this.getDrawCenter = function () {
+        var center = this.getCenter();
+        var x = 640 + center.x - game.scroll.x * game.tileSize;
+        var y = 368 + center.y - game.scroll.y * game.tileSize;
+        return new Vector(x, y);
+    };
     this.draw = function () {
         engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.translate(640 + this.x - game.scroll.x * game.tileSize, 368 + this.y - game.scroll.y * game.tileSize);
-        engine.canvas["buffer"].context.rotate(this.rotation * (Math.PI / 180));
-        engine.canvas["buffer"].context.drawImage(engine.images["spore"], -16, -16);
+        engine.canvas["buffer"].context.translate(this.getDrawCenter().x, this.getDrawCenter().y);
+        engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.rotation));
+        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -16, -16);
         engine.canvas["buffer"].context.restore();
     };
 }
@@ -2358,14 +2363,13 @@ function Ship(pX, pY, pImage, pType, pHome) {
         }
     };
     this.getDrawCenter = function () {
-        var x = 640 + this.x - game.scroll.x * game.tileSize + 24;
-        var y = 368 + this.y - game.scroll.y * game.tileSize + 24;
-        return new Vector(x, y);
+        return new Vector(
+            640 + this.x - game.scroll.x * game.tileSize + 24,
+            368 + this.y - game.scroll.y * game.tileSize + 24);
     };
     this.turnToTarget = function () {
-        var dx = this.tx - this.x;
-        var dy = this.ty - this.y;
-        var angleToTarget = Math.atan2(dy, dx) * 180 / Math.PI;
+        var delta = new Vector(this.tx - this.x, this.ty - this.y);
+        var angleToTarget = Helper.rad2deg(Math.atan2(delta.y, delta.x));
 
         var turnRate = 1;
         var absoluteDelta = Math.abs(angleToTarget - this.angle);
@@ -2390,13 +2394,11 @@ function Ship(pX, pY, pImage, pType, pHome) {
             this.angle += 360;
     };
     this.calculateVector = function () {
-        var x = Math.cos(this.angle * Math.PI / 180);
-        var y = Math.sin(this.angle * Math.PI / 180);
+        var x = Math.cos(Helper.deg2rad(this.angle));
+        var y = Math.sin(Helper.deg2rad(this.angle));
 
         this.speed.x = x * game.shipSpeed * game.speed;
         this.speed.y = y * game.shipSpeed * game.speed;
-
-
     };
     this.move = function () {
 
@@ -2419,7 +2421,7 @@ function Ship(pX, pY, pImage, pType, pHome) {
                 if (this.status == 1) { // attacking
                     if (this.weaponTimer >= 10) {
                         this.weaponTimer = 0;
-                        game.explosions.push(new Explosion(this.tx, this.ty));
+                        game.explosions.push(new Explosion(new Vector(this.tx, this.ty)));
                         this.ammo -= 1;
 
                         for (var i = Math.floor(this.tx / game.tileSize) - 3; i < Math.floor(this.tx / game.tileSize) + 5; i++) {
@@ -2478,7 +2480,7 @@ function Ship(pX, pY, pImage, pType, pHome) {
 
         engine.canvas["buffer"].context.save();
         engine.canvas["buffer"].context.translate(640 + this.x - game.scroll.x * game.tileSize + 24, 368 + this.y - game.scroll.y * game.tileSize + 24);
-        engine.canvas["buffer"].context.rotate((this.angle + 90) * (Math.PI / 180));
+        engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.angle + 90));
         engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -24, -24);
         engine.canvas["buffer"].context.restore();
 
@@ -2497,8 +2499,8 @@ Ship.prototype.constructor = Ship;
  *
  * Emitter
  */
-function Emitter(pX, pY, pS) {
-    this.position = new Vector(pX, pY);
+function Emitter(pVector, pS) {
+    this.position = pVector;
     this.strength = pS;
     this.draw = function () {
         engine.canvas["buffer"].context.drawImage(engine.images["emitter"], 640 + (this.position.x - game.scroll.x) * game.tileSize, 368 + (this.position.y - game.scroll.y) * game.tileSize, 48, 48);
@@ -2513,8 +2515,8 @@ function Emitter(pX, pY, pS) {
  *
  * Sporetower
  */
-function Sporetower(pX, pY) {
-    this.position = new Vector(pX, pY);
+function Sporetower(pVector) {
+    this.position = pVector;
     this.health = 100;
     this.draw = function () {
         engine.canvas["buffer"].context.drawImage(engine.images["sporetower"], 640 + (this.position.x - game.scroll.x) * game.tileSize, 368 + (this.position.y - game.scroll.y) * game.tileSize, 48, 48);
@@ -2537,7 +2539,7 @@ function Sporetower(pX, pY) {
  * Smoke is created by weapon fire of Cannons, or exhaust trail of ships and spores.
  */
 function Smoke(pVector) {
-    this.position = pVector;
+    this.position = new Vector(pVector.x, pVector.y);
     this.frame = 0;
     this.draw = function () {
         engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, 640 + this.position.x - game.scroll.x * game.tileSize - 48, 368 + this.position.y - game.scroll.y * game.tileSize - 48, 48, 48);
@@ -2551,8 +2553,8 @@ function Smoke(pVector) {
  *
  * Created on explosion of buildings, spores and shells
  */
-function Explosion(pX, pY) {
-    this.position = new Vector(pX, pY);
+function Explosion(pVector) {
+    this.position = new Vector(pVector.x, pVector.y);
     this.frame = 0;
     this.draw = function () {
         engine.canvas["buffer"].context.drawImage(engine.images["explosion"], (this.frame % 8) * 64, Math.floor(this.frame / 8) * 64, 64, 64, 640 + this.position.x - game.scroll.x * game.tileSize - 32, 368 + this.position.y - game.scroll.y * game.tileSize - 32, 64, 64);
@@ -2794,10 +2796,8 @@ function onClick(evt) {
         // check if it can be placed
         if (game.canBePlaced(game.buildings[i].size, game.buildings[i])) {
           game.buildings[i].moving = true;
-          game.buildings[i].tx = position.x;
-          game.buildings[i].ty = position.y;
+          game.buildings[i].moveTargetPosition = position;
           game.buildings[i].calculateVector();
-          //game.buildings[i].selected = false;
         }
       }
     }
@@ -2876,28 +2876,7 @@ function onMouseDown() {
 }
 
 function onMouseUp() {
-    var position = game.getTilePositionScrolled();
 
-    /*for (var i = 0; i < game.buildings.length; i++) {
-        if (game.buildings[i].built && game.buildings[i].selected && game.buildings[i].canMove) {
-            // check if it can be placed
-            if (game.canBePlaced(game.buildings[i].size, game.buildings[i])) {
-                game.buildings[i].moving = true;
-                game.buildings[i].tx = position.x;
-                game.buildings[i].ty = position.y;
-                game.buildings[i].calculateVector();
-                //game.buildings[i].selected = false;
-            }
-        }
-    }*/
-
-    /*for (var i = 0; i < game.ships.length; i++) {
-        if (game.ships[i].selected) {
-            game.ships[i].status = 1;
-            game.ships[i].tx = position.x * game.tileSize;
-            game.ships[i].ty = position.y * game.tileSize;
-        }
-    }*/
 }
 
 /*function request() {
@@ -2911,7 +2890,6 @@ function onMouseUp() {
     packet.target = building;
     packet.currentTarget = game.base;
     //packet.currentTarget = game.findRoute(packet);
-    //packet.calculateVector();
     //game.packets.push(packet);
     console.log("--> start finding initial route");
     if (game.findRoute(packet) != null) {
@@ -2923,6 +2901,34 @@ function onMouseUp() {
 /**
  * Some helper functions below
  */
+
+var Helper = {};
+
+Helper.rad2deg = function(angle) {
+    return angle * 57.29577951308232;
+};
+
+Helper.deg2rad = function(angle) {
+    return angle * .017453292519943295;
+};
+
+Helper.distance = function(a, b) {
+    return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+};
+
+// calculates canvas coordinates from tile coordinates
+Helper.tiled2screen = function(pVector) {
+    return new Vector(
+        640 + (pVector.x - game.scroll.x) * game.tileSize,
+        384 + (pVector.y - game.scroll.y) * game.tileSize);
+};
+
+// calculates canvas coordinates from real coordinates
+Helper.real2screen = function(pVector) {
+    return new Vector(
+        640 + pVector.x - game.scroll.x * game.tileSize,
+        384 + pVector.y - game.scroll.y * game.tileSize);
+};
 
 // Thanks to http://www.hardcode.nl/subcategory_1/article_317-array-shuffle-function
 Array.prototype.shuffle = function () {
