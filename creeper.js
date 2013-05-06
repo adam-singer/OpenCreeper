@@ -274,19 +274,7 @@ var game = {
         return new Vector(Math.floor(engine.mouse.x / this.tileSize), Math.floor(engine.mouse.y / this.tileSize));
     },
     getTilePositionScrolled: function () {
-        var position = new Vector(Math.floor((engine.mouse.x - 640) / this.tileSize) + this.scroll.x, Math.floor((engine.mouse.y  - 368) / this.tileSize) + this.scroll.y);
-
-        if (position.x < 0)
-            position.x = 0;
-        if (position.x > game.world.size.x)
-            position.x = game.world.size.x;
-        if (position.y < 0)
-            position.y = 0;
-        if (position.y > game.world.size.y)
-            position.y = game.world.size.y;
-
-        return position;
-
+        return new Vector(Math.floor((engine.mouse.x - 640) / this.tileSize) + this.scroll.x, Math.floor((engine.mouse.y  - 368) / this.tileSize) + this.scroll.y);
     },
     pause: function() {
         $('#pause').hide();
@@ -1158,11 +1146,11 @@ var game = {
      * Checks if a building can be placed on the current tile.
      */
     canBePlaced: function (size, building) {
-        var count = 0;
+        var collision = false;
 
         var position = this.getTilePositionScrolled();
 
-        if (position.x > -1 && position.x < this.world.size.x && position.y > -1 && position.y < this.world.size.y) {
+        if (position.x > -1 && position.x < this.world.size.x - size + 1 && position.y > -1 && position.y < this.world.size.y - size + 1) {
             var height = this.world.tiles[position.x][position.y].height;
 
             // 1. check for collision with another building
@@ -1179,25 +1167,39 @@ var game = {
                 var cy1 = position.y * this.tileSize;
                 var cy2 = position.y * this.tileSize + size * this.tileSize - 1;
 
-                if (((cx1 >= x1 && cx1 <= x2) || (cx2 >= x1 && cx2 <= x2)) && ((cy1 >= y1 && cy1 <= y2) || (cy2 >= y1 && cy2 <= y2)))
-                    count++;
+                if (((cx1 >= x1 && cx1 <= x2) || (cx2 >= x1 && cx2 <= x2)) && ((cy1 >= y1 && cy1 <= y2) || (cy2 >= y1 && cy2 <= y2))) {
+                    collision = true;
+                    break;
+                }
             }
 
             // 2. check if all tiles have the same height and are not corners
-            for (var i = position.x; i < position.x + size; i++) {
-                for (var j = position.y; j < position.y + size; j++) {
-                    if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y) {
-                        if (!this.world.tiles[i][j].enabled)
-                            count++;
-                        if (this.world.tiles[i][j].height != height)
-                            count++;
-                        if (!(this.world.tiles[i][j].index == 7 || this.world.tiles[i][j].index == 11 || this.world.tiles[i][j].index == 13 || this.world.tiles[i][j].index == 14 || this.world.tiles[i][j].index == 15))
-                            count++;
+            if (!collision) {
+                for (var i = position.x; i < position.x + size; i++) {
+                    for (var j = position.y; j < position.y + size; j++) {
+                        if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y) {
+                            if (!this.world.tiles[i][j].enabled) {
+                                collision = true;
+                                break;
+                            }
+                            if (this.world.tiles[i][j].height != height) {
+                                collision = true;
+                                break;
+                            }
+                            if (!(this.world.tiles[i][j].index == 7 || this.world.tiles[i][j].index == 11 || this.world.tiles[i][j].index == 13 || this.world.tiles[i][j].index == 14 || this.world.tiles[i][j].index == 15)) {
+                                collision = true;
+                                break;
+                            }
+                        }
                     }
                 }
             }
         }
-        return (count <= 0);
+        else {
+            collision = true;
+        }
+
+        return (!collision);
     },
     updatePacketQueue: function() {
         for (var i = 0; i < this.packetQueue.length; i++) {
@@ -1535,52 +1537,55 @@ var game = {
             engine.canvas["buffer"].context.restore();
         }
 
-        engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.globalAlpha = .5;
+        if (positionScrolled.x > -1 && positionScrolled.x < this.world.size.x && positionScrolled.y > -1 && positionScrolled.y < this.world.size.y) {
+            engine.canvas["buffer"].context.save();
+            engine.canvas["buffer"].context.globalAlpha = .5;
 
-        // draw green or red box
-        // make sure there isn't a building on this tile yet
-        if (this.canBePlaced(this.symbols[this.activeSymbol].size)) {
-            engine.canvas["buffer"].context.strokeStyle = "#0f0";
-        }
-        else {
-            engine.canvas["buffer"].context.strokeStyle = "#f00";
-        }
 
-        engine.canvas["buffer"].context.strokeRect(position.x * game.tileSize, position.y * game.tileSize, this.tileSize * this.symbols[this.activeSymbol].size, this.tileSize * this.symbols[this.activeSymbol].size);
-
-        engine.canvas["buffer"].context.drawImage(engine.images[this.symbols[this.activeSymbol].imageID], position.x * this.tileSize, position.y * this.tileSize);
-
-        if (this.symbols[this.activeSymbol].imageID == "cannon")
-            engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], position.x * this.tileSize, position.y * this.tileSize);
-
-        engine.canvas["buffer"].context.restore();
-
-        // draw lines to close buildings
-        for (var i = 0; i < this.buildings.length; i++) {
-            var center = this.buildings[i].getDrawCenter();
-            var centerCursorX = (position.x * game.tileSize) + ((this.tileSize / 2) * this.symbols[this.activeSymbol].size);
-            var centerCursorY = (position.y * game.tileSize) + ((this.tileSize / 2) * this.symbols[this.activeSymbol].size);
-            var allowedDistance = 10 * this.tileSize;
-            if (this.buildings[i].type == "Relay" && this.symbols[this.activeSymbol].imageID == "relay") {
-                allowedDistance = 20 * this.tileSize;
+            // draw green or red box
+            // make sure there isn't a building on this tile yet
+            if (this.canBePlaced(this.symbols[this.activeSymbol].size)) {
+                engine.canvas["buffer"].context.strokeStyle = "#0f0";
             }
-            if (Math.pow(center.x - centerCursorX, 2) + Math.pow(center.y - centerCursorY, 2) < Math.pow(allowedDistance, 2)) {
-                engine.canvas["buffer"].context.strokeStyle = '#000';
-                engine.canvas["buffer"].context.lineWidth = 2;
-                engine.canvas["buffer"].context.beginPath();
-                engine.canvas["buffer"].context.moveTo(center.x, center.y);
-                engine.canvas["buffer"].context.lineTo(position.x * game.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size, position.y * game.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size);
-                engine.canvas["buffer"].context.stroke();
+            else {
+                engine.canvas["buffer"].context.strokeStyle = "#f00";
+            }
+            engine.canvas["buffer"].context.strokeRect(position.x * game.tileSize, position.y * game.tileSize, this.tileSize * this.symbols[this.activeSymbol].size, this.tileSize * this.symbols[this.activeSymbol].size);
 
-                engine.canvas["buffer"].context.strokeStyle = '#fff';
-                engine.canvas["buffer"].context.lineWidth = 1;
-                engine.canvas["buffer"].context.beginPath();
-                engine.canvas["buffer"].context.moveTo(center.x, center.y);
-                engine.canvas["buffer"].context.lineTo(position.x * game.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size, position.y * game.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size);
-                engine.canvas["buffer"].context.stroke();
+            engine.canvas["buffer"].context.drawImage(engine.images[this.symbols[this.activeSymbol].imageID], position.x * this.tileSize, position.y * this.tileSize);
+
+            if (this.symbols[this.activeSymbol].imageID == "cannon")
+                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], position.x * this.tileSize, position.y * this.tileSize);
+
+            engine.canvas["buffer"].context.restore();
+
+            // draw lines to close buildings
+            for (var i = 0; i < this.buildings.length; i++) {
+                var center = this.buildings[i].getDrawCenter();
+                var centerCursorX = (position.x * game.tileSize) + ((this.tileSize / 2) * this.symbols[this.activeSymbol].size);
+                var centerCursorY = (position.y * game.tileSize) + ((this.tileSize / 2) * this.symbols[this.activeSymbol].size);
+                var allowedDistance = 10 * this.tileSize;
+                if (this.buildings[i].type == "Relay" && this.symbols[this.activeSymbol].imageID == "relay") {
+                    allowedDistance = 20 * this.tileSize;
+                }
+                if (Math.pow(center.x - centerCursorX, 2) + Math.pow(center.y - centerCursorY, 2) < Math.pow(allowedDistance, 2)) {
+                    engine.canvas["buffer"].context.strokeStyle = '#000';
+                    engine.canvas["buffer"].context.lineWidth = 2;
+                    engine.canvas["buffer"].context.beginPath();
+                    engine.canvas["buffer"].context.moveTo(center.x, center.y);
+                    engine.canvas["buffer"].context.lineTo(position.x * game.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size, position.y * game.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size);
+                    engine.canvas["buffer"].context.stroke();
+
+                    engine.canvas["buffer"].context.strokeStyle = '#fff';
+                    engine.canvas["buffer"].context.lineWidth = 1;
+                    engine.canvas["buffer"].context.beginPath();
+                    engine.canvas["buffer"].context.moveTo(center.x, center.y);
+                    engine.canvas["buffer"].context.lineTo(position.x * game.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size, position.y * game.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size);
+                    engine.canvas["buffer"].context.stroke();
+                }
             }
         }
+
     },
     /**
      * @author Alexander Zeillinger
@@ -1612,26 +1617,28 @@ var game = {
             this.symbols[i].draw(engine.canvas["gui"].context);
         }
 
-        // draw height and creep meter
-        engine.canvas["gui"].context.fillStyle = '#fff';
-        engine.canvas["gui"].context.font = '9px';
-        engine.canvas["gui"].context.textAlign = 'right';
-        engine.canvas["gui"].context.strokeStyle = '#fff';
-        engine.canvas["gui"].context.lineWidth = 1;
-        engine.canvas["gui"].context.fillStyle = "rgba(205, 133, 63, 1)";
-        engine.canvas["gui"].context.fillRect(555, 110, 25, -this.world.tiles[position.x][position.y].height * 10);
-        engine.canvas["gui"].context.fillStyle = "rgba(0, 0, 255, 1)";
-        engine.canvas["gui"].context.fillRect(555, 110 - this.world.tiles[position.x][position.y].height * 10, 25, -this.world.tiles[position.x][position.y].creep);
-        engine.canvas["gui"].context.fillStyle = "rgba(255, 255, 255, 1)";
-        for (var i = 1; i < 11; i++) {
-            engine.canvas["gui"].context.fillText(i.toString(), 550, 120 - i * 10);
-            engine.canvas["gui"].context.beginPath();
-            engine.canvas["gui"].context.moveTo(555, 120 - i * 10);
-            engine.canvas["gui"].context.lineTo(580, 120 - i * 10);
-            engine.canvas["gui"].context.stroke();
+        if (position.x > 0 && position.x < this.world.size.x && position.y > 0 && position.y < this.world.size.y) {
+            // draw height and creep meter
+            engine.canvas["gui"].context.fillStyle = '#fff';
+            engine.canvas["gui"].context.font = '9px';
+            engine.canvas["gui"].context.textAlign = 'right';
+            engine.canvas["gui"].context.strokeStyle = '#fff';
+            engine.canvas["gui"].context.lineWidth = 1;
+            engine.canvas["gui"].context.fillStyle = "rgba(205, 133, 63, 1)";
+            engine.canvas["gui"].context.fillRect(555, 110, 25, -this.world.tiles[position.x][position.y].height * 10);
+            engine.canvas["gui"].context.fillStyle = "rgba(0, 0, 255, 1)";
+            engine.canvas["gui"].context.fillRect(555, 110 - this.world.tiles[position.x][position.y].height * 10, 25, -this.world.tiles[position.x][position.y].creep);
+            engine.canvas["gui"].context.fillStyle = "rgba(255, 255, 255, 1)";
+            for (var i = 1; i < 11; i++) {
+                engine.canvas["gui"].context.fillText(i.toString(), 550, 120 - i * 10);
+                engine.canvas["gui"].context.beginPath();
+                engine.canvas["gui"].context.moveTo(555, 120 - i * 10);
+                engine.canvas["gui"].context.lineTo(580, 120 - i * 10);
+                engine.canvas["gui"].context.stroke();
+            }
+            engine.canvas["gui"].context.textAlign = 'left';
+            engine.canvas["gui"].context.fillText(this.world.tiles[position.x][position.y].creep.toFixed(2), 605, 10);
         }
-        engine.canvas["gui"].context.textAlign = 'left';
-        engine.canvas["gui"].context.fillText(this.world.tiles[position.x][position.y].creep.toFixed(2), 605, 10);
     },
     /**
      * @author Alexander Zeillinger
