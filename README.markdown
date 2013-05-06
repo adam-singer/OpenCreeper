@@ -46,3 +46,6 @@ http://www.freesound.org/people/TicTacShutUp/sounds/406/
 
 Music:
 http://www.vorbis.com/music/ - Epoq - Lepidoptera
+
+Background image:
+http://webtreatsetc.deviantart.com/art/Classic-Nebula-Space-Patterns-141741066
