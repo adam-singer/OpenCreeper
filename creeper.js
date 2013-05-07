@@ -1,5 +1,5 @@
 ﻿/*!
- * Open Creeper v1.0.2
+ * Open Creeper v1.1.0
  * http://alexanderzeillinger.github.com/OpenCreeper/
  *
  * Copyright 2012, Alexander Zeillinger
@@ -99,7 +99,8 @@ var engine = {
         if (evt.pageX > this.canvas["main"].left && evt.pageX < this.canvas["main"].right && evt.pageY > this.canvas["main"].top && evt.pageY < this.canvas["main"].bottom) {
             this.mouse.x = evt.pageX - this.canvas["main"].left;
             this.mouse.y = evt.pageY - this.canvas["main"].top;
-            $("#mouse").html("Mouse: " + this.mouse.x + "/" + this.mouse.y + " - " + (Math.floor((this.mouse.x - 640) / game.tileSize) + game.scroll.x) + "/" + (Math.floor((this.mouse.y  - 368) / game.tileSize) + game.scroll.y));
+            var position = game.getTilePositionScrolled();
+            $("#mouse").html("Mouse: " + this.mouse.x + "/" + this.mouse.y + " - " + position.x + "/" + position.y);
         }
     },
     updateMouseGUI: function (evt) {
@@ -232,8 +233,8 @@ var game = {
     world: {
         tiles: null,
         size: {
-            x: 150,
-            y: 150
+            x: 120,
+            y: 120
         }
     },
     alert: {
@@ -271,10 +272,14 @@ var game = {
      * Returns the position of the tile the mouse is hovering above.
      */
     getTilePosition: function () {
-        return new Vector(Math.floor(engine.mouse.x / this.tileSize), Math.floor(engine.mouse.y / this.tileSize));
+        return new Vector(
+            Math.floor(engine.mouse.x / this.tileSize),
+            Math.floor(engine.mouse.y / this.tileSize));
     },
     getTilePositionScrolled: function () {
-        return new Vector(Math.floor((engine.mouse.x - 640) / this.tileSize) + this.scroll.x, Math.floor((engine.mouse.y  - 368) / this.tileSize) + this.scroll.y);
+        return new Vector(
+            Math.floor((engine.mouse.x - 640) / this.tileSize) + this.scroll.x,
+            Math.floor((engine.mouse.y - 368) / this.tileSize) + this.scroll.y);
     },
     pause: function() {
         $('#pause').hide();
@@ -648,11 +653,10 @@ var game = {
                             var dx = targets[0].x * this.tileSize + this.tileSize / 2 - center.x;
                             var dy = targets[0].y * this.tileSize + this.tileSize / 2 - center.y;
                             this.buildings[t].targetAngle = Math.atan2(dy, dx) + Math.PI / 2;
-                            this.buildings[t].weaponTargetPosition.x = 640 + (targets[0].x * this.tileSize) - this.scroll.x * this.tileSize + this.tileSize / 2;
-                            this.buildings[t].weaponTargetPosition.y = 368 + (targets[0].y * this.tileSize) - this.scroll.y * this.tileSize + this.tileSize / 2;
+                            this.buildings[t].weaponTargetPosition = new Vector(targets[0].x, targets[0].y);
                             this.buildings[t].ammo -= 1;
                             this.buildings[t].shooting = true;
-                            this.smokes.push(new Smoke(new Vector(targets[0].x * this.tileSize, targets[0].y * this.tileSize)));
+                            this.smokes.push(new Smoke(new Vector(targets[0].x * this.tileSize + this.tileSize / 2, targets[0].y * this.tileSize + this.tileSize / 2)));
                             break;
                         }
                     }
@@ -694,8 +698,7 @@ var game = {
                         var distance = Math.pow(sporeCenter.x - center.x, 2) + Math.pow(sporeCenter.y - center.y, 2);
 
                         if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
-                            this.buildings[t].weaponTargetPosition.x = 640 + sporeCenter.x - this.scroll.x * this.tileSize;
-                            this.buildings[t].weaponTargetPosition.y = 368 + sporeCenter.y - this.scroll.y * this.tileSize;
+                            this.buildings[t].weaponTargetPosition = sporeCenter;
                             this.buildings[t].ammo -= .1;
                             this.buildings[t].shooting = true;
                             this.spores[i].health -= 2;
@@ -1535,7 +1538,6 @@ var game = {
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .5;
 
-
             // draw green or red box
             // make sure there isn't a building on this tile yet
             if (this.canBePlaced(this.symbols[this.activeSymbol].size)) {
@@ -1555,7 +1557,7 @@ var game = {
 
             // draw lines to close buildings
             for (var i = 0; i < this.buildings.length; i++) {
-                var center = this.buildings[i].getDrawCenter();
+                var center = Helper.real2screen(this.buildings[i].getCenter());
                 var centerCursorX = (position.x * game.tileSize) + ((this.tileSize / 2) * this.symbols[this.activeSymbol].size);
                 var centerCursorY = (position.y * game.tileSize) + ((this.tileSize / 2) * this.symbols[this.activeSymbol].size);
                 var allowedDistance = 10 * this.tileSize;
@@ -1633,139 +1635,6 @@ var game = {
             engine.canvas["gui"].context.textAlign = 'left';
             engine.canvas["gui"].context.fillText(this.world.tiles[position.x][position.y].creep.toFixed(2), 605, 10);
         }
-    },
-    /**
-     * @author Alexander Zeillinger
-     *
-     * Main drawing function
-     */
-    draw: function () {
-        this.drawGUI();
-
-        // clear canvas
-        engine.canvas["buffer"].clear();
-        engine.canvas["main"].clear();
-
-        this.drawCollectionAreas();
-        this.drawCreep();
-
-        // draw emitters
-        for (var i = 0; i < this.emitters.length; i++) {
-            this.emitters[i].draw();
-        }
-
-        // draw spore towers
-        for (var i = 0; i < this.sporetowers.length; i++) {
-            this.sporetowers[i].draw();
-        }
-
-        // draw node connections
-        for (var i = 0; i < this.buildings.length; i++) {
-            var centerI = this.buildings[i].getCenter();
-            var centerID = new Vector(640 + centerI.x - game.scroll.x * game.tileSize, 368 + centerI.y - game.scroll.y * game.tileSize);
-            for (var j = 0; j < this.buildings.length; j++) {
-                if (i != j) {
-                    var centerJ = this.buildings[j].getCenter();
-                    var centerJD = new Vector(640 + centerJ.x - game.scroll.x * game.tileSize, 368 + centerJ.y - game.scroll.y * game.tileSize);
-                    var allowedDistance = 10 * this.tileSize;
-                    if (this.buildings[i].type == "Relay" && this.buildings[j].type == "Relay") {
-                        allowedDistance = 20 * this.tileSize;
-                    }
-                    if (Math.pow(centerJD.x - centerID.x, 2) + Math.pow(centerJD.y - centerID.y, 2) < Math.pow(allowedDistance, 2)) {
-                        engine.canvas["buffer"].context.strokeStyle = '#000';
-                        engine.canvas["buffer"].context.lineWidth = 3;
-                        engine.canvas["buffer"].context.beginPath();
-                        engine.canvas["buffer"].context.moveTo(centerID.x, centerID.y);
-                        engine.canvas["buffer"].context.lineTo(centerJD.x, centerJD.y);
-                        engine.canvas["buffer"].context.stroke();
-
-                        engine.canvas["buffer"].context.strokeStyle = '#fff';
-                        if (!this.buildings[i].built || !this.buildings[j].built)
-                            engine.canvas["buffer"].context.strokeStyle = '#aaa';
-                        engine.canvas["buffer"].context.lineWidth = 2;
-                        engine.canvas["buffer"].context.beginPath();
-                        engine.canvas["buffer"].context.moveTo(centerID.x, centerID.y);
-                        engine.canvas["buffer"].context.lineTo(centerJD.x, centerJD.y);
-                        engine.canvas["buffer"].context.stroke();
-                    }
-                }
-            }
-        }
-
-        // draw movement indicators
-        for (var i = 0; i < this.buildings.length; i++) {
-            this.buildings[i].drawMovementIndicators();
-        }
-
-        // draw buildings
-        for (var i = 0; i < this.buildings.length; i++) {
-            this.buildings[i].draw();
-        }
-
-        // draw radius
-        for (var i = 0; i < this.buildings.length; i++) {
-            this.buildings[i].drawRadius();
-        }
-
-        // draw shells
-        for (var i = 0; i < this.shells.length; i++) {
-            this.shells[i].draw();
-        }
-
-        // draw smokes
-        for (var i = 0; i < this.smokes.length; i++) {
-            this.smokes[i].draw();
-        }
-
-        // draw explosions
-        for (var i = 0; i < this.explosions.length; i++) {
-            this.explosions[i].draw();
-        }
-
-        // draw spores
-        for (var i = 0; i < this.spores.length; i++) {
-            this.spores[i].draw();
-        }
-
-        if (engine.mouse.active) {
-
-            // if a building is built and selected draw a green box and a line at mouse position as the reposition target
-            for (var i = 0; i < this.buildings.length; i++) {
-                this.buildings[i].drawRepositionInfo();
-            }
-
-            // draw attack symbol
-            this.drawAttackSymbol();
-
-            if (this.activeSymbol != -1) {
-                this.drawPositionInfo();
-            }
-        }
-
-        // draw packets
-        for (var i = 0; i < this.packets.length; i++) {
-            this.packets[i].draw();
-        }
-
-        // draw ships
-        for (var i = 0; i < this.ships.length; i++) {
-            this.ships[i].draw(engine.canvas["buffer"].context);
-        }
-
-        // draw building hover/selection box
-        for (var i = 0; i < this.buildings.length; i++) {
-            this.buildings[i].drawBox();
-        }
-
-        // draw ship hover/selection box
-        for (var i = 0; i < this.ships.length; i++) {
-            this.ships[i].drawBox();
-        }
-
-        engine.canvas["main"].context.drawImage(engine.canvas["buffer"].element[0], 0, 0);
-        // double buffering taken from: http://www.youtube.com/watch?v=FEkBldQnNUc
-
-        engine.animationRequest = requestAnimationFrame(game.draw);
     }
 };
 
@@ -1876,18 +1745,20 @@ function Building(pX, pY, pImage, pType) {
     this.canMove = false;
     this.canShoot = false;
     this.updateHoverState = function () {
-        this.hovered = (engine.mouse.x > 640 + (this.x - game.scroll.x) * game.tileSize &&
-            engine.mouse.x < 640 + (this.x - game.scroll.x) * game.tileSize + game.tileSize * this.size - 1 &&
-            engine.mouse.y > 368 + (this.y - game.scroll.y) * game.tileSize &&
-            engine.mouse.y < 368 + (this.y - game.scroll.y) * game.tileSize + game.tileSize * this.size - 1);
+        var position = Helper.tiled2screen(new Vector(this.x, this.y));
+        this.hovered = (engine.mouse.x > position.x &&
+            engine.mouse.x < position.x + game.tileSize * this.size - 1 &&
+            engine.mouse.y > position.y &&
+            engine.mouse.y < position.y + game.tileSize * this.size - 1);
 
         return this.hovered;
     };
     this.drawBox = function () {
         if (this.hovered || this.selected) {
+            var position = Helper.tiled2screen(new Vector(this.x, this.y));
             engine.canvas["buffer"].context.lineWidth = 1;
             engine.canvas["buffer"].context.strokeStyle = "#000";
-            engine.canvas["buffer"].context.strokeRect(640 + (this.x - game.scroll.x) * game.tileSize, 368 + (this.y - game.scroll.y) * game.tileSize, game.tileSize * this.size, game.tileSize * this.size);
+            engine.canvas["buffer"].context.strokeRect(position.x, position.y, game.tileSize * this.size, game.tileSize * this.size);
         }
     };
     this.move = function () {
@@ -1916,15 +1787,9 @@ function Building(pX, pY, pImage, pType) {
         }
     };
     this.getCenter = function () {
-        var x = this.x * game.tileSize + (game.tileSize / 2) * this.size;
-        var y = this.y * game.tileSize + (game.tileSize / 2) * this.size;
-        return new Vector(x, y);
-    };
-    this.getDrawCenter = function () {
-        var center = this.getCenter();
-        var x = 640 + center.x - game.scroll.x * game.tileSize;
-        var y = 368 + center.y - game.scroll.y * game.tileSize;
-        return new Vector(x, y);
+        return new Vector(
+            this.x * game.tileSize + (game.tileSize / 2) * this.size,
+            this.y * game.tileSize + (game.tileSize / 2) * this.size);
     };
     this.takeDamage = function () {
         // buildings can only be damaged while not moving
@@ -1945,7 +1810,7 @@ function Building(pX, pY, pImage, pType) {
     };
     this.drawRadius = function () {
         if (this.selected) {
-            var center = this.getDrawCenter();
+            var center = Helper.real2screen(this.getCenter());
 
             // node radius
             engine.canvas["buffer"].context.strokeStyle = "#000";
@@ -1979,8 +1844,9 @@ function Building(pX, pY, pImage, pType) {
         }
     };
     this.drawRepositionInfo = function () {
-        var center = this.getDrawCenter();
+        var center = Helper.real2screen(this.getCenter());
         var position = game.getTilePosition();
+
         // only armed buildings can move
         if (this.built && this.selected && this.canMove) {
             if (game.canBePlaced(this.size, this))
@@ -2021,22 +1887,23 @@ function Building(pX, pY, pImage, pType) {
         }
     };
     this.draw = function () {
-        // draw buildings
-        var center = this.getDrawCenter();
+        var position = Helper.tiled2screen(new Vector(this.x, this.y));
+        var center = Helper.real2screen(this.getCenter());
+
         if (!this.built) {
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .5;
-            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], 640 + (this.x - game.scroll.x) * game.tileSize, 368 + (this.y - game.scroll.y) * game.tileSize, engine.images[this.imageID].width, engine.images[this.imageID].height);
+            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width, engine.images[this.imageID].height);
             if (this.type == "Cannon") {
-                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], 640 + (this.x - game.scroll.x) * game.tileSize, 368 + (this.y - game.scroll.y) * game.tileSize, engine.images[this.imageID].width, engine.images[this.imageID].height);
+                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], position.x, position.y, engine.images[this.imageID].width, engine.images[this.imageID].height);
             }
             engine.canvas["buffer"].context.restore();
         }
         else {
-            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], 640 + (this.x - game.scroll.x) * game.tileSize, 368 + (this.y - game.scroll.y) * game.tileSize, engine.images[this.imageID].width, engine.images[this.imageID].height);
+            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width, engine.images[this.imageID].height);
             if (this.type == "Cannon") {
                 engine.canvas["buffer"].context.save();
-                engine.canvas["buffer"].context.translate(640 + (this.x - game.scroll.x) * game.tileSize + 24, 368 + (this.y - game.scroll.y) * game.tileSize + 24);
+                engine.canvas["buffer"].context.translate(position.x + 24, position.y + 24);
                 engine.canvas["buffer"].context.rotate(this.targetAngle);
                 engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], -24, -24);
                 engine.canvas["buffer"].context.restore();
@@ -2049,41 +1916,43 @@ function Building(pX, pY, pImage, pType) {
         // draw ammo bar
         if (this.canShoot) {
             engine.canvas["buffer"].context.fillStyle = '#000';
-            engine.canvas["buffer"].context.fillRect(640 + (this.x - game.scroll.x) * game.tileSize + 2, 368 + (this.y - game.scroll.y) * game.tileSize, 44, 4);
+            engine.canvas["buffer"].context.fillRect(position.x + 2, position.y, 44, 4);
             engine.canvas["buffer"].context.fillStyle = '#f00';
-            engine.canvas["buffer"].context.fillRect(640 + (this.x - game.scroll.x) * game.tileSize + 3, 368 + (this.y - game.scroll.y) * game.tileSize + 1, (42 / this.maxAmmo) * this.ammo, 2);
+            engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + 1, (42 / this.maxAmmo) * this.ammo, 2);
         }
 
         // draw health bar (only if health is below maxHealth)
         if (this.health < this.maxHealth) {
             engine.canvas["buffer"].context.fillStyle = '#000';
-            engine.canvas["buffer"].context.fillRect(640 + (this.x - game.scroll.x) * game.tileSize + 2, 368 + (this.y - game.scroll.y) * game.tileSize + game.tileSize * this.size - 4, game.tileSize * this.size - 4, 4);
+            engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + game.tileSize * this.size - 4, game.tileSize * this.size - 4, 4);
             engine.canvas["buffer"].context.fillStyle = '#0f0';
-            engine.canvas["buffer"].context.fillRect(640 + (this.x - game.scroll.x) * game.tileSize + 3, 368 + (this.y - game.scroll.y) * game.tileSize + game.tileSize * this.size - 3, ((game.tileSize * this.size - 6) / this.maxHealth) * this.health, 2);
+            engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + game.tileSize * this.size - 3, ((game.tileSize * this.size - 6) / this.maxHealth) * this.health, 2);
         }
 
         // draw shots
         if (this.shooting) {
             if (this.type == "Cannon") {
+                var targetPosition = Helper.tiled2screen(this.weaponTargetPosition);
                 engine.canvas["buffer"].context.strokeStyle = "#f00";
                 engine.canvas["buffer"].context.beginPath();
                 engine.canvas["buffer"].context.moveTo(center.x, center.y);
-                engine.canvas["buffer"].context.lineTo(this.weaponTargetPosition.x, this.weaponTargetPosition.y);
+                engine.canvas["buffer"].context.lineTo(targetPosition.x, targetPosition.y);
                 engine.canvas["buffer"].context.stroke();
             }
             if (this.type == "Beam") {
+                var targetPosition = Helper.real2screen(this.weaponTargetPosition);
                 engine.canvas["buffer"].context.strokeStyle = '#f00';
                 engine.canvas["buffer"].context.lineWidth = 4;
                 engine.canvas["buffer"].context.beginPath();
                 engine.canvas["buffer"].context.moveTo(center.x, center.y);
-                engine.canvas["buffer"].context.lineTo(this.weaponTargetPosition.x, this.weaponTargetPosition.y);
+                engine.canvas["buffer"].context.lineTo(targetPosition.x, targetPosition.y);
                 engine.canvas["buffer"].context.stroke();
 
                 engine.canvas["buffer"].context.strokeStyle = '#fff';
                 engine.canvas["buffer"].context.lineWidth = 2;
                 engine.canvas["buffer"].context.beginPath();
                 engine.canvas["buffer"].context.moveTo(center.x, center.y);
-                engine.canvas["buffer"].context.lineTo(this.weaponTargetPosition.x, this.weaponTargetPosition.y);
+                engine.canvas["buffer"].context.lineTo(targetPosition.x, targetPosition.y);
                 engine.canvas["buffer"].context.stroke();
             }
         }
@@ -2185,7 +2054,8 @@ function Packet(pX, pY, pImage, pType) {
             this.speed.y = delta.y;
     };
     this.draw = function () {
-        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], 640 + this.x - game.scroll.x * game.tileSize - 8, 368 + this.y - game.scroll.y * game.tileSize - 8);
+        var position = Helper.real2screen(new Vector(this.x, this.y));
+        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x - 8, position.y - 8);
     }
 }
 Packet.prototype = new GameObject;
@@ -2243,8 +2113,9 @@ function Shell(pX, pY, pImage, pTX, pTY) {
         }
     };
     this.draw = function () {
+        var position = Helper.real2screen(new Vector(this.x, this.y));
         engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.translate(640 + this.x - game.scroll.x * game.tileSize + 8, 368 + this.y - game.scroll.y * game.tileSize + 8);
+        engine.canvas["buffer"].context.translate(position.x + 8, position.y + 8);
         engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.rotation));
         engine.canvas["buffer"].context.drawImage(engine.images["shell"], -8, -8);
         engine.canvas["buffer"].context.restore();
@@ -2271,12 +2142,14 @@ function Spore(pX, pY, pImage, pTX, pTY) {
     this.init = function () {
         var targetPosition = new Vector(this.tx, this.ty);
         var ownPosition = new Vector(this.x, this.y);
-        var dx = this.tx - this.x;
-        var dy = this.ty - this.y;
+        var delta = new Vector(targetPosition.x - ownPosition.x, targetPosition.y - ownPosition.y);
         var distance = Helper.distance(targetPosition, ownPosition);
 
-        this.speed.x = (dx / distance) * game.sporeSpeed * game.speed;
-        this.speed.y = (dy / distance) * game.sporeSpeed * game.speed;
+        this.speed.x = (delta.x / distance) * game.sporeSpeed * game.speed;
+        this.speed.y = (delta.y / distance) * game.sporeSpeed * game.speed;
+    };
+    this.getCenter = function () {
+        return new Vector(this.x - 16, this.y - 16);
     };
     this.move = function () {
         this.trailTimer++;
@@ -2309,21 +2182,17 @@ function Spore(pX, pY, pImage, pTX, pTY) {
             }
         }
     };
-    this.getCenter = function () {
-        return new Vector(this.x, this.y);
-    };
-    this.getDrawCenter = function () {
-        var center = this.getCenter();
-        var x = 640 + center.x - game.scroll.x * game.tileSize;
-        var y = 368 + center.y - game.scroll.y * game.tileSize;
-        return new Vector(x, y);
-    };
     this.draw = function () {
+        var position = Helper.real2screen(new Vector(this.x, this.y));
         engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.translate(this.getDrawCenter().x, this.getDrawCenter().y);
+        engine.canvas["buffer"].context.translate(position.x, position.y);
         engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.rotation));
         engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -16, -16);
         engine.canvas["buffer"].context.restore();
+
+        //engine.canvas["buffer"].context.strokeStyle = "rgba(255,0,0,1)";
+        //engine.canvas["buffer"].context.strokeRect(position.x - 16, position.y - 16, 32, 32);
+
     };
 }
 Spore.prototype = new GameObject;
@@ -2349,23 +2218,17 @@ function Ship(pX, pY, pImage, pType, pHome) {
     this.status = 0; // 0 idle, 1 attacking, 2 returning
     this.trailTimer = 0;
     this.weaponTimer = 0;
-    this.updateHoverState = function () {
-        if (engine.mouse.x > 640 + (this.x - game.scroll.x * game.tileSize) &&
-            engine.mouse.x < 640 + (this.x - game.scroll.x * game.tileSize) + 47 &&
-            engine.mouse.y > 368 + (this.y - game.scroll.y * game.tileSize) &&
-            engine.mouse.y < 368 + (this.y - game.scroll.y * game.tileSize) + 47) {
-            this.hovered = true;
-            return true;
-        }
-        else {
-            this.hovered = false;
-            return false;
-        }
+    this.getCenter = function () {
+        return new Vector(this.x + 24, this.y + 24);
     };
-    this.getDrawCenter = function () {
-        return new Vector(
-            640 + this.x - game.scroll.x * game.tileSize + 24,
-            368 + this.y - game.scroll.y * game.tileSize + 24);
+    this.updateHoverState = function () {
+        var position = Helper.real2screen(new Vector(this.x, this.y));
+        this.hovered = (engine.mouse.x > position.x &&
+            engine.mouse.x < position.x + 47 &&
+            engine.mouse.y > position.y &&
+            engine.mouse.y < position.y + 47);
+
+        return this.hovered;
     };
     this.turnToTarget = function () {
         var delta = new Vector(this.tx - this.x, this.ty - this.y);
@@ -2406,7 +2269,7 @@ function Ship(pX, pY, pImage, pType, pHome) {
             this.trailTimer++;
             if (this.trailTimer == 10) {
                 this.trailTimer = 0;
-                game.smokes.push(new Smoke(new Vector(this.x + 24, this.y + 24)));
+                game.smokes.push(new Smoke(this.getCenter()));
             }
 
             this.weaponTimer++;
@@ -2457,10 +2320,12 @@ function Ship(pX, pY, pImage, pType, pHome) {
         }
     };
     this.draw = function () {
+        var position = Helper.real2screen(new Vector(this.x, this.y));
+
         if (this.hovered) {
             engine.canvas["buffer"].context.strokeStyle = "#f00";
             engine.canvas["buffer"].context.beginPath();
-            engine.canvas["buffer"].context.arc(this.getDrawCenter().x, this.getDrawCenter().y, 24, 0, Math.PI * 2, true);
+            engine.canvas["buffer"].context.arc(position.x + 24, position.y + 24, 24, 0, Math.PI * 2, true);
             engine.canvas["buffer"].context.closePath();
             engine.canvas["buffer"].context.stroke();
         }
@@ -2468,27 +2333,30 @@ function Ship(pX, pY, pImage, pType, pHome) {
         if (this.status == 1 && this.selected) {
             engine.canvas["buffer"].context.strokeStyle = "#fff";
             engine.canvas["buffer"].context.beginPath();
-            engine.canvas["buffer"].context.arc(this.getDrawCenter().x, this.getDrawCenter().y, 24, 0, Math.PI * 2, true);
+            engine.canvas["buffer"].context.arc(position.x + 24, position.y + 24, 24, 0, Math.PI * 2, true);
             engine.canvas["buffer"].context.closePath();
             engine.canvas["buffer"].context.stroke();
 
+            var cursorPosition = Helper.real2screen(new Vector(this.tx, this.ty));
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .5;
-            engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], 640 + this.tx - game.scroll.x * game.tileSize - game.tileSize, 368 + this.ty - game.scroll.y * game.tileSize - game.tileSize);
+            engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], cursorPosition.x - game.tileSize, cursorPosition.y - game.tileSize);
             engine.canvas["buffer"].context.restore();
         }
 
+        // draw ship
+
         engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.translate(640 + this.x - game.scroll.x * game.tileSize + 24, 368 + this.y - game.scroll.y * game.tileSize + 24);
+        engine.canvas["buffer"].context.translate(position.x + 24, position.y + 24);
         engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.angle + 90));
         engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -24, -24);
         engine.canvas["buffer"].context.restore();
 
         // draw ammo bar
         engine.canvas["buffer"].context.fillStyle = '#000';
-        engine.canvas["buffer"].context.fillRect(this.getDrawCenter().x - 22, this.getDrawCenter().y - 22, 44, 4);
+        engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + 2, 44, 4);
         engine.canvas["buffer"].context.fillStyle = '#fff';
-        engine.canvas["buffer"].context.fillRect(this.getDrawCenter().x - 21, this.getDrawCenter().y - 21, (42 / this.maxAmmo) * this.ammo, 2);
+        engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + 3, (42 / this.maxAmmo) * this.ammo, 2);
     };
 }
 Ship.prototype = new GameObject;
@@ -2503,7 +2371,8 @@ function Emitter(pVector, pS) {
     this.position = pVector;
     this.strength = pS;
     this.draw = function () {
-        engine.canvas["buffer"].context.drawImage(engine.images["emitter"], 640 + (this.position.x - game.scroll.x) * game.tileSize, 368 + (this.position.y - game.scroll.y) * game.tileSize, 48, 48);
+        var position = Helper.tiled2screen(this.position);
+        engine.canvas["buffer"].context.drawImage(engine.images["emitter"], position.x, position.y, 48, 48);
     };
     this.spawn = function () {
         game.world.tiles[this.position.x + 1][this.position.y + 1].creep = this.strength;
@@ -2518,14 +2387,20 @@ function Emitter(pVector, pS) {
 function Sporetower(pVector) {
     this.position = pVector;
     this.health = 100;
+    this.getCenter = function () {
+        return new Vector(
+            this.position.x * game.tileSize + 24,
+            this.position.y * game.tileSize + 24);
+    };
     this.draw = function () {
-        engine.canvas["buffer"].context.drawImage(engine.images["sporetower"], 640 + (this.position.x - game.scroll.x) * game.tileSize, 368 + (this.position.y - game.scroll.y) * game.tileSize, 48, 48);
+        var position = Helper.tiled2screen(this.position);
+        engine.canvas["buffer"].context.drawImage(engine.images["sporetower"], position.x, position.y, 48, 48);
     };
     this.spawn = function () {
         do {
             var target = game.buildings[Math.floor(Math.random() * game.buildings.length)];
         } while (!target.built);
-        var spore = new Spore(this.position.x * game.tileSize, this.position.y * game.tileSize, "spore", target.getCenter().x, target.getCenter().y);
+        var spore = new Spore(this.getCenter().x, this.getCenter().y, "spore", target.getCenter().x, target.getCenter().y);
         spore.init();
         game.spores.push(spore);
     };
@@ -2542,7 +2417,10 @@ function Smoke(pVector) {
     this.position = new Vector(pVector.x, pVector.y);
     this.frame = 0;
     this.draw = function () {
-        engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, 640 + this.position.x - game.scroll.x * game.tileSize - 48, 368 + this.position.y - game.scroll.y * game.tileSize - 48, 48, 48);
+        var position = Helper.real2screen(this.position);
+        engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, position.x - 24, position.y - 24, 48, 48);
+        //engine.canvas["buffer"].context.strokeStyle = "rgba(255,0,0,1)";
+        //engine.canvas["buffer"].context.strokeRect(position.x, position.y, 48, 48);
     };
 }
 
@@ -2557,7 +2435,8 @@ function Explosion(pVector) {
     this.position = new Vector(pVector.x, pVector.y);
     this.frame = 0;
     this.draw = function () {
-        engine.canvas["buffer"].context.drawImage(engine.images["explosion"], (this.frame % 8) * 64, Math.floor(this.frame / 8) * 64, 64, 64, 640 + this.position.x - game.scroll.x * game.tileSize - 32, 368 + this.position.y - game.scroll.y * game.tileSize - 32, 64, 64);
+        var position = Helper.real2screen(this.position);
+        engine.canvas["buffer"].context.drawImage(engine.images["explosion"], (this.frame % 8) * 64, Math.floor(this.frame / 8) * 64, 64, 64, position.x - 32, position.y - 32, 64, 64);
     };
 }
 
@@ -2920,14 +2799,14 @@ Helper.distance = function(a, b) {
 Helper.tiled2screen = function(pVector) {
     return new Vector(
         640 + (pVector.x - game.scroll.x) * game.tileSize,
-        384 + (pVector.y - game.scroll.y) * game.tileSize);
+        368 + (pVector.y - game.scroll.y) * game.tileSize);
 };
 
 // calculates canvas coordinates from real coordinates
 Helper.real2screen = function(pVector) {
     return new Vector(
         640 + pVector.x - game.scroll.x * game.tileSize,
-        384 + pVector.y - game.scroll.y * game.tileSize);
+        368 + pVector.y - game.scroll.y * game.tileSize);
 };
 
 // Thanks to http://www.hardcode.nl/subcategory_1/article_317-array-shuffle-function
@@ -2953,7 +2832,12 @@ Object.prototype.clone = function() {
     } return newObj;
 };
 
-// may not be a member function of "game" in order to be called by requestAnimationFrame
+/**
+ * @author Alexander Zeillinger
+ *
+ * Main drawing function
+ * May not be a member function of "game" in order to be called by requestAnimationFrame
+ */
 function draw() {
     game.drawGUI();
 
@@ -2976,23 +2860,23 @@ function draw() {
 
     // draw node connections
     for (var i = 0; i < game.buildings.length; i++) {
-        var centerI = game.buildings[i].getCenter();
-        var centerID = new Vector(640 + centerI.x - game.scroll.x * game.tileSize, 368 + centerI.y - game.scroll.y * game.tileSize);
+        var drawCenterI = Helper.real2screen(game.buildings[i].getCenter());
         for (var j = 0; j < game.buildings.length; j++) {
             if (i != j) {
                 if (!game.buildings[i].moving && !game.buildings[j].moving) {
-                    var centerJ = game.buildings[j].getCenter();
-                    var centerJD = new Vector(640 + centerJ.x - game.scroll.x * game.tileSize, 368 + centerJ.y - game.scroll.y * game.tileSize);
+                    var drawCenterJ = Helper.real2screen(game.buildings[j].getCenter());
+
                     var allowedDistance = 10 * game.tileSize;
                     if (game.buildings[i].type == "Relay" && game.buildings[j].type == "Relay") {
                         allowedDistance = 20 * game.tileSize;
                     }
-                    if (Math.pow(centerJD.x - centerID.x, 2) + Math.pow(centerJD.y - centerID.y, 2) < Math.pow(allowedDistance, 2)) {
+
+                    if (Math.pow(drawCenterJ.x - drawCenterI.x, 2) + Math.pow(drawCenterJ.y - drawCenterI.y, 2) < Math.pow(allowedDistance, 2)) {
                         engine.canvas["buffer"].context.strokeStyle = '#000';
                         engine.canvas["buffer"].context.lineWidth = 3;
                         engine.canvas["buffer"].context.beginPath();
-                        engine.canvas["buffer"].context.moveTo(centerID.x, centerID.y);
-                        engine.canvas["buffer"].context.lineTo(centerJD.x, centerJD.y);
+                        engine.canvas["buffer"].context.moveTo(drawCenterI.x, drawCenterI.y);
+                        engine.canvas["buffer"].context.lineTo(drawCenterJ.x, drawCenterJ.y);
                         engine.canvas["buffer"].context.stroke();
 
                         engine.canvas["buffer"].context.strokeStyle = '#fff';
@@ -3000,8 +2884,8 @@ function draw() {
                             engine.canvas["buffer"].context.strokeStyle = '#aaa';
                         engine.canvas["buffer"].context.lineWidth = 2;
                         engine.canvas["buffer"].context.beginPath();
-                        engine.canvas["buffer"].context.moveTo(centerID.x, centerID.y);
-                        engine.canvas["buffer"].context.lineTo(centerJD.x, centerJD.y);
+                        engine.canvas["buffer"].context.moveTo(drawCenterI.x, drawCenterI.y);
+                        engine.canvas["buffer"].context.lineTo(drawCenterJ.x, drawCenterJ.y);
                         engine.canvas["buffer"].context.stroke();
                     }
                 }
