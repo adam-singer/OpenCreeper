@@ -234,8 +234,8 @@ var game = {
     world: {
         tiles: null,
         size: {
-            x: 120,
-            y: 120
+            x: 150,
+            y: 150
         }
     },
     alert: {
@@ -2085,6 +2085,7 @@ function Shell(pX, pY, pImage, pTX, pTY) {
     this.ty = pTY;
     this.remove = false;
     this.rotation = 0;
+    this.trailTimer = 0;
     this.init = function () {
         var targetPosition = new Vector(this.tx, this.ty);
         var ownPosition = new Vector(this.x, this.y);
@@ -2094,12 +2095,23 @@ function Shell(pX, pY, pImage, pTX, pTY) {
         this.speed.x = (delta.x / distance) * game.shellSpeed * game.speed;
         this.speed.y = (delta.y / distance) * game.shellSpeed * game.speed;
     };
+    this.getCenter = function () {
+        return new Vector(this.x - 8, this.y - 8);
+    };
     this.move = function () {
-        this.rotation += 10;
+        this.trailTimer++;
+        if (this.trailTimer == 10) {
+            this.trailTimer = 0;
+            game.smokes.push(new Smoke(this.getCenter()));
+        }
+
+        this.rotation += 20;
         if (this.rotation > 359)
             this.rotation -= 359;
+
         this.x += this.speed.x;
         this.y += this.speed.y;
+
         if (this.x > this.tx - 2 && this.x < this.tx + 2 && this.y > this.ty - 2 && this.y < this.ty + 2) {
             // if the target is reached explode and remove
             this.remove = true;
@@ -2171,8 +2183,10 @@ function Spore(pX, pY, pImage, pTX, pTY) {
         this.rotation += 10;
         if (this.rotation > 359)
             this.rotation -= 359;
+
         this.x += this.speed.x;
         this.y += this.speed.y;
+
         if (this.x > this.tx - 2 && this.x < this.tx + 2 && this.y > this.ty - 2 && this.y < this.ty + 2) {
             // if the target is reached explode and remove
             this.remove = true;

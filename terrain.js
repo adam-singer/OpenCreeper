@@ -3,10 +3,10 @@ var size = 150;
 function generateTerrain() {
   var noiseArr = [];
 
-  for(i = 0; i <= 5; i++) {
+  for(var i = 0; i <= 5; i++) {
     noiseArr[i] = [];
 
-    for(j = 0; j <= 5; j++) {
+    for(var j = 0; j <= 5; j++) {
       var height = Math.random();
 
       if(i == 0 || j == 0 || i == 5 || j == 5)
