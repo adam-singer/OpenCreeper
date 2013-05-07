@@ -1751,6 +1751,7 @@ function Building(pX, pY, pImage, pType) {
     this.moveTargetPosition = new Vector(0, 0);
     this.canMove = false;
     this.canShoot = false;
+    this.ship = null;
     this.updateHoverState = function () {
         var position = Helper.tiled2screen(new Vector(this.x, this.y));
         this.hovered = (engine.mouse.x > position.x &&
@@ -2029,6 +2030,7 @@ function Packet(pX, pY, pImage, pType) {
                                 game.packetSpeed *= 1.01;
                             if (this.target.type == "Bomber") {
                                 var ship = new Ship(this.target.x * game.tileSize, this.target.y * game.tileSize, "bombership", "Bomber", this.target);
+                                this.target.ship = ship;
                                 game.ships.push(ship);
                             }
                         }
@@ -2759,6 +2761,18 @@ function onMouseDown() {
 
 function onMouseUp() {
 
+}
+
+function onMouseScroll(evt) {
+    if(evt.originalEvent.detail > 0 || evt.originalEvent.wheelDelta < 0) {
+        //scroll down
+        game.zoomIn();
+    } else {
+        //scroll up
+        game.zoomOut();
+    }
+    //prevent page fom scrolling
+    return false;
 }
 
 /*function request() {
