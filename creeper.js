@@ -1919,7 +1919,7 @@ function Building(pX, pY, pImage, pType) {
                 engine.canvas["buffer"].context.restore();
             }
             if (this.type == "Shield" && !this.moving) {
-                engine.canvas["buffer"].context.drawImage(engine.images["forcefield"], center.x - 168, center.y - 168);
+                engine.canvas["buffer"].context.drawImage(engine.images["forcefield"], center.x - 168 * game.zoom, center.y - 168 * game.zoom);
             }
         }
 
@@ -2255,7 +2255,7 @@ function Ship(pX, pY, pImage, pType, pHome) {
         var delta = new Vector(this.tx - this.x, this.ty - this.y);
         var angleToTarget = Helper.rad2deg(Math.atan2(delta.y, delta.x));
 
-        var turnRate = 1;
+        var turnRate = 1.5;
         var absoluteDelta = Math.abs(angleToTarget - this.angle);
 
         if (absoluteDelta < turnRate)
