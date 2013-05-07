@@ -2366,7 +2366,6 @@ function Ship(pX, pY, pImage, pType, pHome) {
         }
 
         // draw ship
-
         engine.canvas["buffer"].context.save();
         engine.canvas["buffer"].context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);
         engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.angle + 90));
@@ -2914,7 +2913,7 @@ function draw() {
 
                         engine.canvas["buffer"].context.strokeStyle = '#fff';
                         if (!game.buildings[i].built || !game.buildings[j].built)
-                            engine.canvas["buffer"].context.strokeStyle = '#aaa';
+                            engine.canvas["buffer"].context.strokeStyle = '#777';
                         engine.canvas["buffer"].context.lineWidth = 2;
                         engine.canvas["buffer"].context.beginPath();
                         engine.canvas["buffer"].context.moveTo(drawCenterI.x, drawCenterI.y);
