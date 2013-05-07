@@ -139,7 +139,7 @@ var engine = {
 var game = {
     tileSize: 16,
     speed: 1,
-    //zoom: 1,
+    zoom: 1,
     running: null,
     mode: null,
     paused: false,
@@ -226,6 +226,7 @@ var game = {
         this.activeSymbol = -1;
         this.updateEnergyElement();
         this.updateSpeedElement();
+        this.updateZoomElement();
         this.updateCollectionElement();
         this.clearSymbols();
         this.createWorld();
@@ -271,15 +272,10 @@ var game = {
      *
      * Returns the position of the tile the mouse is hovering above.
      */
-    getTilePosition: function () {
-        return new Vector(
-            Math.floor(engine.mouse.x / this.tileSize),
-            Math.floor(engine.mouse.y / this.tileSize));
-    },
     getTilePositionScrolled: function () {
         return new Vector(
-            Math.floor((engine.mouse.x - 640) / this.tileSize) + this.scroll.x,
-            Math.floor((engine.mouse.y - 368) / this.tileSize) + this.scroll.y);
+            Math.floor((engine.mouse.x - 640) / (this.tileSize * this.zoom)) + this.scroll.x,
+            Math.floor((engine.mouse.y - 368) / (this.tileSize * this.zoom)) + this.scroll.y);
     },
     pause: function() {
         $('#pause').hide();
@@ -325,18 +321,22 @@ var game = {
             this.updateSpeedElement();
         }
     },
-    /*zoomIn: function() {
+    zoomIn: function() {
         if (this.zoom < 1) {
-            this.zoom *= 2;
+            this.zoom += .2;
+            this.zoom = parseFloat(this.zoom.toFixed(2));
             this.drawTerrain();
+            this.updateZoomElement();
         }
     },
     zoomOut: function() {
-        if (this.zoom > .5) {
-            this.zoom /= 2;
+        if (this.zoom > .6) {
+            this.zoom -= .2;
+            this.zoom = parseFloat(this.zoom.toFixed(2));
             this.drawTerrain();
+            this.updateZoomElement();
         }
-    },*/
+    },
     createWorld: function () {
         this.world.tiles = new Array(this.world.size.x);
         for (var i = 0; i < this.world.size.x; i++) {
@@ -535,6 +535,9 @@ var game = {
     updateSpeedElement: function () {
         $("#speed").html("Speed: " + this.speed + "x");
     },
+    updateZoomElement: function () {
+        $("#speed").html("Zoom: " + this.zoom + "x");
+    },
     updateCollectionElement: function () {
         $('#collection').html("Collection: " + this.collection);
     },
@@ -566,8 +569,8 @@ var game = {
         engine.canvas["tiles"].context.strokeStyle = "rgba(0,0,0,0.125)";
         engine.canvas["tiles"].context.lineWidth = 1;
 
-        for (var i = -40; i < 40; i++) {
-            for (var j = -23; j < 22; j++) {
+        for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
+            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(22 / this.zoom); j++) {
 
                 var iS = i + this.scroll.x;
                 var jS = j + this.scroll.y;
@@ -597,11 +600,11 @@ var game = {
                             right = 1;
 
                         if (height > 0)
-                            engine.canvas["tiles"].context.drawImage(engine.images["terrain"], 15 * (this.tileSize + 6) + 3, (this.world.tiles[iS][jS].height - 1) * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
+                            engine.canvas["tiles"].context.drawImage(engine.images["terrain"], 15 * (this.tileSize + 6) + 3, (this.world.tiles[iS][jS].height - 1) * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
                         // save index for later use
                         this.world.tiles[iS][jS].index = index;
-                        engine.canvas["tiles"].context.drawImage(engine.images["terrain"], index * (this.tileSize + 6) + 3, this.world.tiles[iS][jS].height * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
+                        engine.canvas["tiles"].context.drawImage(engine.images["terrain"], index * (this.tileSize + 6) + 3, this.world.tiles[iS][jS].height * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
 
                         // grid (debug)
                         //engine.canvas["tiles"].context.strokeRect(i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
@@ -1378,8 +1381,8 @@ var game = {
         engine.canvas["buffer"].context.save();
         engine.canvas["buffer"].context.globalAlpha = .5;
 
-        for (var i = -40; i < 40; i++) {
-            for (var j = -23; j < 22; j++) {
+        for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
+            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(22 / this.zoom); j++) {
 
                 var iS = i + this.scroll.x;
                 var jS = j + this.scroll.y;
@@ -1406,7 +1409,7 @@ var game = {
                             right = this.world.tiles[iS + 1][jS].collection;
 
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
-                        engine.canvas["buffer"].context.drawImage(engine.images["terrain"], index * (this.tileSize + 6) + 3, 10 * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
+                        engine.canvas["buffer"].context.drawImage(engine.images["terrain"], index * (this.tileSize + 6) + 3, 10 * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
                     }
                 }
             }
@@ -1423,8 +1426,8 @@ var game = {
         engine.canvas["buffer"].context.lineWidth = 1;
         engine.canvas["buffer"].context.fillStyle = '#fff';
 
-        for (var i = -40; i < 40; i++) {
-            for (var j = -23; j < 22; j++) {
+        for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
+            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(22 / this.zoom); j++) {
 
                 var iS = i + this.scroll.x;
                 var jS = j + this.scroll.y;
@@ -1457,7 +1460,7 @@ var game = {
                         //}
 
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
-                        engine.canvas["buffer"].context.drawImage(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
+                        engine.canvas["buffer"].context.drawImage(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize * game.zoom, 368 + j * this.tileSize * game.zoom, this.tileSize * game.zoom, this.tileSize * game.zoom);
                     }
 
                     // creep value
@@ -1478,8 +1481,8 @@ var game = {
      * the collection preview of Collectors and connections to other buildings
      */
     drawPositionInfo: function () {
-        var position = this.getTilePosition();
         var positionScrolled = this.getTilePositionScrolled();
+        var drawPosition = Helper.tiled2screen(positionScrolled);
 
         // draw collection preview
         if (this.canBePlaced(this.symbols[this.activeSymbol].size) &&
@@ -1498,8 +1501,7 @@ var game = {
                     var iS = positionScrolled.x + 1 + i;
                     var jS = positionScrolled.y + 1 + j;
 
-                    var iP = position.x + 1 + i;
-                    var jP = position.y + 1 + j;
+                    var drawPositionCollection = Helper.tiled2screen(new Vector(iS, jS));
 
                     if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
 
@@ -1525,7 +1527,7 @@ var game = {
                                 this.symbols[this.activeSymbol].imageID == "beam") {
                                 engine.canvas["buffer"].context.fillStyle = "#fff";
                             }
-                            engine.canvas["buffer"].context.fillRect(iP * this.tileSize, jP * this.tileSize, game.tileSize, game.tileSize);
+                            engine.canvas["buffer"].context.fillRect(drawPositionCollection.x, drawPositionCollection.y, this.tileSize * this.zoom, this.tileSize * this.zoom);
                         }
 
                     }
@@ -1546,37 +1548,42 @@ var game = {
             else {
                 engine.canvas["buffer"].context.strokeStyle = "#f00";
             }
-            engine.canvas["buffer"].context.strokeRect(position.x * game.tileSize, position.y * game.tileSize, this.tileSize * this.symbols[this.activeSymbol].size, this.tileSize * this.symbols[this.activeSymbol].size);
+            engine.canvas["buffer"].context.strokeRect(drawPosition.x, drawPosition.y, this.tileSize * this.symbols[this.activeSymbol].size * this.zoom, this.tileSize * this.symbols[this.activeSymbol].size * this.zoom);
 
-            engine.canvas["buffer"].context.drawImage(engine.images[this.symbols[this.activeSymbol].imageID], position.x * this.tileSize, position.y * this.tileSize);
-
+            // draw building
+            engine.canvas["buffer"].context.drawImage(engine.images[this.symbols[this.activeSymbol].imageID], drawPosition.x, drawPosition.y, this.symbols[this.activeSymbol].size * this.tileSize * this.zoom, this.symbols[this.activeSymbol].size * this.tileSize * this.zoom);
             if (this.symbols[this.activeSymbol].imageID == "cannon")
-                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], position.x * this.tileSize, position.y * this.tileSize);
+                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], drawPosition.x, drawPosition.y, 48 * this.zoom, 48 * this.zoom);
 
             engine.canvas["buffer"].context.restore();
 
             // draw lines to close buildings
             for (var i = 0; i < this.buildings.length; i++) {
-                var center = Helper.real2screen(this.buildings[i].getCenter());
-                var centerCursorX = (position.x * game.tileSize) + ((this.tileSize / 2) * this.symbols[this.activeSymbol].size);
-                var centerCursorY = (position.y * game.tileSize) + ((this.tileSize / 2) * this.symbols[this.activeSymbol].size);
+                var center = this.buildings[i].getCenter();
+                var drawCenter = Helper.real2screen(center);
+
+                var centerCursorX = (positionScrolled.x * this.tileSize) + ((this.tileSize / 2) * this.symbols[this.activeSymbol].size);
+                var centerCursorY = (positionScrolled.y * this.tileSize) + ((this.tileSize / 2) * this.symbols[this.activeSymbol].size);
+
                 var allowedDistance = 10 * this.tileSize;
                 if (this.buildings[i].type == "Relay" && this.symbols[this.activeSymbol].imageID == "relay") {
                     allowedDistance = 20 * this.tileSize;
                 }
+
                 if (Math.pow(center.x - centerCursorX, 2) + Math.pow(center.y - centerCursorY, 2) < Math.pow(allowedDistance, 2)) {
+                    var lineToTarget = Helper.tiled2screen(positionScrolled);
                     engine.canvas["buffer"].context.strokeStyle = '#000';
                     engine.canvas["buffer"].context.lineWidth = 2;
                     engine.canvas["buffer"].context.beginPath();
-                    engine.canvas["buffer"].context.moveTo(center.x, center.y);
-                    engine.canvas["buffer"].context.lineTo(position.x * game.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size, position.y * game.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size);
+                    engine.canvas["buffer"].context.moveTo(drawCenter.x, drawCenter.y);
+                    engine.canvas["buffer"].context.lineTo(lineToTarget.x + (this.tileSize / 2) * this.symbols[this.activeSymbol].size * this.zoom, lineToTarget.y + (this.tileSize / 2) * this.symbols[this.activeSymbol].size * this.zoom);
                     engine.canvas["buffer"].context.stroke();
 
                     engine.canvas["buffer"].context.strokeStyle = '#fff';
                     engine.canvas["buffer"].context.lineWidth = 1;
                     engine.canvas["buffer"].context.beginPath();
-                    engine.canvas["buffer"].context.moveTo(center.x, center.y);
-                    engine.canvas["buffer"].context.lineTo(position.x * game.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size, position.y * game.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size);
+                    engine.canvas["buffer"].context.moveTo(drawCenter.x, drawCenter.y);
+                    engine.canvas["buffer"].context.lineTo(lineToTarget.x + (this.tileSize / 2) * this.symbols[this.activeSymbol].size * this.zoom, lineToTarget.y + (this.tileSize / 2) * this.symbols[this.activeSymbol].size * this.zoom);
                     engine.canvas["buffer"].context.stroke();
                 }
             }
@@ -1596,8 +1603,8 @@ var game = {
         }
 
         if (shipSelected) {
-            var position = this.getTilePosition();
-            engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], position.x * this.tileSize - this.tileSize, position.y * this.tileSize - this.tileSize);
+            var position = Helper.tiled2screen(this.getTilePositionScrolled());
+            engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], position.x - this.tileSize, position.y - this.tileSize);
         }
     },
     /**
@@ -1758,7 +1765,7 @@ function Building(pX, pY, pImage, pType) {
             var position = Helper.tiled2screen(new Vector(this.x, this.y));
             engine.canvas["buffer"].context.lineWidth = 1;
             engine.canvas["buffer"].context.strokeStyle = "#000";
-            engine.canvas["buffer"].context.strokeRect(position.x, position.y, game.tileSize * this.size, game.tileSize * this.size);
+            engine.canvas["buffer"].context.strokeRect(position.x, position.y, game.tileSize * this.size * game.zoom, game.tileSize * this.size * game.zoom);
         }
     };
     this.move = function () {
@@ -1815,7 +1822,7 @@ function Building(pX, pY, pImage, pType) {
             // node radius
             engine.canvas["buffer"].context.strokeStyle = "#000";
             engine.canvas["buffer"].context.beginPath();
-            engine.canvas["buffer"].context.arc(center.x, center.y, this.nodeRadius * game.tileSize, 0, Math.PI * 2, true);
+            engine.canvas["buffer"].context.arc(center.x, center.y, this.nodeRadius * game.tileSize * game.zoom, 0, Math.PI * 2, true);
             engine.canvas["buffer"].context.closePath();
             engine.canvas["buffer"].context.stroke();
 
@@ -1823,7 +1830,7 @@ function Building(pX, pY, pImage, pType) {
             if (this.canShoot) {
                 engine.canvas["buffer"].context.strokeStyle = "#f00";
                 engine.canvas["buffer"].context.beginPath();
-                engine.canvas["buffer"].context.arc(center.x, center.y, this.weaponRadius * game.tileSize, 0, Math.PI * 2, true);
+                engine.canvas["buffer"].context.arc(center.x, center.y, this.weaponRadius * game.tileSize * game.zoom, 0, Math.PI * 2, true);
                 engine.canvas["buffer"].context.closePath();
                 engine.canvas["buffer"].context.stroke();
             }
@@ -1831,21 +1838,23 @@ function Building(pX, pY, pImage, pType) {
     };
     this.drawMovementIndicators = function () {
         if (this.moving) {
-            var center = this.getCenter();
+            var center = Helper.real2screen(this.getCenter());
+            var target = Helper.tiled2screen(this.moveTargetPosition);
             // draw box
             engine.canvas["buffer"].context.fillStyle = "rgba(0,255,0,0.5)";
-            engine.canvas["buffer"].context.fillRect(this.moveTargetPosition.x * game.tileSize, this.moveTargetPosition.y * game.tileSize, this.size * game.tileSize, this.size * game.tileSize);
+            engine.canvas["buffer"].context.fillRect(target.x, target.y, this.size * game.tileSize * game.zoom, this.size * game.tileSize * game.zoom);
             // draw line
             engine.canvas["buffer"].context.strokeStyle = "rgba(255,255,255,0.5)";
             engine.canvas["buffer"].context.beginPath();
             engine.canvas["buffer"].context.moveTo(center.x, center.y);
-            engine.canvas["buffer"].context.lineTo(this.moveTargetPosition.x * game.tileSize + (game.tileSize / 2) * this.size, this.moveTargetPosition.y * game.tileSize + (game.tileSize / 2) * this.size);
+            engine.canvas["buffer"].context.lineTo(target.x + (game.tileSize / 2) * this.size * game.zoom, target.y + (game.tileSize / 2) * this.size * game.zoom);
             engine.canvas["buffer"].context.stroke();
         }
     };
     this.drawRepositionInfo = function () {
         var center = Helper.real2screen(this.getCenter());
-        var position = game.getTilePosition();
+        var positionScrolled = game.getTilePositionScrolled();
+        var drawPosition = Helper.tiled2screen(positionScrolled);
 
         // only armed buildings can move
         if (this.built && this.selected && this.canMove) {
@@ -1855,12 +1864,12 @@ function Building(pX, pY, pImage, pType) {
                 engine.canvas["buffer"].context.strokeStyle = "rgba(255,0,0,0.5)";
 
             // draw rectangle
-            engine.canvas["buffer"].context.strokeRect(position.x * game.tileSize, position.y * game.tileSize, game.tileSize * this.size, game.tileSize * this.size);
+            engine.canvas["buffer"].context.strokeRect(drawPosition.x, drawPosition.y, game.tileSize * this.size * game.zoom, game.tileSize * this.size * game.zoom);
             // draw line
             engine.canvas["buffer"].context.strokeStyle = "rgba(255,255,255,0.5)";
             engine.canvas["buffer"].context.beginPath();
             engine.canvas["buffer"].context.moveTo(center.x, center.y);
-            engine.canvas["buffer"].context.lineTo(position.x * game.tileSize + (game.tileSize / 2) * this.size, position.y * game.tileSize + (game.tileSize / 2) * this.size);
+            engine.canvas["buffer"].context.lineTo(drawPosition.x + (game.tileSize / 2) * this.size * game.zoom, drawPosition.y + (game.tileSize / 2) * this.size * game.zoom);
             engine.canvas["buffer"].context.stroke();
         }
     };
@@ -1893,19 +1902,19 @@ function Building(pX, pY, pImage, pType) {
         if (!this.built) {
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .5;
-            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width, engine.images[this.imageID].height);
+            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
             if (this.type == "Cannon") {
-                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], position.x, position.y, engine.images[this.imageID].width, engine.images[this.imageID].height);
+                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
             }
             engine.canvas["buffer"].context.restore();
         }
         else {
-            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width, engine.images[this.imageID].height);
+            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
             if (this.type == "Cannon") {
                 engine.canvas["buffer"].context.save();
-                engine.canvas["buffer"].context.translate(position.x + 24, position.y + 24);
+                engine.canvas["buffer"].context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);
                 engine.canvas["buffer"].context.rotate(this.targetAngle);
-                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], -24, -24);
+                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
                 engine.canvas["buffer"].context.restore();
             }
             if (this.type == "Shield" && !this.moving) {
@@ -1916,17 +1925,17 @@ function Building(pX, pY, pImage, pType) {
         // draw ammo bar
         if (this.canShoot) {
             engine.canvas["buffer"].context.fillStyle = '#000';
-            engine.canvas["buffer"].context.fillRect(position.x + 2, position.y, 44, 4);
+            engine.canvas["buffer"].context.fillRect(position.x + 2, position.y, 44 * game.zoom, 4);
             engine.canvas["buffer"].context.fillStyle = '#f00';
-            engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + 1, (42 / this.maxAmmo) * this.ammo, 2);
+            engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + 1, (42 * game.zoom / this.maxAmmo) * this.ammo, 2);
         }
 
         // draw health bar (only if health is below maxHealth)
         if (this.health < this.maxHealth) {
             engine.canvas["buffer"].context.fillStyle = '#000';
-            engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + game.tileSize * this.size - 4, game.tileSize * this.size - 4, 4);
+            engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + game.tileSize * game.zoom * this.size - 4, game.tileSize * game.zoom* this.size - 4, 4);
             engine.canvas["buffer"].context.fillStyle = '#0f0';
-            engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + game.tileSize * this.size - 3, ((game.tileSize * this.size - 6) / this.maxHealth) * this.health, 2);
+            engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + game.tileSize * game.zoom * this.size - 3, ((game.tileSize * game.zoom * this.size - 6) / this.maxHealth) * this.health, 2);
         }
 
         // draw shots
@@ -2055,7 +2064,7 @@ function Packet(pX, pY, pImage, pType) {
     };
     this.draw = function () {
         var position = Helper.real2screen(new Vector(this.x, this.y));
-        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x - 8, position.y - 8);
+        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x - 8 * game.zoom, position.y - 8 * game.zoom, 16 * game.zoom, 16 * game.zoom);
     }
 }
 Packet.prototype = new GameObject;
@@ -2115,9 +2124,9 @@ function Shell(pX, pY, pImage, pTX, pTY) {
     this.draw = function () {
         var position = Helper.real2screen(new Vector(this.x, this.y));
         engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.translate(position.x + 8, position.y + 8);
+        engine.canvas["buffer"].context.translate(position.x + 8 * game.zoom, position.y + 8 * game.zoom);
         engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.rotation));
-        engine.canvas["buffer"].context.drawImage(engine.images["shell"], -8, -8);
+        engine.canvas["buffer"].context.drawImage(engine.images["shell"], -8 * game.zoom, -8 * game.zoom, 16 * game.zoom, 16 * game.zoom);
         engine.canvas["buffer"].context.restore();
     };
 }
@@ -2187,12 +2196,8 @@ function Spore(pX, pY, pImage, pTX, pTY) {
         engine.canvas["buffer"].context.save();
         engine.canvas["buffer"].context.translate(position.x, position.y);
         engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.rotation));
-        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -16, -16);
+        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -16 * game.zoom, -16 * game.zoom, 32 * game.zoom, 32 * game.zoom);
         engine.canvas["buffer"].context.restore();
-
-        //engine.canvas["buffer"].context.strokeStyle = "rgba(255,0,0,1)";
-        //engine.canvas["buffer"].context.strokeRect(position.x - 16, position.y - 16, 32, 32);
-
     };
 }
 Spore.prototype = new GameObject;
@@ -2325,7 +2330,7 @@ function Ship(pX, pY, pImage, pType, pHome) {
         if (this.hovered) {
             engine.canvas["buffer"].context.strokeStyle = "#f00";
             engine.canvas["buffer"].context.beginPath();
-            engine.canvas["buffer"].context.arc(position.x + 24, position.y + 24, 24, 0, Math.PI * 2, true);
+            engine.canvas["buffer"].context.arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, Math.PI * 2, true);
             engine.canvas["buffer"].context.closePath();
             engine.canvas["buffer"].context.stroke();
         }
@@ -2333,30 +2338,30 @@ function Ship(pX, pY, pImage, pType, pHome) {
         if (this.status == 1 && this.selected) {
             engine.canvas["buffer"].context.strokeStyle = "#fff";
             engine.canvas["buffer"].context.beginPath();
-            engine.canvas["buffer"].context.arc(position.x + 24, position.y + 24, 24, 0, Math.PI * 2, true);
+            engine.canvas["buffer"].context.arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, Math.PI * 2, true);
             engine.canvas["buffer"].context.closePath();
             engine.canvas["buffer"].context.stroke();
 
             var cursorPosition = Helper.real2screen(new Vector(this.tx, this.ty));
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .5;
-            engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], cursorPosition.x - game.tileSize, cursorPosition.y - game.tileSize);
+            engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], cursorPosition.x - game.tileSize * game.zoom, cursorPosition.y - game.tileSize * game.zoom, 48 * game.zoom, 48 * game.zoom);
             engine.canvas["buffer"].context.restore();
         }
 
         // draw ship
 
         engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.translate(position.x + 24, position.y + 24);
+        engine.canvas["buffer"].context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);
         engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.angle + 90));
-        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -24, -24);
+        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
         engine.canvas["buffer"].context.restore();
 
         // draw ammo bar
         engine.canvas["buffer"].context.fillStyle = '#000';
-        engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + 2, 44, 4);
+        engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + 2, 44 * game.zoom, 4);
         engine.canvas["buffer"].context.fillStyle = '#fff';
-        engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + 3, (42 / this.maxAmmo) * this.ammo, 2);
+        engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + 3, (42 * game.zoom / this.maxAmmo) * this.ammo, 2);
     };
 }
 Ship.prototype = new GameObject;
@@ -2372,7 +2377,7 @@ function Emitter(pVector, pS) {
     this.strength = pS;
     this.draw = function () {
         var position = Helper.tiled2screen(this.position);
-        engine.canvas["buffer"].context.drawImage(engine.images["emitter"], position.x, position.y, 48, 48);
+        engine.canvas["buffer"].context.drawImage(engine.images["emitter"], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
     };
     this.spawn = function () {
         game.world.tiles[this.position.x + 1][this.position.y + 1].creep = this.strength;
@@ -2394,7 +2399,7 @@ function Sporetower(pVector) {
     };
     this.draw = function () {
         var position = Helper.tiled2screen(this.position);
-        engine.canvas["buffer"].context.drawImage(engine.images["sporetower"], position.x, position.y, 48, 48);
+        engine.canvas["buffer"].context.drawImage(engine.images["sporetower"], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
     };
     this.spawn = function () {
         do {
@@ -2418,9 +2423,7 @@ function Smoke(pVector) {
     this.frame = 0;
     this.draw = function () {
         var position = Helper.real2screen(this.position);
-        engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, position.x - 24, position.y - 24, 48, 48);
-        //engine.canvas["buffer"].context.strokeStyle = "rgba(255,0,0,1)";
-        //engine.canvas["buffer"].context.strokeRect(position.x, position.y, 48, 48);
+        engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, position.x - 24 * game.zoom, position.y - 24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
     };
 }
 
@@ -2436,7 +2439,7 @@ function Explosion(pVector) {
     this.frame = 0;
     this.draw = function () {
         var position = Helper.real2screen(this.position);
-        engine.canvas["buffer"].context.drawImage(engine.images["explosion"], (this.frame % 8) * 64, Math.floor(this.frame / 8) * 64, 64, 64, position.x - 32, position.y - 32, 64, 64);
+        engine.canvas["buffer"].context.drawImage(engine.images["explosion"], (this.frame % 8) * 64, Math.floor(this.frame / 8) * 64, 64, 64, position.x - 32 * game.zoom, position.y - 32 * game.zoom, 64 * game.zoom, 64 * game.zoom);
     };
 }
 
@@ -2798,15 +2801,15 @@ Helper.distance = function(a, b) {
 // calculates canvas coordinates from tile coordinates
 Helper.tiled2screen = function(pVector) {
     return new Vector(
-        640 + (pVector.x - game.scroll.x) * game.tileSize,
-        368 + (pVector.y - game.scroll.y) * game.tileSize);
+        640 + (pVector.x - game.scroll.x) * game.tileSize * game.zoom,
+        368 + (pVector.y - game.scroll.y) * game.tileSize * game.zoom);
 };
 
 // calculates canvas coordinates from real coordinates
 Helper.real2screen = function(pVector) {
     return new Vector(
-        640 + pVector.x - game.scroll.x * game.tileSize,
-        368 + pVector.y - game.scroll.y * game.tileSize);
+        640 + (pVector.x - game.scroll.x * game.tileSize) * game.zoom,
+        368 + (pVector.y - game.scroll.y * game.tileSize) * game.zoom);
 };
 
 // Thanks to http://www.hardcode.nl/subcategory_1/article_317-array-shuffle-function
@@ -2860,18 +2863,20 @@ function draw() {
 
     // draw node connections
     for (var i = 0; i < game.buildings.length; i++) {
-        var drawCenterI = Helper.real2screen(game.buildings[i].getCenter());
+        var centerI = game.buildings[i].getCenter();
+        var drawCenterI = Helper.real2screen(centerI);
         for (var j = 0; j < game.buildings.length; j++) {
             if (i != j) {
                 if (!game.buildings[i].moving && !game.buildings[j].moving) {
-                    var drawCenterJ = Helper.real2screen(game.buildings[j].getCenter());
+                    var centerJ = game.buildings[j].getCenter();
+                    var drawCenterJ = Helper.real2screen(centerJ);
 
                     var allowedDistance = 10 * game.tileSize;
                     if (game.buildings[i].type == "Relay" && game.buildings[j].type == "Relay") {
                         allowedDistance = 20 * game.tileSize;
                     }
 
-                    if (Math.pow(drawCenterJ.x - drawCenterI.x, 2) + Math.pow(drawCenterJ.y - drawCenterI.y, 2) < Math.pow(allowedDistance, 2)) {
+                    if (Math.pow(centerJ.x - centerI.x, 2) + Math.pow(centerJ.y - centerI.y, 2) < Math.pow(allowedDistance, 2)) {
                         engine.canvas["buffer"].context.strokeStyle = '#000';
                         engine.canvas["buffer"].context.lineWidth = 3;
                         engine.canvas["buffer"].context.beginPath();
