@@ -766,7 +766,7 @@ var game = {
         }
 
         this.spawnTimer++;
-        if (this.spawnTimer >= (150 / this.speed)) {
+        if (this.spawnTimer >= (125 / this.speed)) {
             for (var i = 0; i < this.emitters.length; i++)
                 this.emitters[i].spawn();
             this.spawnTimer = 0;
@@ -1629,7 +1629,7 @@ var game = {
             engine.canvas["gui"].context.lineWidth = 1;
             engine.canvas["gui"].context.fillStyle = "rgba(205, 133, 63, 1)";
             engine.canvas["gui"].context.fillRect(555, 110, 25, -this.world.tiles[position.x][position.y].height * 10);
-            engine.canvas["gui"].context.fillStyle = "rgba(0, 0, 255, 1)";
+            engine.canvas["gui"].context.fillStyle = "rgba(100, 150, 255, 1)";
             engine.canvas["gui"].context.fillRect(555, 110 - this.world.tiles[position.x][position.y].height * 10, 25, -this.world.tiles[position.x][position.y].creep);
             engine.canvas["gui"].context.fillStyle = "rgba(255, 255, 255, 1)";
             for (var i = 1; i < 11; i++) {
