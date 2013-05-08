@@ -447,7 +447,7 @@ var game = {
             building.maxHealth = 25;
             building.maxAmmo = 40;
             building.ammo = 0;
-            building.weaponRadius = 6;
+            building.weaponRadius = 8;
             building.canMove = true;
             building.canShoot = true;
             building.size = 3;
@@ -1385,6 +1385,62 @@ var game = {
             this.drawTerrain();
         }
     },
+    drawRangeBoxes: function(type, radius, size) {
+        var positionScrolled = this.getTilePositionScrolled();
+        var positionScrolledCenter = new Vector(
+            positionScrolled.x * this.tileSize + (this.tileSize / 2) * size,
+            positionScrolled.y * this.tileSize + (this.tileSize / 2) * size);
+
+        if (this.canBePlaced(size) && (type == "collector" || type == "cannon" || type == "mortar" || type == "shield" || type == "beam")) {
+
+            engine.canvas["buffer"].context.save();
+            engine.canvas["buffer"].context.globalAlpha = .25;
+
+            var radius = radius * this.tileSize;
+
+            for (var i = -radius; i < radius; i++) {
+                for (var j = -radius; j < radius; j++) {
+
+                    var positionCurrent = new Vector(
+                        positionScrolled.x + i,
+                        positionScrolled.y + j);
+                    var positionCurrentCenter = new Vector(
+                        positionCurrent.x * this.tileSize + (this.tileSize / 2),
+                        positionCurrent.y * this.tileSize + (this.tileSize / 2));
+
+                    var drawPositionCurrent = Helper.tiled2screen(positionCurrent);
+
+                    if (positionCurrent.x > -1 && positionCurrent.x < this.world.size.x && positionCurrent.y > -1 && positionCurrent.y < this.world.size.y) {
+
+                        if (Math.pow(positionCurrentCenter.x - positionScrolledCenter.x, 2) + Math.pow(positionCurrentCenter.y - positionScrolledCenter.y, 2) < Math.pow(radius, 2)) {
+                            if (type == "collector") {
+                                if (this.world.tiles[positionCurrent.x][positionCurrent.y].height == this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
+                                    engine.canvas["buffer"].context.fillStyle = "#fff";
+                                }
+                                else {
+                                    engine.canvas["buffer"].context.fillStyle = "#f00";
+                                }
+                            }
+                            if (type == "cannon") {
+                                if (this.world.tiles[positionCurrent.x][positionCurrent.y].height <= this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
+                                    engine.canvas["buffer"].context.fillStyle = "#fff";
+                                }
+                                else {
+                                    engine.canvas["buffer"].context.fillStyle = "#f00";
+                                }
+                            }
+                            if (type == "mortar" || type == "shield" || type == "beam") {
+                                engine.canvas["buffer"].context.fillStyle = "#fff";
+                            }
+                            engine.canvas["buffer"].context.fillRect(drawPositionCurrent.x, drawPositionCurrent.y, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                        }
+
+                    }
+                }
+            }
+            engine.canvas["buffer"].context.restore();
+        }
+    },
     /**
      * @author Alexander Zeillinger
      *
@@ -1500,63 +1556,9 @@ var game = {
             positionScrolled.x * this.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size,
             positionScrolled.y * this.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size);
 
-        // draw white range boxes
-        if (this.canBePlaced(this.symbols[this.activeSymbol].size) &&
-            (this.symbols[this.activeSymbol].imageID == "collector" ||
-             this.symbols[this.activeSymbol].imageID == "cannon" ||
-             this.symbols[this.activeSymbol].imageID == "mortar" ||
-             this.symbols[this.activeSymbol].imageID == "shield" ||
-             this.symbols[this.activeSymbol].imageID == "beam") ) {
-
-            engine.canvas["buffer"].context.save();
-            engine.canvas["buffer"].context.globalAlpha = .25;
-
-            var radius = this.symbols[this.activeSymbol].radius * this.tileSize;
-
-            for (var i = -radius; i < radius; i++) {
-                for (var j = -radius; j < radius; j++) {
-
-                    var positionCurrent = new Vector(
-                        positionScrolled.x + i,
-                        positionScrolled.y + j);
-                    var positionCurrentCenter = new Vector(
-                        positionCurrent.x * this.tileSize + (this.tileSize / 2),
-                        positionCurrent.y * this.tileSize + (this.tileSize / 2));
-
-                    var drawPositionCurrent = Helper.tiled2screen(positionCurrent);
-
-                    if (positionCurrent.x > -1 && positionCurrent.x < this.world.size.x && positionCurrent.y > -1 && positionCurrent.y < this.world.size.y) {
-
-                        if (Math.pow(positionCurrentCenter.x - positionScrolledCenter.x, 2) + Math.pow(positionCurrentCenter.y - positionScrolledCenter.y, 2) < Math.pow(radius, 2)) {
-                            if (this.symbols[this.activeSymbol].imageID == "collector") {
-                                if (this.world.tiles[positionCurrent.x][positionCurrent.y].height == this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
-                                    engine.canvas["buffer"].context.fillStyle = "#fff";
-                                }
-                                else {
-                                    engine.canvas["buffer"].context.fillStyle = "#f00";
-                                }
-                            }
-                            if (this.symbols[this.activeSymbol].imageID == "cannon") {
-                                if (this.world.tiles[positionCurrent.x][positionCurrent.y].height <= this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
-                                    engine.canvas["buffer"].context.fillStyle = "#fff";
-                                }
-                                else {
-                                    engine.canvas["buffer"].context.fillStyle = "#f00";
-                                }
-                            }
-                            if (this.symbols[this.activeSymbol].imageID == "mortar" ||
-                                this.symbols[this.activeSymbol].imageID == "shield" ||
-                                this.symbols[this.activeSymbol].imageID == "beam") {
-                                engine.canvas["buffer"].context.fillStyle = "#fff";
-                            }
-                            engine.canvas["buffer"].context.fillRect(drawPositionCurrent.x, drawPositionCurrent.y, this.tileSize * this.zoom, this.tileSize * this.zoom);
-                        }
-
-                    }
-                }
-            }
-            engine.canvas["buffer"].context.restore();
-        }
+        this.drawRangeBoxes(this.symbols[this.activeSymbol].imageID,
+            this.symbols[this.activeSymbol].radius,
+            this.symbols[this.activeSymbol].size);
 
         if (positionScrolled.x > -1 && positionScrolled.x < this.world.size.x && positionScrolled.y > -1 && positionScrolled.y < this.world.size.y) {
             engine.canvas["buffer"].context.save();
@@ -1851,12 +1853,19 @@ function Building(pX, pY, pImage, pType) {
         }
     };
     this.drawRepositionInfo = function () {
-        var positionScrolled = game.getTilePositionScrolled();
-        var center = Helper.real2screen(this.getCenter());
-        var drawPosition = Helper.tiled2screen(positionScrolled);
-
         // only armed buildings can move
         if (this.built && this.selected && this.canMove) {
+            var positionScrolled = game.getTilePositionScrolled();
+            var drawPosition = Helper.tiled2screen(positionScrolled);
+            var positionScrolledCenter = new Vector(
+                positionScrolled.x * game.tileSize + (game.tileSize / 2) * this.size,
+                positionScrolled.y * game.tileSize + (game.tileSize / 2) * this.size);
+            var drawPositionCenter = Helper.real2screen(positionScrolledCenter);
+
+            var center = Helper.real2screen(this.getCenter());
+
+            game.drawRangeBoxes(this.imageID, this.weaponRadius, this.size);
+
             if (game.canBePlaced(this.size, this))
                 engine.canvas["buffer"].context.strokeStyle = "rgba(0,255,0,0.5)";
             else
@@ -1868,7 +1877,7 @@ function Building(pX, pY, pImage, pType) {
             engine.canvas["buffer"].context.strokeStyle = "rgba(255,255,255,0.5)";
             engine.canvas["buffer"].context.beginPath();
             engine.canvas["buffer"].context.moveTo(center.x, center.y);
-            engine.canvas["buffer"].context.lineTo(drawPosition.x + (game.tileSize / 2) * this.size * game.zoom, drawPosition.y + (game.tileSize / 2) * this.size * game.zoom);
+            engine.canvas["buffer"].context.lineTo(drawPositionCenter.x, drawPositionCenter.y);
             engine.canvas["buffer"].context.stroke();
         }
     };
