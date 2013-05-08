@@ -427,7 +427,10 @@ var game = {
         }
         if (building.type == "Bomber") {
             building.maxHealth = 5; // 75
+            building.maxEnergy = 15;
+            building.energy = 0;
             building.size = 3;
+            building.needsEnergy = true;
         }
         if (building.type == "Storage") {
             building.maxHealth = 8;
@@ -624,17 +627,17 @@ var game = {
             this.buildings[t].shooting = false;
             if (this.buildings[t].needsEnergy && this.buildings[t].active && !this.buildings[t].moving) {
 
-                this.buildings[t].shootTimer++;
+                this.buildings[t].energyTimer++;
                 var center = this.buildings[t].getCenter();
                 if (this.buildings[t].type == "Shield" && this.buildings[t].energy > 0) {
-                    if (this.buildings[t].shootTimer > 20) {
-                        this.buildings[t].shootTimer = 0;
+                    if (this.buildings[t].energyTimer > 20) {
+                        this.buildings[t].energyTimer = 0;
                         this.buildings[t].energy -= 1;
                     }
                     this.buildings[t].shooting = true;
                 }
-                if (this.buildings[t].type == "Cannon" && this.buildings[t].energy > 0 && this.buildings[t].shootTimer > 10) {
-                    this.buildings[t].shootTimer = 0;
+                if (this.buildings[t].type == "Cannon" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 10) {
+                    this.buildings[t].energyTimer = 0;
 
                     // get building x and building y
                     var x = this.buildings[t].x;
@@ -674,8 +677,8 @@ var game = {
                         }
                     }
                 }
-                if (this.buildings[t].type == "Mortar" && this.buildings[t].energy > 0 && this.buildings[t].shootTimer > 200) {
-                    this.buildings[t].shootTimer = 0;
+                if (this.buildings[t].type == "Mortar" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 200) {
+                    this.buildings[t].energyTimer = 0;
 
                     // get building x and building y
                     var x = this.buildings[t].x;
@@ -702,8 +705,8 @@ var game = {
                         this.buildings[t].energy -= 1;
                     }
                 }
-                if (this.buildings[t].type == "Beam" && this.buildings[t].energy > 0 && this.buildings[t].shootTimer > 0) {
-                    this.buildings[t].shootTimer = 0;
+                if (this.buildings[t].type == "Beam" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 0) {
+                    this.buildings[t].energyTimer = 0;
 
                     // find spore in range
                     for (var i = 0; i < this.spores.length; i++) {
@@ -1767,13 +1770,13 @@ function Building(pX, pY, pImage, pType) {
     this.maxHealth = 0;
     this.energy = 0;
     this.maxEnergy = 0;
+    this.energyTimer = 0;
     this.healthRequests = 0;
     this.energyRequests = 0;
     this.requestTimer = 0;
     this.nodeRadius = 0;
     this.weaponRadius = 0;
     this.built = false;
-    this.shootTimer = 0;
     this.targetAngle = 0;
     this.size = 0;
     this.active = true;
@@ -1939,18 +1942,14 @@ function Building(pX, pY, pImage, pType) {
 
         // draw energy bar
         if (this.needsEnergy) {
-            engine.canvas["buffer"].context.fillStyle = '#000';
-            engine.canvas["buffer"].context.fillRect(position.x + 2, position.y, 44 * game.zoom, 4);
             engine.canvas["buffer"].context.fillStyle = '#f00';
-            engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + 1, (42 * game.zoom / this.maxEnergy) * this.energy, 2);
+            engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + 1, (44 * game.zoom / this.maxEnergy) * this.energy, 3);
         }
 
         // draw health bar (only if health is below maxHealth)
         if (this.health < this.maxHealth) {
-            engine.canvas["buffer"].context.fillStyle = '#000';
-            engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + game.tileSize * game.zoom * this.size - 4, game.tileSize * game.zoom* this.size - 4, 4);
             engine.canvas["buffer"].context.fillStyle = '#0f0';
-            engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + game.tileSize * game.zoom * this.size - 3, ((game.tileSize * game.zoom * this.size - 6) / this.maxHealth) * this.health, 2);
+            engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + game.tileSize * game.zoom * this.size - 3, ((game.tileSize * game.zoom * this.size - 8) / this.maxHealth) * this.health, 3);
         }
 
         // draw shots
@@ -2248,7 +2247,7 @@ function Ship(pX, pY, pImage, pType, pHome) {
     this.ty = 0;
     this.remove = false;
     this.angle = 0;
-    this.maxEnergy = 5;
+    this.maxEnergy = 15;
     this.energy = 0;
     this.type = pType;
     this.home = pHome;
@@ -2389,10 +2388,8 @@ function Ship(pX, pY, pImage, pType, pHome) {
         engine.canvas["buffer"].context.restore();
 
         // draw energy bar
-        engine.canvas["buffer"].context.fillStyle = '#000';
-        engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + 2, 44 * game.zoom, 4);
-        engine.canvas["buffer"].context.fillStyle = '#fff';
-        engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + 3, (42 * game.zoom / this.maxEnergy) * this.energy, 2);
+        engine.canvas["buffer"].context.fillStyle = '#f00';
+        engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + 1, (44 * game.zoom / this.maxEnergy) * this.energy, 3);
     };
 }
 Ship.prototype = new GameObject;
@@ -2688,6 +2685,10 @@ function onClick(evt) {
                 game.ships[i].status = 2;
             }
             else {
+                // take energy from base
+                game.ships[i].energy = game.ships[i].home.energy;
+                game.ships[i].home.energy = 0;
+
                 game.ships[i].tx = position.x * game.tileSize;
                 game.ships[i].ty = position.y * game.tileSize;
                 game.ships[i].status = 1;
@@ -2797,10 +2798,10 @@ function onMouseUp() {
 function onMouseScroll(evt) {
     if(evt.originalEvent.detail > 0 || evt.originalEvent.wheelDelta < 0) {
         //scroll down
-        game.zoomIn();
+        game.zoomOut();
     } else {
         //scroll up
-        game.zoomOut();
+        game.zoomIn();
     }
     //prevent page fom scrolling
     return false;
