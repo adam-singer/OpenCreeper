@@ -548,8 +548,8 @@ var game = {
         $("#mainCanvas").css('cursor', 'default');
     },
     setupUI: function () {
-        this.symbols.push(new UISymbol(0 * 81, 0, "cannon", "Q", 3, 25, 6));
-        this.symbols.push(new UISymbol(1 * 81, 0, "collector", "W", 3, 5, 4));
+        this.symbols.push(new UISymbol(0 * 81, 0, "cannon", "Q", 3, 25, 8));
+        this.symbols.push(new UISymbol(1 * 81, 0, "collector", "W", 3, 5, 6));
         this.symbols.push(new UISymbol(2 * 81, 0, "reactor", "E", 3, 50, 0));
         this.symbols.push(new UISymbol(3 * 81, 0, "storage", "R", 3, 8, 0));
         this.symbols.push(new UISymbol(4 * 81, 0, "shield", "T", 3, 50, 10));
@@ -720,18 +720,31 @@ var game = {
         this.collection = 0;
 
         var height = this.world.tiles[building.x][building.y].height;
-        for (var i = building.x - 3; i < building.x + 5; i++) {
-            for (var j = building.y - 3; j < building.y + 5; j++) {
-                if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
-                    if (Math.pow((i * this.tileSize + this.tileSize / 2) - (building.x * this.tileSize + this.tileSize), 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - (building.y * this.tileSize + this.tileSize), 2) < Math.pow(this.tileSize * 4, 2)) {
-                        if (this.world.tiles[i][j].height == height && this.world.tiles[i][j].enabled) {
+        var centerBuilding = building.getCenter();
+
+        for (var i = -5; i < 7; i++) {
+            for (var j = -5; j < 7; j++) {
+
+                var positionCurrent = new Vector(
+                    building.x + i,
+                    building.y + j);
+                var positionCurrentCenter = new Vector(
+                    positionCurrent.x * this.tileSize + (this.tileSize / 2),
+                    positionCurrent.y * this.tileSize + (this.tileSize / 2));
+
+                if (positionCurrent.x > -1 && positionCurrent.x < this.world.size.x && positionCurrent.y > -1 && positionCurrent.y < this.world.size.y) {
+
+                    if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
+                        if (this.world.tiles[positionCurrent.x][positionCurrent.y].height == height && this.world.tiles[positionCurrent.x][positionCurrent.y].enabled) {
                             if (action == "remove")
-                                this.world.tiles[i][j].collection = 0;
+                                this.world.tiles[positionCurrent.x][positionCurrent.y].collection = 0;
                             else
-                                this.world.tiles[i][j].collection = 1;
+                                this.world.tiles[positionCurrent.x][positionCurrent.y].collection = 1;
                         }
                     }
+
                 }
+
             }
         }
 
@@ -1483,31 +1496,40 @@ var game = {
     drawPositionInfo: function () {
         var positionScrolled = this.getTilePositionScrolled();
         var drawPosition = Helper.tiled2screen(positionScrolled);
+        var positionScrolledCenter = new Vector(
+            positionScrolled.x * this.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size,
+            positionScrolled.y * this.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size);
 
-        // draw collection preview
+        // draw white range boxes
         if (this.canBePlaced(this.symbols[this.activeSymbol].size) &&
             (this.symbols[this.activeSymbol].imageID == "collector" ||
              this.symbols[this.activeSymbol].imageID == "cannon" ||
              this.symbols[this.activeSymbol].imageID == "mortar" ||
              this.symbols[this.activeSymbol].imageID == "shield" ||
              this.symbols[this.activeSymbol].imageID == "beam") ) {
+
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .25;
 
-            var radius = this.symbols[this.activeSymbol].radius;
+            var radius = this.symbols[this.activeSymbol].radius * this.tileSize;
+
             for (var i = -radius; i < radius; i++) {
                 for (var j = -radius; j < radius; j++) {
 
-                    var iS = positionScrolled.x + 1 + i;
-                    var jS = positionScrolled.y + 1 + j;
+                    var positionCurrent = new Vector(
+                        positionScrolled.x + i,
+                        positionScrolled.y + j);
+                    var positionCurrentCenter = new Vector(
+                        positionCurrent.x * this.tileSize + (this.tileSize / 2),
+                        positionCurrent.y * this.tileSize + (this.tileSize / 2));
 
-                    var drawPositionCollection = Helper.tiled2screen(new Vector(iS, jS));
+                    var drawPositionCurrent = Helper.tiled2screen(positionCurrent);
 
-                    if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
+                    if (positionCurrent.x > -1 && positionCurrent.x < this.world.size.x && positionCurrent.y > -1 && positionCurrent.y < this.world.size.y) {
 
-                        if (Math.pow(iS + .5 - (positionScrolled.x + 1), 2) + Math.pow(jS + .5 - (positionScrolled.y + 1), 2) < Math.pow(radius, 2)) {
+                        if (Math.pow(positionCurrentCenter.x - positionScrolledCenter.x, 2) + Math.pow(positionCurrentCenter.y - positionScrolledCenter.y, 2) < Math.pow(radius, 2)) {
                             if (this.symbols[this.activeSymbol].imageID == "collector") {
-                                if (this.world.tiles[iS][jS].height == this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
+                                if (this.world.tiles[positionCurrent.x][positionCurrent.y].height == this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
                                     engine.canvas["buffer"].context.fillStyle = "#fff";
                                 }
                                 else {
@@ -1515,7 +1537,7 @@ var game = {
                                 }
                             }
                             if (this.symbols[this.activeSymbol].imageID == "cannon") {
-                                if (this.world.tiles[iS][jS].height <= this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
+                                if (this.world.tiles[positionCurrent.x][positionCurrent.y].height <= this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
                                     engine.canvas["buffer"].context.fillStyle = "#fff";
                                 }
                                 else {
@@ -1527,7 +1549,7 @@ var game = {
                                 this.symbols[this.activeSymbol].imageID == "beam") {
                                 engine.canvas["buffer"].context.fillStyle = "#fff";
                             }
-                            engine.canvas["buffer"].context.fillRect(drawPositionCollection.x, drawPositionCollection.y, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                            engine.canvas["buffer"].context.fillRect(drawPositionCurrent.x, drawPositionCurrent.y, this.tileSize * this.zoom, this.tileSize * this.zoom);
                         }
 
                     }
@@ -1562,28 +1584,25 @@ var game = {
                 var center = this.buildings[i].getCenter();
                 var drawCenter = Helper.real2screen(center);
 
-                var centerCursorX = (positionScrolled.x * this.tileSize) + ((this.tileSize / 2) * this.symbols[this.activeSymbol].size);
-                var centerCursorY = (positionScrolled.y * this.tileSize) + ((this.tileSize / 2) * this.symbols[this.activeSymbol].size);
-
                 var allowedDistance = 10 * this.tileSize;
                 if (this.buildings[i].type == "Relay" && this.symbols[this.activeSymbol].imageID == "relay") {
                     allowedDistance = 20 * this.tileSize;
                 }
 
-                if (Math.pow(center.x - centerCursorX, 2) + Math.pow(center.y - centerCursorY, 2) < Math.pow(allowedDistance, 2)) {
-                    var lineToTarget = Helper.tiled2screen(positionScrolled);
+                if (Math.pow(center.x - positionScrolledCenter.x, 2) + Math.pow(center.y - positionScrolledCenter.y, 2) < Math.pow(allowedDistance, 2)) {
+                    var lineToTarget = Helper.real2screen(positionScrolledCenter);
                     engine.canvas["buffer"].context.strokeStyle = '#000';
                     engine.canvas["buffer"].context.lineWidth = 2;
                     engine.canvas["buffer"].context.beginPath();
                     engine.canvas["buffer"].context.moveTo(drawCenter.x, drawCenter.y);
-                    engine.canvas["buffer"].context.lineTo(lineToTarget.x + (this.tileSize / 2) * this.symbols[this.activeSymbol].size * this.zoom, lineToTarget.y + (this.tileSize / 2) * this.symbols[this.activeSymbol].size * this.zoom);
+                    engine.canvas["buffer"].context.lineTo(lineToTarget.x, lineToTarget.y);
                     engine.canvas["buffer"].context.stroke();
 
                     engine.canvas["buffer"].context.strokeStyle = '#fff';
                     engine.canvas["buffer"].context.lineWidth = 1;
                     engine.canvas["buffer"].context.beginPath();
                     engine.canvas["buffer"].context.moveTo(drawCenter.x, drawCenter.y);
-                    engine.canvas["buffer"].context.lineTo(lineToTarget.x + (this.tileSize / 2) * this.symbols[this.activeSymbol].size * this.zoom, lineToTarget.y + (this.tileSize / 2) * this.symbols[this.activeSymbol].size * this.zoom);
+                    engine.canvas["buffer"].context.lineTo(lineToTarget.x, lineToTarget.y);
                     engine.canvas["buffer"].context.stroke();
                 }
             }
@@ -1816,27 +1835,6 @@ function Building(pX, pY, pImage, pType) {
             }
         }
     };
-    this.drawRadius = function () {
-        if (this.selected) {
-            var center = Helper.real2screen(this.getCenter());
-
-            // node radius
-            engine.canvas["buffer"].context.strokeStyle = "#000";
-            engine.canvas["buffer"].context.beginPath();
-            engine.canvas["buffer"].context.arc(center.x, center.y, this.nodeRadius * game.tileSize * game.zoom, 0, Math.PI * 2, true);
-            engine.canvas["buffer"].context.closePath();
-            engine.canvas["buffer"].context.stroke();
-
-            // weapon radius
-            if (this.canShoot) {
-                engine.canvas["buffer"].context.strokeStyle = "#f00";
-                engine.canvas["buffer"].context.beginPath();
-                engine.canvas["buffer"].context.arc(center.x, center.y, this.weaponRadius * game.tileSize * game.zoom, 0, Math.PI * 2, true);
-                engine.canvas["buffer"].context.closePath();
-                engine.canvas["buffer"].context.stroke();
-            }
-        }
-    };
     this.drawMovementIndicators = function () {
         if (this.moving) {
             var center = Helper.real2screen(this.getCenter());
@@ -1853,8 +1851,8 @@ function Building(pX, pY, pImage, pType) {
         }
     };
     this.drawRepositionInfo = function () {
-        var center = Helper.real2screen(this.getCenter());
         var positionScrolled = game.getTilePositionScrolled();
+        var center = Helper.real2screen(this.getCenter());
         var drawPosition = Helper.tiled2screen(positionScrolled);
 
         // only armed buildings can move
@@ -2933,11 +2931,6 @@ function draw() {
     // draw buildings
     for (var i = 0; i < game.buildings.length; i++) {
         game.buildings[i].draw();
-    }
-
-    // draw radius
-    for (var i = 0; i < game.buildings.length; i++) {
-        game.buildings[i].drawRadius();
     }
 
     // draw shells
