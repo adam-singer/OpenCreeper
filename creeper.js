@@ -437,11 +437,11 @@ var game = {
         }
         if (building.type == "Collector") {
             building.maxHealth = 5;
-            building.size = 2;
+            building.size = 3;
         }
         if (building.type == "Relay") {
             building.maxHealth = 10;
-            building.size = 2;
+            building.size = 3;
         }
         if (building.type == "Cannon") {
             building.maxHealth = 25;
@@ -549,12 +549,12 @@ var game = {
     },
     setupUI: function () {
         this.symbols.push(new UISymbol(0 * 81, 0, "cannon", "Q", 3, 25, 6));
-        this.symbols.push(new UISymbol(1 * 81, 0, "collector", "W", 2, 5, 4));
+        this.symbols.push(new UISymbol(1 * 81, 0, "collector", "W", 3, 5, 4));
         this.symbols.push(new UISymbol(2 * 81, 0, "reactor", "E", 3, 50, 0));
         this.symbols.push(new UISymbol(3 * 81, 0, "storage", "R", 3, 8, 0));
         this.symbols.push(new UISymbol(4 * 81, 0, "shield", "T", 3, 50, 10));
 
-        this.symbols.push(new UISymbol(0 * 81, 56, "relay", "A", 2, 10, 8));
+        this.symbols.push(new UISymbol(0 * 81, 56, "relay", "A", 3, 10, 8));
         this.symbols.push(new UISymbol(1 * 81, 56, "mortar", "S", 3, 40, 12));
         this.symbols.push(new UISymbol(2 * 81, 56, "beam", "D", 3, 20, 12));
         this.symbols.push(new UISymbol(3 * 81, 56, "bomber", "F", 3, 75, 0));
