@@ -54,7 +54,7 @@ var engine = {
         this.addSound("explosion", "wav");
 
         // load images
-        this.imageSrcs = ["terrain", "cannon", "cannongun", "base", "collector", "reactor", "storage", "speed", "packet_ammo", "packet_health", "relay", "emitter", "creep",
+        this.imageSrcs = ["terrain", "cannon", "cannongun", "base", "collector", "reactor", "storage", "speed", "packet_energy", "packet_health", "relay", "emitter", "creep",
             "mortar", "shell", "beam", "spore", "bomber", "bombership", "smoke", "explosion", "targetcursor", "sporetower", "forcefield", "shield"];
     },
     /**
@@ -418,13 +418,15 @@ var game = {
         building.health = 0;
 
         if (building.type == "Shield") {
-            building.maxHealth = 75;
+            building.maxHealth = 5; //75
+            building.maxEnergy = 20;
+            building.energy = 0;
             building.size = 3;
-            building.health = 0;
             building.canMove = true;
+            building.needsEnergy = true;
         }
         if (building.type == "Bomber") {
-            building.maxHealth = 5;
+            building.maxHealth = 5; // 75
             building.size = 3;
         }
         if (building.type == "Storage") {
@@ -445,29 +447,29 @@ var game = {
         }
         if (building.type == "Cannon") {
             building.maxHealth = 25;
-            building.maxAmmo = 40;
-            building.ammo = 0;
+            building.maxEnergy = 40;
+            building.energy = 0;
             building.weaponRadius = 8;
             building.canMove = true;
-            building.canShoot = true;
+            building.needsEnergy = true;
             building.size = 3;
         }
         if (building.type == "Mortar") {
             building.maxHealth = 40;
-            building.maxAmmo = 20;
-            building.ammo = 0;
+            building.maxEnergy = 20;
+            building.energy = 0;
             building.weaponRadius = 12;
             building.canMove = true;
-            building.canShoot = true;
+            building.needsEnergy = true;
             building.size = 3;
         }
         if (building.type == "Beam") {
             building.maxHealth = 20;
-            building.maxAmmo = 10;
-            building.ammo = 0;
+            building.maxEnergy = 10;
+            building.energy = 0;
             building.weaponRadius = 12;
             building.canMove = true;
-            building.canShoot = true;
+            building.needsEnergy = true;
             building.size = 3;
         }
 
@@ -619,11 +621,19 @@ var game = {
     },
     shoot: function () {
         for (var t = 0; t < this.buildings.length; t++) {
-            if (this.buildings[t].canShoot && this.buildings[t].active && !this.buildings[t].moving) {
-                this.buildings[t].shooting = false;
+            this.buildings[t].shooting = false;
+            if (this.buildings[t].needsEnergy && this.buildings[t].active && !this.buildings[t].moving) {
+
                 this.buildings[t].shootTimer++;
                 var center = this.buildings[t].getCenter();
-                if (this.buildings[t].type == "Cannon" && this.buildings[t].ammo > 0 && this.buildings[t].shootTimer > 10) {
+                if (this.buildings[t].type == "Shield" && this.buildings[t].energy > 0) {
+                    if (this.buildings[t].shootTimer > 20) {
+                        this.buildings[t].shootTimer = 0;
+                        this.buildings[t].energy -= 1;
+                    }
+                    this.buildings[t].shooting = true;
+                }
+                if (this.buildings[t].type == "Cannon" && this.buildings[t].energy > 0 && this.buildings[t].shootTimer > 10) {
                     this.buildings[t].shootTimer = 0;
 
                     // get building x and building y
@@ -657,14 +667,14 @@ var game = {
                             var dy = targets[0].y * this.tileSize + this.tileSize / 2 - center.y;
                             this.buildings[t].targetAngle = Math.atan2(dy, dx) + Math.PI / 2;
                             this.buildings[t].weaponTargetPosition = new Vector(targets[0].x, targets[0].y);
-                            this.buildings[t].ammo -= 1;
+                            this.buildings[t].energy -= 1;
                             this.buildings[t].shooting = true;
                             this.smokes.push(new Smoke(new Vector(targets[0].x * this.tileSize + this.tileSize / 2, targets[0].y * this.tileSize + this.tileSize / 2)));
                             break;
                         }
                     }
                 }
-                if (this.buildings[t].type == "Mortar" && this.buildings[t].ammo > 0 && this.buildings[t].shootTimer > 200) {
+                if (this.buildings[t].type == "Mortar" && this.buildings[t].energy > 0 && this.buildings[t].shootTimer > 200) {
                     this.buildings[t].shootTimer = 0;
 
                     // get building x and building y
@@ -689,10 +699,10 @@ var game = {
                         var shell = new Shell(center.x, center.y, "shell", target.x * this.tileSize + this.tileSize / 2, target.y * this.tileSize + this.tileSize / 2);
                         shell.init();
                         this.shells.push(shell);
-                        this.buildings[t].ammo -= 1;
+                        this.buildings[t].energy -= 1;
                     }
                 }
-                if (this.buildings[t].type == "Beam" && this.buildings[t].ammo > 0 && this.buildings[t].shootTimer > 0) {
+                if (this.buildings[t].type == "Beam" && this.buildings[t].energy > 0 && this.buildings[t].shootTimer > 0) {
                     this.buildings[t].shootTimer = 0;
 
                     // find spore in range
@@ -702,7 +712,7 @@ var game = {
 
                         if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
                             this.buildings[t].weaponTargetPosition = sporeCenter;
-                            this.buildings[t].ammo -= .1;
+                            this.buildings[t].energy -= .1;
                             this.buildings[t].shooting = true;
                             this.spores[i].health -= 2;
                             if (this.spores[i].health <= 0) {
@@ -1118,10 +1128,10 @@ var game = {
             return routes[0].nodes[1];
         }
         else {
-            if (packet.type == "Ammo")
-                packet.target.ammoRequests -= 4;
-            if (packet.target.ammoRequests < 0)
-                packet.target.ammoRequests = 0;
+            if (packet.type == "Energy")
+                packet.target.energyRequests -= 4;
+            if (packet.target.energyRequests < 0)
+                packet.target.energyRequests = 0;
             if (packet.type == "Health")
                 packet.target.healthRequests--;
             if (packet.target.healthRequests < 0)
@@ -1132,8 +1142,8 @@ var game = {
     },
     queuePacket: function (building, type) {
         var img;
-        if (type == "Ammo")
-            img = "packet_ammo";
+        if (type == "Energy")
+            img = "packet_energy";
         if (type == "Health")
             img = "packet_health";
         var center = game.base.getCenter();
@@ -1143,8 +1153,8 @@ var game = {
         if (this.findRoute(packet) != null) {
             if (packet.type == "Health")
                 packet.target.healthRequests++;
-            if (packet.type == "Ammo")
-                packet.target.ammoRequests += 4;
+            if (packet.type == "Energy")
+                packet.target.energyRequests += 4;
             this.packetQueue.push(packet);
         }
     },
@@ -1266,12 +1276,12 @@ var game = {
                         this.queuePacket(this.buildings[i], "Health");
                     }
                 }
-                // request ammo
-                if (this.buildings[i].canShoot) {
-                    var ammoAndRequestDelta = this.buildings[i].maxAmmo - this.buildings[i].ammo - this.buildings[i].ammoRequests;
-                    if (ammoAndRequestDelta > 0 && this.buildings[i].requestTimer > 50 && this.buildings[i].built) {
+                // request energy
+                if (this.buildings[i].needsEnergy && this.buildings[i].built) {
+                    var energyAndRequestDelta = this.buildings[i].maxEnergy - this.buildings[i].energy - this.buildings[i].energyRequests;
+                    if (energyAndRequestDelta > 0 && this.buildings[i].requestTimer > 50) {
                         this.buildings[i].requestTimer = 0;
-                        this.queuePacket(this.buildings[i], "Ammo");
+                        this.queuePacket(this.buildings[i], "Energy");
                     }
                 }
             }
@@ -1755,10 +1765,10 @@ function Building(pX, pY, pImage, pType) {
     this.type = pType;
     this.health = 0;
     this.maxHealth = 0;
-    this.ammo = 0;
-    this.maxAmmo = 0;
+    this.energy = 0;
+    this.maxEnergy = 0;
     this.healthRequests = 0;
-    this.ammoRequests = 0;
+    this.energyRequests = 0;
     this.requestTimer = 0;
     this.nodeRadius = 0;
     this.weaponRadius = 0;
@@ -1771,7 +1781,7 @@ function Building(pX, pY, pImage, pType) {
     this.speed = new Vector(0, 0);
     this.moveTargetPosition = new Vector(0, 0);
     this.canMove = false;
-    this.canShoot = false;
+    this.needsEnergy = false;
     this.ship = null;
     this.updateHoverState = function () {
         var position = Helper.tiled2screen(new Vector(this.x, this.y));
@@ -1925,17 +1935,14 @@ function Building(pX, pY, pImage, pType) {
                 engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
                 engine.canvas["buffer"].context.restore();
             }
-            if (this.type == "Shield" && !this.moving) {
-                engine.canvas["buffer"].context.drawImage(engine.images["forcefield"], center.x - 168 * game.zoom, center.y - 168 * game.zoom);
-            }
         }
 
-        // draw ammo bar
-        if (this.canShoot) {
+        // draw energy bar
+        if (this.needsEnergy) {
             engine.canvas["buffer"].context.fillStyle = '#000';
             engine.canvas["buffer"].context.fillRect(position.x + 2, position.y, 44 * game.zoom, 4);
             engine.canvas["buffer"].context.fillStyle = '#f00';
-            engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + 1, (42 * game.zoom / this.maxAmmo) * this.ammo, 2);
+            engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + 1, (42 * game.zoom / this.maxEnergy) * this.energy, 2);
         }
 
         // draw health bar (only if health is below maxHealth)
@@ -1972,11 +1979,13 @@ function Building(pX, pY, pImage, pType) {
                 engine.canvas["buffer"].context.lineTo(targetPosition.x, targetPosition.y);
                 engine.canvas["buffer"].context.stroke();
             }
+            if (this.type == "Shield") {
+                engine.canvas["buffer"].context.drawImage(engine.images["forcefield"], center.x - 168 * game.zoom, center.y - 168 * game.zoom);
+            }
         }
 
         // draw inactive sign
         if (!this.active) {
-            var center = this.getCenter();
             engine.canvas["buffer"].context.strokeStyle = "#F00";
             engine.canvas["buffer"].context.lineWidth = 2;
 
@@ -1986,8 +1995,8 @@ function Building(pX, pY, pImage, pType) {
             engine.canvas["buffer"].context.stroke();
 
             engine.canvas["buffer"].context.beginPath();
-            engine.canvas["buffer"].context.moveTo(this.x * game.tileSize, this.y * game.tileSize + game.tileSize * this.size);
-            engine.canvas["buffer"].context.lineTo(this.x * game.tileSize + game.tileSize * this.size, this.y * game.tileSize);
+            engine.canvas["buffer"].context.moveTo(position.x, position.y + game.tileSize * this.size);
+            engine.canvas["buffer"].context.lineTo(position.x + game.tileSize * this.size, position.y);
             engine.canvas["buffer"].context.stroke();
         }
     };
@@ -2043,11 +2052,11 @@ function Packet(pX, pY, pImage, pType) {
                         }
                     }
                 }
-                if (this.type == "Ammo") {
-                    this.target.ammo += 4;
-                    this.target.ammoRequests -= 4;
-                    if (this.target.ammo > this.target.maxAmmo)
-                        this.target.ammo = this.target.maxAmmo;
+                if (this.type == "Energy") {
+                    this.target.energy += 4;
+                    this.target.energyRequests -= 4;
+                    if (this.target.energy > this.target.maxEnergy)
+                        this.target.energy = this.target.maxEnergy;
                 }
             }
             else {
@@ -2239,8 +2248,8 @@ function Ship(pX, pY, pImage, pType, pHome) {
     this.ty = 0;
     this.remove = false;
     this.angle = 0;
-    this.maxAmmo = 5;
-    this.ammo = 5;
+    this.maxEnergy = 5;
+    this.energy = 0;
     this.type = pType;
     this.home = pHome;
     this.status = 0; // 0 idle, 1 attacking, 2 returning
@@ -2313,7 +2322,7 @@ function Ship(pX, pY, pImage, pType, pHome) {
                     if (this.weaponTimer >= 10) {
                         this.weaponTimer = 0;
                         game.explosions.push(new Explosion(new Vector(this.tx, this.ty)));
-                        this.ammo -= 1;
+                        this.energy -= 1;
 
                         for (var i = Math.floor(this.tx / game.tileSize) - 3; i < Math.floor(this.tx / game.tileSize) + 5; i++) {
                             for (var j = Math.floor(this.ty / game.tileSize) - 3; j < Math.floor(this.ty / game.tileSize) + 5; j++) {
@@ -2329,7 +2338,7 @@ function Ship(pX, pY, pImage, pType, pHome) {
                             }
                         }
 
-                        if (this.ammo == 0) { // return
+                        if (this.energy == 0) { // return to base
                             this.status = 2;
                             this.tx = this.home.x * game.tileSize;
                             this.ty = this.home.y * game.tileSize;
@@ -2342,7 +2351,7 @@ function Ship(pX, pY, pImage, pType, pHome) {
                     this.y = this.home.y * game.tileSize;
                     this.tx = 0;
                     this.ty = 0;
-                    this.ammo = 5;
+                    this.energy = 5;
                 }
             }
         }
@@ -2379,11 +2388,11 @@ function Ship(pX, pY, pImage, pType, pHome) {
         engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
         engine.canvas["buffer"].context.restore();
 
-        // draw ammo bar
+        // draw energy bar
         engine.canvas["buffer"].context.fillStyle = '#000';
         engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + 2, 44 * game.zoom, 4);
         engine.canvas["buffer"].context.fillStyle = '#fff';
-        engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + 3, (42 * game.zoom / this.maxAmmo) * this.ammo, 2);
+        engine.canvas["buffer"].context.fillRect(position.x + 3, position.y + 3, (42 * game.zoom / this.maxEnergy) * this.energy, 2);
     };
 }
 Ship.prototype = new GameObject;
@@ -2712,6 +2721,7 @@ function onClick(evt) {
         for (var i = 0; i < game.buildings.length; i++) {
             game.buildings[i].selected = game.buildings[i].hovered;
             if (game.buildings[i].selected) {
+                $('#selection').show();
                 $('#selection').html("Type: " + game.buildings[i].type + "<br/>" +
                     "Size: " + game.buildings[i].size + "<br/>" +
                     "Range: " + game.buildings[i].nodeRadius * game.tileSize + "<br/>" +
@@ -2728,6 +2738,7 @@ function onClick(evt) {
                 $('#activate').show();
             }
         } else {
+            $('#selection').hide();
             $('#deactivate').hide();
             $('#activate').hide();
         }
