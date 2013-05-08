@@ -1064,14 +1064,13 @@ var game = {
                     newRoute.distanceTravelled = oldRoute.distanceTravelled;
 
                     // increase distance travelled
-                    var dx = newRoute.nodes[newRoute.nodes.length - 1].x * this.tileSize - newRoute.nodes[newRoute.nodes.length - 2].x * this.tileSize;
-                    var dy = newRoute.nodes[newRoute.nodes.length - 1].y * this.tileSize - newRoute.nodes[newRoute.nodes.length - 2].y * this.tileSize;
-                    newRoute.distanceTravelled += Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+                    var centerA = newRoute.nodes[newRoute.nodes.length - 1].getCenter();
+                    var centerB = newRoute.nodes[newRoute.nodes.length - 2].getCenter();
+                    newRoute.distanceTravelled += Helper.distance(centerA, centerB);
 
                     // update underestimate of distance remaining
-                    dx = packet.target.x * this.tileSize - newRoute.nodes[newRoute.nodes.length - 1].x * this.tileSize;
-                    dy = packet.target.y * this.tileSize - newRoute.nodes[newRoute.nodes.length - 1].y * this.tileSize;
-                    newRoute.distanceRemaining = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+                    var centerC = packet.target.getCenter();
+                    newRoute.distanceRemaining = Helper.distance(centerC, centerA);
 
                     // finally push the new route to the list of routes
                     routes.push(newRoute);
@@ -1083,7 +1082,6 @@ var game = {
             //console.log("4) total routes: " + routes.length);
 
             // find routes that end at the same node, remove those with the longer distance travelled
-            //var remove = [];
             for (var i = 0; i < routes.length; i++) {
                 for (var j = 0; j < routes.length; j++) {
                     if (i != j) {
@@ -1091,11 +1089,9 @@ var game = {
                             //console.log("5) found duplicate route to " + routes[i].nodes[routes[i].nodes.length - 1].type + ", removing longer");
                             if (routes[i].distanceTravelled < routes[j].distanceTravelled) {
                                 routes.splice(routes.indexOf(routes[j]), 1);
-                                //remove.push(routes[j]);
                             }
                             else if (routes[i].distanceTravelled > routes[j].distanceTravelled) {
                                 routes.splice(routes.indexOf(routes[i]), 1);
-                                //remove.push(routes[i]);
                             }
 
                         }
@@ -1604,7 +1600,7 @@ var game = {
                     allowedDistance = 20 * this.tileSize;
                 }
 
-                if (Math.pow(center.x - positionScrolledCenter.x, 2) + Math.pow(center.y - positionScrolledCenter.y, 2) < Math.pow(allowedDistance, 2)) {
+                if (Math.pow(center.x - positionScrolledCenter.x, 2) + Math.pow(center.y - positionScrolledCenter.y, 2) <= Math.pow(allowedDistance, 2)) {
                     var lineToTarget = Helper.real2screen(positionScrolledCenter);
                     engine.canvas["buffer"].context.strokeStyle = '#000';
                     engine.canvas["buffer"].context.lineWidth = 2;
@@ -2922,7 +2918,7 @@ function draw() {
                         allowedDistance = 20 * game.tileSize;
                     }
 
-                    if (Math.pow(centerJ.x - centerI.x, 2) + Math.pow(centerJ.y - centerI.y, 2) < Math.pow(allowedDistance, 2)) {
+                    if (Math.pow(centerJ.x - centerI.x, 2) + Math.pow(centerJ.y - centerI.y, 2) <= Math.pow(allowedDistance, 2)) {
                         engine.canvas["buffer"].context.strokeStyle = '#000';
                         engine.canvas["buffer"].context.lineWidth = 3;
                         engine.canvas["buffer"].context.beginPath();
