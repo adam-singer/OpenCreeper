@@ -47,6 +47,11 @@ var engine = {
         // gui
         engine.canvas["gui"] = new Canvas($("#guiCanvas"));
 
+        for (var i = 0; i < 10; i++) {
+            engine.canvas["level" + i] = new Canvas($("<canvas width='1280' height='720' style='position: absolute'>"));
+            document.getElementById('canvasContainer').appendChild(engine.canvas["level" + i].element[0]);
+        }
+
         // load sounds
         this.addSound("shot", "wav");
         this.addSound("click", "wav");
@@ -54,7 +59,7 @@ var engine = {
         this.addSound("explosion", "wav");
 
         // load images
-        this.imageSrcs = ["terrain", "cannon", "cannongun", "base", "collector", "reactor", "storage", "speed", "packet_energy", "packet_health", "relay", "emitter", "creep",
+        this.imageSrcs = ["level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "terrain", "cannon", "cannongun", "base", "collector", "reactor", "storage", "speed", "packet_energy", "packet_health", "relay", "emitter", "creep",
             "mortar", "shell", "beam", "spore", "bomber", "bombership", "smoke", "explosion", "targetcursor", "sporetower", "forcefield", "shield"];
     },
     /**
@@ -322,7 +327,7 @@ var game = {
         }
     },
     zoomIn: function() {
-        if (this.zoom < 1) {
+        if (this.zoom < 1.4) {
             this.zoom += .2;
             this.zoom = parseFloat(this.zoom.toFixed(2));
             this.drawTerrain();
@@ -574,6 +579,11 @@ var game = {
         engine.canvas["tiles"].context.strokeStyle = "rgba(0,0,0,0.125)";
         engine.canvas["tiles"].context.lineWidth = 1;
 
+        for (var i = 0; i < 10; i++) {
+            engine.canvas["level" + i].clear();
+        }
+
+        // 1st pass - draw masks
         for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
             for (var j = Math.floor(-23 / this.zoom); j < Math.floor(22 / this.zoom); j++) {
 
@@ -605,11 +615,14 @@ var game = {
                             right = 1;
 
                         if (height > 0)
-                            engine.canvas["tiles"].context.drawImage(engine.images["terrain"], 15 * (this.tileSize + 6) + 3, (this.world.tiles[iS][jS].height - 1) * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                            //engine.canvas["tiles"].context.drawImage(engine.images["terrain"], 15 * (this.tileSize + 6) + 3, (this.world.tiles[iS][jS].height - 1) * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                            engine.canvas["level" + (height - 1)].context.drawImage(engine.images["mask"], 15 * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
                         // save index for later use
                         this.world.tiles[iS][jS].index = index;
-                        engine.canvas["tiles"].context.drawImage(engine.images["terrain"], index * (this.tileSize + 6) + 3, this.world.tiles[iS][jS].height * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                        //engine.canvas["tiles"].context.drawImage(engine.images["terrain"], index * (this.tileSize + 6) + 3, this.world.tiles[iS][jS].height * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                        engine.canvas["level" + height].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
 
                         // grid (debug)
                         //engine.canvas["tiles"].context.strokeRect(i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
@@ -621,6 +634,47 @@ var game = {
                 }
             }
         }
+
+        // 2nd pass - draw textures
+        for (var i = 0; i < 10; i++) {
+            var pattern = engine.canvas["level" + i].context.createPattern(engine.images["level" + i], 'repeat');
+            engine.canvas["level" + i].context.globalCompositeOperation = 'source-in';
+            //engine.canvas["level" + i].context.rect(0, 0, engine.canvas["level" + i].element[0].width, engine.canvas["level" + i].element[0].height);
+            engine.canvas["level" + i].context.fillStyle = pattern;
+
+            engine.canvas["level" + i].context.save();
+            //engine.canvas["level" + i].context.scale(this.zoom, this.zoom);
+            var translation = new Vector(Math.floor(this.scroll.x * this.tileSize * this.zoom), Math.floor(this.scroll.y * this.tileSize * this.zoom));
+            engine.canvas["level" + i].context.translate(-translation.x, -translation.y);
+
+
+            //engine.canvas["level" + i].context.fill();
+            engine.canvas["level" + i].context.fillRect(translation.x, translation.y, engine.canvas["level" + i].element[0].width, engine.canvas["level" + i].element[0].height);
+            engine.canvas["level" + i].context.restore();
+
+            engine.canvas["level" + i].context.globalCompositeOperation = 'source-over';
+        }
+
+        // 3rd pass - draw borders
+        for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
+            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(22 / this.zoom); j++) {
+
+                var iS = i + this.scroll.x;
+                var jS = j + this.scroll.y;
+
+                if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
+
+                    if (this.world.tiles[iS][jS].enabled) {
+
+                        var height = this.world.tiles[iS][jS].height;
+                        var index = this.world.tiles[iS][jS].index;
+
+                        engine.canvas["level" + height].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                    }
+                }
+            }
+        }
+
     },
     shoot: function () {
         for (var t = 0; t < this.buildings.length; t++) {
@@ -1487,7 +1541,7 @@ var game = {
                             right = this.world.tiles[iS + 1][jS].collection;
 
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
-                        engine.canvas["buffer"].context.drawImage(engine.images["terrain"], index * (this.tileSize + 6) + 3, 10 * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                        engine.canvas["buffer"].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
                     }
                 }
             }
@@ -2509,6 +2563,7 @@ function Canvas(pElement) {
     this.left = pElement.offset().left;
     this.bottom = this.top + pElement.height();
     this.right = this.left + pElement.width();
+    this.context.webkitImageSmoothingEnabled = false;
     this.clear = function() {
         this.context.clearRect(0,0, this.element[0].width, this.element[0].height);
     }
@@ -2605,7 +2660,7 @@ function onKeyDown(evt) {
 
     // lower terrain ("N")
     if (evt.keyCode == 78) {
-        if (game.world.tiles[position.x][position.y].height > 1) {
+        if (game.world.tiles[position.x][position.y].height > 0) {
             game.world.tiles[position.x][position.y].height -= 1;
             game.drawTerrain();
         }
