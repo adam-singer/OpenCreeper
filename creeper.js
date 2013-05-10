@@ -602,7 +602,7 @@ var game = {
 
         // 1st pass - draw masks
         for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
-            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(22 / this.zoom); j++) {
+            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(23 / this.zoom); j++) {
 
                 var iS = i + this.scroll.x;
                 var jS = j + this.scroll.y;
@@ -674,7 +674,7 @@ var game = {
 
         // 3rd pass - draw borders
         for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
-            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(22 / this.zoom); j++) {
+            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(23 / this.zoom); j++) {
 
                 var iS = i + this.scroll.x;
                 var jS = j + this.scroll.y;
@@ -686,7 +686,7 @@ var game = {
                         var height = this.world.tiles[iS][jS].height;
                         var index = this.world.tiles[iS][jS].index;
 
-                        engine.canvas["level" + height].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                        engine.canvas["level" + height].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 3, 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
                     }
                 }
             }
