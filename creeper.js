@@ -653,10 +653,9 @@ var game = {
             engine.canvas["level" + i].context.save();
             //engine.canvas["level" + i].context.scale(this.zoom, this.zoom);
             var translation = new Vector(
-                Math.floor(640 * this.zoom)+Math.floor(this.scroll.x * this.tileSize * this.zoom),
-                Math.floor(386 * this.zoom)+Math.floor(this.scroll.y * this.tileSize * this.zoom));
+                 -640 + Math.floor(this.tileSize * this.zoom) + Math.floor(this.scroll.x * this.tileSize * this.zoom),
+                 -368 + Math.floor(this.tileSize * this.zoom) + Math.floor(this.scroll.y * this.tileSize * this.zoom));
             engine.canvas["level" + i].context.translate(-translation.x, -translation.y);
-
 
             //engine.canvas["level" + i].context.fill();
             engine.canvas["level" + i].context.fillRect(translation.x, translation.y, engine.canvas["level" + i].element[0].width, engine.canvas["level" + i].element[0].height);
