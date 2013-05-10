@@ -29,26 +29,30 @@ var engine = {
         x: 0,
         y: 0
     },
+    halfHeight: 0,
     /**
      * @author Alexander Zeillinger
      *
      * Initializes the canvases and mouse, loads sounds and images.
      */
     init: function () {
-        // main: at the top, contains everything but the terrain
-        this.canvas["main"] = new Canvas($("#mainCanvas"));
+        var height = window.innerHeight > 720 ? 720 : window.innerHeight;
+        engine.halfHeight = Math.floor(height / 2);
+
+        // main: contains everything but the terrain
+        engine.canvas["main"] = new Canvas($("<canvas width='1280' height='" + height + "' style='position: absolute;z-index: 1'>"));
+        document.getElementById('canvasContainer').appendChild(engine.canvas["main"].element[0]);
+        engine.canvas["main"].top = engine.canvas["main"].element.offset().top;
+        engine.canvas["main"].left = engine.canvas["main"].element.offset().left;
 
         // buffer
-        engine.canvas["buffer"] = new Canvas($("<canvas width='1280' height='720'>"));
-
-        // tiles: at the bottom, contains the terrain and is only drawn once
-        engine.canvas["tiles"] = new Canvas($("#tilesCanvas"));
+        engine.canvas["buffer"] = new Canvas($("<canvas width='1280' height='" + height + "'>"));
 
         // gui
         engine.canvas["gui"] = new Canvas($("#guiCanvas"));
 
         for (var i = 0; i < 10; i++) {
-            engine.canvas["level" + i] = new Canvas($("<canvas width='1280' height='720' style='position: absolute'>"));
+            engine.canvas["level" + i] = new Canvas($("<canvas width='1280' height='" + height + "' style='position: absolute'>"));
             document.getElementById('canvasContainer').appendChild(engine.canvas["level" + i].element[0]);
         }
 
@@ -61,6 +65,22 @@ var engine = {
         // load images
         this.imageSrcs = ["level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon", "cannongun", "base", "collector", "reactor", "storage", "speed", "packet_energy", "packet_health", "relay", "emitter", "creep",
             "mortar", "shell", "beam", "spore", "bomber", "bombership", "smoke", "explosion", "targetcursor", "sporetower", "forcefield", "shield"];
+
+        $('#time').stopwatch().stopwatch('start');
+        var mainCanvas = engine.canvas["main"].element;
+        var guiCanvas = engine.canvas["gui"].element;
+        mainCanvas.mousemove(onMouseMove);
+        guiCanvas.mousemove(onMouseMoveGUI);
+        mainCanvas.mouseup(onMouseUp).mousedown(onMouseDown);
+        mainCanvas.click(onClick);
+        mainCanvas.dblclick(onDoubleClick);
+        guiCanvas.click(onClickGUI);
+        guiCanvas.mouseleave(onLeaveGUI);
+        mainCanvas.mouseenter(onEnter).mouseleave(onLeave);
+        $(document).rightClick(onRightClick);
+        $(document).keydown(onKeyDown);
+        $(document).keyup(onKeyUp);
+        mainCanvas.on('DOMMouseScroll mousewheel', onMouseScroll);
     },
     /**
      * @author Alexander Zeillinger
@@ -105,6 +125,7 @@ var engine = {
             this.mouse.x = evt.pageX - this.canvas["main"].left;
             this.mouse.y = evt.pageY - this.canvas["main"].top;
             var position = game.getTilePositionScrolled();
+
             $("#mouse").html("Mouse: " + this.mouse.x + "/" + this.mouse.y + " - " + position.x + "/" + position.y);
         }
     },
@@ -280,7 +301,7 @@ var game = {
     getTilePositionScrolled: function () {
         return new Vector(
             Math.floor((engine.mouse.x - 640) / (this.tileSize * this.zoom)) + this.scroll.x,
-            Math.floor((engine.mouse.y - 368) / (this.tileSize * this.zoom)) + this.scroll.y);
+            Math.floor((engine.mouse.y - engine.halfHeight) / (this.tileSize * this.zoom)) + this.scroll.y);
     },
     pause: function() {
         $('#pause').hide();
@@ -575,10 +596,6 @@ var game = {
      * Draws the terrain using a simple auto-tiling mechanism
      */
     drawTerrain: function () {
-        //engine.canvas["tiles"].clear();
-        //engine.canvas["tiles"].context.strokeStyle = "rgba(0,0,0,0.125)";
-        //engine.canvas["tiles"].context.lineWidth = 1;
-
         for (var i = 0; i < 10; i++) {
             engine.canvas["level" + i].clear();
         }
@@ -617,21 +634,13 @@ var game = {
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
 
                         if (height > 0 && !(index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15))
-                            //engine.canvas["tiles"].context.drawImage(engine.images["terrain"], 15 * (this.tileSize + 6) + 3, (this.world.tiles[iS][jS].height - 1) * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
-                            engine.canvas["level" + (height - 1)].context.drawImage(engine.images["mask"], 15 * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                            engine.canvas["level" + (height - 1)].context.drawImage(engine.images["mask"], 15 * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
 
                         // save index for later use
                         this.world.tiles[iS][jS].index = index;
-                        //engine.canvas["tiles"].context.drawImage(engine.images["terrain"], index * (this.tileSize + 6) + 3, this.world.tiles[iS][jS].height * (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
-                        engine.canvas["level" + height].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                        engine.canvas["level" + height].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
 
-                        // grid (debug)
-                        //engine.canvas["tiles"].context.strokeRect(i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
                     }
-                    /*else {
-                        engine.canvas["tiles"].context.fillStyle = "#000";
-                        engine.canvas["tiles"].context.fillRect(640 + i * this.tileSize, 368 + j * this.tileSize, this.tileSize, this.tileSize);
-                    }*/
                 }
             }
         }
@@ -642,19 +651,18 @@ var game = {
             tempCanvas.width = Math.floor(256 * this.zoom);
             tempCanvas.height = Math.floor(256 * this.zoom);
             var ctx = tempCanvas.getContext('2d');
+
             ctx.drawImage(engine.images["level" + i], 0, 0, Math.floor(256 * this.zoom), Math.floor(256 * this.zoom));
             //var pattern = engine.canvas["level" + i].context.createPattern(engine.images["level" + i], 'repeat');
             var pattern = engine.canvas["level" + i].context.createPattern(tempCanvas, 'repeat');
 
             engine.canvas["level" + i].context.globalCompositeOperation = 'source-in';
-            //engine.canvas["level" + i].context.rect(0, 0, engine.canvas["level" + i].element[0].width, engine.canvas["level" + i].element[0].height);
             engine.canvas["level" + i].context.fillStyle = pattern;
 
             engine.canvas["level" + i].context.save();
-            //engine.canvas["level" + i].context.scale(this.zoom, this.zoom);
             var translation = new Vector(
                  -640 + Math.floor(this.tileSize * this.zoom) + Math.floor(this.scroll.x * this.tileSize * this.zoom),
-                 -368 + Math.floor(this.tileSize * this.zoom) + Math.floor(this.scroll.y * this.tileSize * this.zoom));
+                 -engine.halfHeight + Math.floor(this.tileSize * this.zoom) + Math.floor(this.scroll.y * this.tileSize * this.zoom));
             engine.canvas["level" + i].context.translate(-translation.x, -translation.y);
 
             //engine.canvas["level" + i].context.fill();
@@ -678,7 +686,7 @@ var game = {
                         var height = this.world.tiles[iS][jS].height;
                         var index = this.world.tiles[iS][jS].index;
 
-                        engine.canvas["level" + height].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                        engine.canvas["level" + height].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
                     }
                 }
             }
@@ -1546,7 +1554,7 @@ var game = {
                             right = this.world.tiles[iS + 1][jS].collection;
 
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
-                        engine.canvas["buffer"].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, 368 + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                        engine.canvas["buffer"].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
                     }
                 }
             }
@@ -1597,7 +1605,7 @@ var game = {
                         //}
 
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
-                        engine.canvas["buffer"].context.drawImage(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize * game.zoom, 368 + j * this.tileSize * game.zoom, this.tileSize * game.zoom, this.tileSize * game.zoom);
+                        engine.canvas["buffer"].context.drawImage(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize * game.zoom, engine.halfHeight + j * this.tileSize * game.zoom, this.tileSize * game.zoom, this.tileSize * game.zoom);
                     }
 
                     // creep value
@@ -1844,9 +1852,9 @@ function Building(pX, pY, pImage, pType) {
     this.updateHoverState = function () {
         var position = Helper.tiled2screen(new Vector(this.x, this.y));
         this.hovered = (engine.mouse.x > position.x &&
-            engine.mouse.x < position.x + game.tileSize * this.size - 1 &&
+            engine.mouse.x < position.x + game.tileSize * this.size * game.zoom - 1 &&
             engine.mouse.y > position.y &&
-            engine.mouse.y < position.y + game.tileSize * this.size - 1);
+            engine.mouse.y < position.y + game.tileSize * this.size * game.zoom - 1);
 
         return this.hovered;
     };
@@ -2034,7 +2042,7 @@ function Building(pX, pY, pImage, pType) {
                 engine.canvas["buffer"].context.stroke();
             }
             if (this.type == "Shield") {
-                engine.canvas["buffer"].context.drawImage(engine.images["forcefield"], center.x - 168 * game.zoom, center.y - 168 * game.zoom);
+                engine.canvas["buffer"].context.drawImage(engine.images["forcefield"], center.x - 84 * game.zoom, center.y - 84 * game.zoom, 168 * game.zoom, 168 * game.zoom);
             }
         }
 
@@ -2566,8 +2574,8 @@ function Canvas(pElement) {
     this.context = pElement[0].getContext('2d');
     this.top = pElement.offset().top;
     this.left = pElement.offset().left;
-    this.bottom = this.top + pElement.height();
-    this.right = this.left + pElement.width();
+    this.bottom = this.top + this.element[0].height;
+    this.right = this.left + this.element[0].width;
     this.context.webkitImageSmoothingEnabled = false;
     this.clear = function() {
         this.context.clearRect(0,0, this.element[0].width, this.element[0].height);
@@ -2904,14 +2912,14 @@ Helper.distance = function(a, b) {
 Helper.tiled2screen = function(pVector) {
     return new Vector(
         640 + (pVector.x - game.scroll.x) * game.tileSize * game.zoom,
-        368 + (pVector.y - game.scroll.y) * game.tileSize * game.zoom);
+        engine.halfHeight + (pVector.y - game.scroll.y) * game.tileSize * game.zoom);
 };
 
 // calculates canvas coordinates from real coordinates
 Helper.real2screen = function(pVector) {
     return new Vector(
         640 + (pVector.x - game.scroll.x * game.tileSize) * game.zoom,
-        368 + (pVector.y - game.scroll.y * game.tileSize) * game.zoom);
+        engine.halfHeight + (pVector.y - game.scroll.y * game.tileSize) * game.zoom);
 };
 
 // Thanks to http://www.hardcode.nl/subcategory_1/article_317-array-shuffle-function

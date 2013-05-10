@@ -16,18 +16,10 @@
             #gui, #buttons {
                 z-index: 2;
             }
-			#mainCanvas {
-				position: absolute;
-				z-index: 1;
-			}
-			#tilesCanvas {
-				position: absolute;
-				z-index: 0;
-			}
 			#info {
 				padding: 10px;
 				background-color: rgba(0, 0, 255, 0.5);
-				position: fixed;
+				position: absolute;
 				right: 50%;
                 margin-right: 400px;
 				bottom: 0;
@@ -39,7 +31,7 @@
                 display: none;
 				padding: 10px;
 				background-color: rgba(255, 0, 0, 0.5);
-				position: fixed;
+				position: absolute;
 				bottom: 130px;
 				left: 50%;
                 margin-left: -400px;
@@ -50,7 +42,7 @@
             #buttons {
                 padding: 10px;
                 background-color: rgba(0, 255, 0, 0.5);
-                position: fixed;
+                position: absolute;
                 bottom: 0;
                 left: 50%;
                 margin-left: 420px;
@@ -60,7 +52,7 @@
             #gui {
                 padding: 10px;
                 background: #444;
-                position: fixed;
+                position: absolute;
                 bottom: 0;
                 left: 50%;
                 margin-left: -400px;
@@ -110,31 +102,13 @@
 		<script type="text/javascript">
 			$(function() {
 				init();
-				$('#time').stopwatch().stopwatch('start');
-                var mainCanvas = $("#mainCanvas");
-                var guiCanvas = $("#guiCanvas");
-                mainCanvas.mousemove(onMouseMove);
-                guiCanvas.mousemove(onMouseMoveGUI);
-                mainCanvas.mouseup(onMouseUp).mousedown(onMouseDown);
-                mainCanvas.click(onClick);
-                mainCanvas.dblclick(onDoubleClick);
-                guiCanvas.click(onClickGUI);
-                guiCanvas.mouseleave(onLeaveGUI);
-                mainCanvas.mouseenter(onEnter).mouseleave(onLeave);
-                $(document).rightClick(onRightClick);
-				$(document).keydown(onKeyDown);
-                $(document).keyup(onKeyUp);
-                mainCanvas.on('DOMMouseScroll mousewheel', onMouseScroll);
 			});			
 		</script>
     </head>
     <body>
 		
-		<div id="canvasContainer" style="width: 1280px; height: 860px; margin: 0 auto;">
-			<canvas id="mainCanvas" width="1280" height="720">
-				Please use a browser that supports the canvas element!
-			</canvas>
-			<canvas id="tilesCanvas" width="1280" height="720"></canvas>
+		<div id="canvasContainer" style="width: 1280px; margin: 0 auto;">
+
 		</div>
 
         <div id="gui">
