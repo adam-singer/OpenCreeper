@@ -686,7 +686,7 @@ var game = {
                         var height = this.world.tiles[iS][jS].height;
                         var index = this.world.tiles[iS][jS].index;
 
-                        engine.canvas["level" + height].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 3, 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                        engine.canvas["level" + height].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, (this.tileSize +2 ) * this.zoom, (this.tileSize +2 ) * this.zoom);
                     }
                 }
             }
