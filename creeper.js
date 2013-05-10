@@ -685,9 +685,9 @@ var game = {
         }
 
     },
-    shoot: function () {
+    checkOperating: function () {
         for (var t = 0; t < this.buildings.length; t++) {
-            this.buildings[t].shooting = false;
+            this.buildings[t].operating = false;
             if (this.buildings[t].needsEnergy && this.buildings[t].active && !this.buildings[t].moving) {
 
                 this.buildings[t].energyTimer++;
@@ -697,7 +697,7 @@ var game = {
                         this.buildings[t].energyTimer = 0;
                         this.buildings[t].energy -= 1;
                     }
-                    this.buildings[t].shooting = true;
+                    this.buildings[t].operating = true;
                 }
                 if (this.buildings[t].type == "Cannon" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 10) {
                     this.buildings[t].energyTimer = 0;
@@ -734,7 +734,7 @@ var game = {
                             this.buildings[t].targetAngle = Math.atan2(dy, dx) + Math.PI / 2;
                             this.buildings[t].weaponTargetPosition = new Vector(targets[0].x, targets[0].y);
                             this.buildings[t].energy -= 1;
-                            this.buildings[t].shooting = true;
+                            this.buildings[t].operating = true;
                             this.smokes.push(new Smoke(new Vector(targets[0].x * this.tileSize + this.tileSize / 2, targets[0].y * this.tileSize + this.tileSize / 2)));
                             break;
                         }
@@ -779,7 +779,7 @@ var game = {
                         if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
                             this.buildings[t].weaponTargetPosition = sporeCenter;
                             this.buildings[t].energy -= .1;
-                            this.buildings[t].shooting = true;
+                            this.buildings[t].operating = true;
                             this.spores[i].health -= 2;
                             if (this.spores[i].health <= 0) {
                                 this.spores[i].remove = true;
@@ -1300,7 +1300,7 @@ var game = {
         }
     },
     updateBuildings: function () {
-        this.shoot();
+        this.checkOperating();
 
         // move
         for (var i = 0; i < this.buildings.length; i++) {
@@ -1310,11 +1310,6 @@ var game = {
         // push away creeper (shield)
         for (var i = 0; i < this.buildings.length; i++) {
             this.buildings[i].shield();
-        }
-        this.shieldTimer++;
-        if (this.shieldTimer > 100) {
-            this.shieldTimer = 0;
-            // TODO: decrease energy
         }
 
         // take damage
@@ -1821,7 +1816,7 @@ function UISymbol(pX, pY, pImage, pKey, pSize, pPackets, pRadius) {
 function Building(pX, pY, pImage, pType) {
     this.base = GameObject;
     this.base(pX, pY, pImage);
-    this.shooting = false;
+    this.operating = false;
     this.selected = false;
     this.hovered = false;
     this.weaponTargetPosition = new Vector(0, 0);
@@ -2013,7 +2008,7 @@ function Building(pX, pY, pImage, pType) {
         }
 
         // draw shots
-        if (this.shooting) {
+        if (this.operating) {
             if (this.type == "Cannon") {
                 var targetPosition = Helper.tiled2screen(this.weaponTargetPosition);
                 engine.canvas["buffer"].context.strokeStyle = "#f00";
