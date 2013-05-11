@@ -866,7 +866,6 @@ var game = {
             }
         }
 
-        var transferRate = .25;
         var minimum = .001;
 
         this.creeperTimer++;
@@ -877,112 +876,16 @@ var game = {
                 for (var j = 0; j < this.world.size.y; j++) {
 
                     if (i - 1 > -1 && i + 1 < this.world.size.x - 1 && j - 1 > -2 && j + 1 < this.world.size.y) {
-
                         if (this.world.tiles[i][j].enabled) {
-                            var sourceAmount = this.world.tiles[i][j].creep;
-                            var sourceTotal = this.world.tiles[i][j].height + this.world.tiles[i][j].creep;
-
-                            // right cell
-                            if (this.world.tiles[i + 1][j].enabled) {
-                                var targetAmount = this.world.tiles[i + 1][j].creep;
-                                if (sourceAmount > 0 || targetAmount > 0) {
-                                    var targetTotal = this.world.tiles[i + 1][j].height + this.world.tiles[i + 1][j].creep;
-                                    var rightDelta = 0;
-                                    if (sourceTotal > targetTotal) {
-                                        rightDelta = sourceTotal - targetTotal;
-                                        if (rightDelta > sourceAmount)
-                                            rightDelta = sourceAmount;
-                                        var delta = rightDelta * .5 * transferRate;
-                                        this.world.tiles[i][j].newcreep -= delta;
-                                        this.world.tiles[i + 1][j].newcreep += delta;
-                                    }
-                                    else {
-                                        rightDelta = targetTotal - sourceTotal;
-                                        if (rightDelta > targetAmount)
-                                            rightDelta = targetAmount;
-                                        var delta = rightDelta * .5 * transferRate;
-                                        this.world.tiles[i][j].newcreep += delta;
-                                        this.world.tiles[i + 1][j].newcreep -= delta;
-                                    }
-                                }
-                            }
-
-                            // bottom right cell
-                            if (this.world.tiles[i + 1][j + 1].enabled) {
-                                var targetAmount = this.world.tiles[i + 1][j + 1].creep;
-                                if (sourceAmount > 0 || targetAmount > 0) {
-                                    var targetTotal = this.world.tiles[i + 1][j + 1].height + this.world.tiles[i + 1][j + 1].creep;
-                                    var bottomRightDelta = 0;
-                                    if (sourceTotal > targetTotal) {
-                                        bottomRightDelta = sourceTotal - targetTotal;
-                                        if (bottomRightDelta > sourceAmount)
-                                            bottomRightDelta = sourceAmount;
-                                        var delta = bottomRightDelta * .5 * transferRate;
-                                        this.world.tiles[i][j].newcreep -= delta;
-                                        this.world.tiles[i + 1][j + 1].newcreep += delta;
-                                    }
-                                    else {
-                                        bottomRightDelta = targetTotal - sourceTotal;
-                                        if (bottomRightDelta > targetAmount)
-                                            bottomRightDelta = targetAmount;
-                                        var delta = bottomRightDelta * .5 * transferRate;
-                                        this.world.tiles[i][j].newcreep += delta;
-                                        this.world.tiles[i + 1][j + 1].newcreep -= delta;
-                                    }
-                                }
-                            }
-
-                            // bottom cell
-                            if (this.world.tiles[i][j + 1].enabled) {
-                                var targetAmount = this.world.tiles[i][j + 1].creep;
-                                if (sourceAmount > 0 || targetAmount > 0) {
-                                    var targetTotal = this.world.tiles[i][j + 1].height + this.world.tiles[i][j + 1].creep;
-                                    var bottomDelta = 0;
-                                    if (sourceTotal > targetTotal) {
-                                        bottomDelta = sourceTotal - targetTotal;
-                                        if (bottomDelta > sourceAmount)
-                                            bottomDelta = sourceAmount;
-                                        var delta = bottomDelta * .5 * transferRate;
-                                        this.world.tiles[i][j].newcreep -= delta;
-                                        this.world.tiles[i][j + 1].newcreep += delta;
-                                    }
-                                    else {
-                                        bottomDelta = targetTotal - sourceTotal;
-                                        if (bottomDelta > targetAmount)
-                                            bottomDelta = targetAmount;
-                                        var delta = bottomDelta * .5 * transferRate;
-                                        this.world.tiles[i][j].newcreep += delta;
-                                        this.world.tiles[i][j + 1].newcreep -= delta;
-                                    }
-                                }
-                            }
-
-                            // bottom left cell
-                            if (this.world.tiles[i - 1][j + 1].enabled) {
-                                var targetAmount = this.world.tiles[i - 1][j + 1].creep;
-                                if (sourceAmount > 0 || targetAmount > 0) {
-                                    var targetTotal = this.world.tiles[i - 1][j + 1].height + this.world.tiles[i - 1][j + 1].creep;
-                                    var bottomLeftDelta = 0;
-                                    if (sourceTotal > targetTotal) {
-                                        bottomLeftDelta = sourceTotal - targetTotal;
-                                        if (bottomLeftDelta > sourceAmount)
-                                            bottomLeftDelta = sourceAmount;
-                                        var delta = bottomLeftDelta * .5 * transferRate;
-                                        this.world.tiles[i][j].newcreep -= delta;
-                                        this.world.tiles[i - 1][j + 1].newcreep += delta;
-                                    }
-                                    else {
-                                        bottomLeftDelta = targetTotal - sourceTotal;
-                                        if (bottomLeftDelta > targetAmount)
-                                            bottomLeftDelta = targetAmount;
-                                        var delta = bottomLeftDelta * .5 * transferRate;
-                                        this.world.tiles[i][j].newcreep += delta;
-                                        this.world.tiles[i - 1][j + 1].newcreep -= delta;
-                                    }
-                                }
-                            }
+                            // right neighbour
+                            this.transferCreeper(this.world.tiles[i][j], this.world.tiles[i + 1][j]);
+                            // bottom right neighbour
+                            this.transferCreeper(this.world.tiles[i][j], this.world.tiles[i + 1][j + 1]);
+                            // bottom neighbour
+                            this.transferCreeper(this.world.tiles[i][j], this.world.tiles[i][j + 1]);
+                            // bottom left neighbour
+                            this.transferCreeper(this.world.tiles[i][j], this.world.tiles[i - 1][j + 1]);
                         }
-
                     }
                 }
             }
@@ -997,6 +900,36 @@ var game = {
                 }
             }
 
+        }
+    },
+    transferCreeper: function (source, target) {
+        var transferRate = .125;
+
+        var sourceAmount = source.creep;
+        var sourceTotal = source.height + source.creep;
+
+        if (target.enabled) {
+            var targetAmount = target.creep;
+            if (sourceAmount > 0 || targetAmount > 0) {
+                var targetTotal = target.height + target.creep;
+                var rightDelta = 0;
+                if (sourceTotal > targetTotal) {
+                    rightDelta = sourceTotal - targetTotal;
+                    if (rightDelta > sourceAmount)
+                        rightDelta = sourceAmount;
+                    var delta = rightDelta * transferRate;
+                    source.newcreep -= delta;
+                    target.newcreep += delta;
+                }
+                else {
+                    rightDelta = targetTotal - sourceTotal;
+                    if (rightDelta > targetAmount)
+                        rightDelta = targetAmount;
+                    var delta = rightDelta * transferRate;
+                    source.newcreep += delta;
+                    target.newcreep -= delta;
+                }
+            }
         }
     },
     /**
