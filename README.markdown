@@ -3,7 +3,6 @@
 ## How to play
 
 Open Creeper can be played on GitHub Pages which is here: http://alexanderzeillinger.github.com/OpenCreeper/
-Of course you can download everything and play locally and offline.
 
 ## About
 
@@ -25,6 +24,9 @@ Please use the latest version of either Chrome, Firefox or Internet Explorer.
 
 All images used are self made with Adobe Fireworks, see the "assets" folder.
 Some stuff is not by myself and credited below:
+
+Terrain generator credits:
+https://github.com/baxter/csterrain
 
 jQuery count-up credits:
 https://github.com/robcowie/jquery-stopwatch

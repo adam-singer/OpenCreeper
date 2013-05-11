@@ -260,8 +260,8 @@ var game = {
     world: {
         tiles: null,
         size: {
-            x: 150,
-            y: 150
+            x: 128,
+            y: 128
         }
     },
     alert: {
@@ -369,24 +369,19 @@ var game = {
             this.world.tiles[i] = new Array(this.world.size.y);
         }
 
-        var terrain = generateTerrain();
+        var heightmap = new HeightMap(129, 0, 100);
+        heightmap.run();
 
         for (var i = 0; i < this.world.size.x; i++) {
             for (var j = 0; j < this.world.size.y; j++) {
                 this.world.tiles[i][j] = new Tile();
-                this.world.tiles[i][j].height = Math.ceil(terrain[i][j] * 10); // generated values are to high, this compensates it
-                if (this.world.tiles[i][j].height > 9)
-                    this.world.tiles[i][j].height = 9;
-                if (this.world.tiles[i][j].height < 0)
-                    this.world.tiles[i][j].height = 0;
+                this.world.tiles[i][j].height = Math.floor(heightmap.map[i][j] / 10);
             }
         }
 
-        do {
-            var randomPosition = new Vector(
-                Math.floor(Math.random() * (this.world.size.x - 9)),
-                Math.floor(Math.random() * (this.world.size.y - 9)));
-        } while (this.world.tiles[randomPosition.x][randomPosition.y].height < 5);
+        var randomPosition = new Vector(
+            Math.floor(Math.random() * (this.world.size.x - 9)),
+            Math.floor(Math.random() * (this.world.size.y - 9)));
 
         this.scroll.x = randomPosition.x + 5;
         this.scroll.y = randomPosition.y + 5;
@@ -409,11 +404,9 @@ var game = {
 
         this.calculateCollection();
 
-        do {
-            var randomPosition = new Vector(
-                Math.floor(Math.random() * (this.world.size.x - 3)),
-                Math.floor(Math.random() * (this.world.size.y - 3)));
-        } while (this.world.tiles[randomPosition.x][randomPosition.y].height > 4);
+        randomPosition = new Vector(
+            Math.floor(Math.random() * (this.world.size.x - 3)),
+            Math.floor(Math.random() * (this.world.size.y - 3)));
 
         var emitter = new Emitter(randomPosition, 10);
         this.emitters.push(emitter);
@@ -424,11 +417,9 @@ var game = {
             }
         }
 
-        do {
-            var randomPosition = new Vector(
-                Math.floor(Math.random() * (this.world.size.x - 3)),
-                Math.floor(Math.random() * (this.world.size.y - 3)));
-        } while (this.world.tiles[randomPosition.x][randomPosition.y].height < 7);
+        randomPosition = new Vector(
+            Math.floor(Math.random() * (this.world.size.x - 3)),
+            Math.floor(Math.random() * (this.world.size.y - 3)));
 
         var sporetower = new Sporetower(randomPosition);
         this.sporetowers.push(sporetower);
