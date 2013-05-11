@@ -303,6 +303,26 @@ var game = {
             Math.floor((engine.mouse.x - 640) / (this.tileSize * this.zoom)) + this.scroll.x,
             Math.floor((engine.mouse.y - engine.halfHeight) / (this.tileSize * this.zoom)) + this.scroll.y);
     },
+    getHighestTerrain: function (pVector) {
+        var height = -1;
+        for (var i = 9; i > -1; i--) {
+            if (this.world.tiles[pVector.x][pVector.y][i].full) {
+                height = i;
+                break;
+            }
+        }
+        return height;
+    },
+    getHighestCreep: function (pVector) {
+        var height = -1;
+        for (var i = 9; i > 0; i--) {
+            if (this.world.tiles[pVector.x][pVector.y][i].creep) {
+                height = i;
+                break;
+            }
+        }
+        return height;
+    },
     pause: function() {
         $('#pause').hide();
         $('#unpause').show();
@@ -367,15 +387,72 @@ var game = {
         this.world.tiles = new Array(this.world.size.x);
         for (var i = 0; i < this.world.size.x; i++) {
             this.world.tiles[i] = new Array(this.world.size.y);
+            for (var j = 0; j < this.world.size.y; j++) {
+                this.world.tiles[i][j] = [];
+                for (var k = 0; k < 10; k++) {
+                    this.world.tiles[i][j][k] = new Tile();
+                }
+            }
         }
 
-        var heightmap = new HeightMap(129, 0, 100);
+        var heightmap = new HeightMap(129, 0, 90);
         heightmap.run();
 
         for (var i = 0; i < this.world.size.x; i++) {
             for (var j = 0; j < this.world.size.y; j++) {
-                this.world.tiles[i][j] = new Tile();
-                this.world.tiles[i][j].height = Math.floor(heightmap.map[i][j] / 10);
+                var height = Math.round(heightmap.map[i][j] / 10);
+                if (height > 10)
+                    height = 10;
+                for (var k = 0; k < height; k++) {
+                    this.world.tiles[i][j][k].full = true;
+                }
+            }
+        }
+
+        for (var i = 0; i < this.world.size.x; i++) {
+            for (var j = 0; j < this.world.size.y; j++) {
+                for (var k = 0; k < 10; k++) {
+
+                    if (this.world.tiles[i][j][k].full) {
+                        var up = 0, down = 0, left = 0, right = 0;
+                        if (j - 1 < 0)
+                            up = 0;
+                        else if (this.world.tiles[i][j - 1][k].full)
+                            up = 1;
+                        if (j + 1 > this.world.size.y - 1)
+                            down = 0;
+                        else if (this.world.tiles[i][j + 1][k].full)
+                            down = 1;
+                        if (i - 1 < 0)
+                            left = 0;
+                        else if (this.world.tiles[i - 1][j][k].full)
+                            left = 1;
+                        if (i + 1 > this.world.size.x - 1)
+                            right = 0;
+                        else if (this.world.tiles[i + 1][j][k].full)
+                            right = 1;
+
+                        // save index for later use
+                        this.world.tiles[i][j][k].index = (8 * down) + (4 * left) + (2 * up) + right;;
+                    }
+                }
+
+            }
+        }
+
+        for (var i = 0; i < this.world.size.x; i++) {
+            for (var j = 0; j < this.world.size.y; j++) {
+                var removeBelow = false;
+                for (var k = 9; k > -1; k--) {
+                    if (removeBelow) {
+                        this.world.tiles[i][j][k].full = false;
+                    }
+                    else {
+                        var index = this.world.tiles[i][j][k].index;
+                        if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
+                        removeBelow = true;
+                    }
+                 }
             }
         }
 
@@ -383,8 +460,8 @@ var game = {
             Math.floor(Math.random() * (this.world.size.x - 9)),
             Math.floor(Math.random() * (this.world.size.y - 9)));
 
-        this.scroll.x = randomPosition.x + 5;
-        this.scroll.y = randomPosition.y + 5;
+        this.scroll.x = randomPosition.x + 4;
+        this.scroll.y = randomPosition.y + 4;
 
         var building = new Building(randomPosition.x, randomPosition.y, "base", "Base");
         building.health = 40;
@@ -395,10 +472,14 @@ var game = {
         this.buildings.push(building);
         game.base = building;
 
-        var height = this.world.tiles[building.x + 3][building.y + 3].height;
+        var height = this.getHighestTerrain(new Vector(building.x + 4, building.y + 4));
+        if (height < 0)
+            height = 0;
         for (var i = 0; i < 9; i++) {
             for (var j = 0; j < 9; j++) {
-                this.world.tiles[building.x + i][building.y + j].height = height;
+                for (var k = 0; k < 10; k++) {
+                    this.world.tiles[building.x + i][building.y + j][k].full = (k <= height);
+                }
             }
         }
 
@@ -408,12 +489,17 @@ var game = {
             Math.floor(Math.random() * (this.world.size.x - 3)),
             Math.floor(Math.random() * (this.world.size.y - 3)));
 
-        var emitter = new Emitter(randomPosition, 10);
+        var emitter = new Emitter(randomPosition, 1);
         this.emitters.push(emitter);
-        height = this.world.tiles[emitter.position.x][emitter.position.y].height;
+
+        height = this.getHighestTerrain(new Vector(emitter.position.x + 1, emitter.position.y + 1));
+        if (height < 0)
+            height = 0;
         for (var i = 0; i < 3; i++) {
             for (var j = 0; j < 3; j++) {
-                this.world.tiles[emitter.position.x + i][emitter.position.y + j].height = height;
+                for (var k = 0; k < 10; k++) {
+                    this.world.tiles[emitter.position.x + i][emitter.position.y + j][k].full = (k <= height);
+                }
             }
         }
 
@@ -423,12 +509,18 @@ var game = {
 
         var sporetower = new Sporetower(randomPosition);
         this.sporetowers.push(sporetower);
-        height = this.world.tiles[sporetower.position.x][sporetower.position.y].height;
+
+        height = this.getHighestTerrain(new Vector(sporetower.position.x + 1, sporetower.position.y + 1));
+        if (height < 0)
+            height = 0;
         for (var i = 0; i < 3; i++) {
             for (var j = 0; j < 3; j++) {
-                this.world.tiles[sporetower.position.x + i][sporetower.position.y + j].height = height;
+                for (var k = 0; k < 10; k++) {
+                    this.world.tiles[sporetower.position.x + i][sporetower.position.y + j][k].full = (k <= height);
+                }
             }
         }
+
     },
     addBuilding: function (x, y, type, name) {
         var building = new Building(x, y, type, name);
@@ -600,37 +692,45 @@ var game = {
 
                 if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
 
-                    if (this.world.tiles[iS][jS].enabled) {
+                    for (var k = 9; k > -1; k--) {
+                        if (this.world.tiles[iS][jS][k].full) {
 
-                        var height = this.world.tiles[iS][jS].height;
+                            // only calculate index when it hasn't been calculated yet
+                            if (this.world.tiles[iS][jS][k].index == -1) {
+                                var up = 0, down = 0, left = 0, right = 0;
+                                if (jS - 1 < 0)
+                                    up = 0;
+                                else if (this.world.tiles[iS][jS - 1][k].full)
+                                    up = 1;
+                                if (jS + 1 > this.world.size.y - 1)
+                                    down = 0;
+                                else if (this.world.tiles[iS][jS + 1][k].full)
+                                    down = 1;
+                                if (iS - 1 < 0)
+                                    left = 0;
+                                else if (this.world.tiles[iS - 1][jS][k].full)
+                                    left = 1;
+                                if (iS + 1 > this.world.size.x - 1)
+                                    right = 0;
+                                else if (this.world.tiles[iS + 1][jS][k].full)
+                                    right = 1;
 
-                        var up = 0, down = 0, left = 0, right = 0;
-                        if (jS - 1 < 0)
-                            up = 1;
-                        else if (this.world.tiles[iS][jS - 1].height >= height && this.world.tiles[iS][jS - 1].enabled)
-                            up = 1;
-                        if (jS + 1 > this.world.size.y - 1)
-                            down = 1;
-                        else if (this.world.tiles[iS][jS + 1].height >= height && this.world.tiles[iS][jS + 1].enabled)
-                            down = 1;
-                        if (iS - 1 < 0)
-                            left = 1;
-                        else if (this.world.tiles[iS - 1][jS].height >= height && this.world.tiles[iS - 1][jS].enabled)
-                            left = 1;
-                        if (iS + 1 > this.world.size.x - 1)
-                            right = 1;
-                        else if (this.world.tiles[iS + 1][jS].height >= height && this.world.tiles[iS + 1][jS].enabled)
-                            right = 1;
+                                // save index for later use
+                                this.world.tiles[iS][jS][k].index = (8 * down) + (4 * left) + (2 * up) + right;;
+                            }
 
-                        var index = (8 * down) + (4 * left) + (2 * up) + right;
+                            var index = this.world.tiles[iS][jS][k].index;
 
-                        if (height > 0 && !(index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15))
-                            engine.canvas["level" + (height - 1)].context.drawImage(engine.images["mask"], 15 * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                            // skip tiles that are identical to the one above
+                            if (k + 1 < 10 && index == this.world.tiles[iS][jS][k + 1].index)
+                                continue;
 
-                        // save index for later use
-                        this.world.tiles[iS][jS].index = index;
-                        engine.canvas["level" + height].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                            engine.canvas["level" + k].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
 
+                            // don't draw anymore under tiles that don't have transparent parts
+                            if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
+                                break;
+                        }
                     }
                 }
             }
@@ -644,7 +744,6 @@ var game = {
             var ctx = tempCanvas.getContext('2d');
 
             ctx.drawImage(engine.images["level" + i], 0, 0, Math.floor(256 * this.zoom), Math.floor(256 * this.zoom));
-            //var pattern = engine.canvas["level" + i].context.createPattern(engine.images["level" + i], 'repeat');
             var pattern = engine.canvas["level" + i].context.createPattern(tempCanvas, 'repeat');
 
             engine.canvas["level" + i].context.globalCompositeOperation = 'source-in';
@@ -672,12 +771,19 @@ var game = {
 
                 if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
 
-                    if (this.world.tiles[iS][jS].enabled) {
+                    for (var k = 9; k > -1; k--) {
+                        if (this.world.tiles[iS][jS][k].full) {
 
-                        var height = this.world.tiles[iS][jS].height;
-                        var index = this.world.tiles[iS][jS].index;
+                            var index = this.world.tiles[iS][jS][k].index;
 
-                        engine.canvas["level" + height].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, (this.tileSize +2 ) * this.zoom, (this.tileSize +2 ) * this.zoom);
+                            if (k + 1 < 10 && index == this.world.tiles[iS][jS][k + 1].index)
+                                continue;
+
+                            engine.canvas["level" + k].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, (this.tileSize +2 ) * this.zoom, (this.tileSize +2 ) * this.zoom);
+
+                            if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
+                                break;
+                        }
                     }
                 }
             }
@@ -701,9 +807,9 @@ var game = {
                 if (this.buildings[t].type == "Cannon" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 10) {
                     this.buildings[t].energyTimer = 0;
 
-                    // get building x and building y
                     var x = this.buildings[t].x;
                     var y = this.buildings[t].y;
+                    var height = this.getHighestTerrain(new Vector(this.buildings[t].x, this.buildings[t].y));
 
                     // find closest random target
                     for (var r = 0; r < this.buildings[t].weaponRadius + 1; r++) {
@@ -711,12 +817,13 @@ var game = {
                         var radius = r * this.tileSize;
                         for (var i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
                             for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
+                                var tileHeight = this.getHighestTerrain(new Vector(i, j));
                                 // cannons can only shoot at tiles not higher than themselves
-                                if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y && this.world.tiles[i][j].height <= this.world.tiles[x][y].height) {
+                                if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y && tileHeight <= height) {
                                     var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
 
-                                    if (distance <= Math.pow(radius, 2) && this.world.tiles[i][j].creep > 0) {
-                                        targets.push(new Vector(i, j));
+                                    if (distance <= Math.pow(radius, 2) && this.world.tiles[i][j][tileHeight].creep > 0) {
+                                        targets.push(new Vector3(i, j, tileHeight));
                                     }
                                 }
                             }
@@ -724,9 +831,9 @@ var game = {
                         if (targets.length > 0) {
                             targets.shuffle();
 
-                            this.world.tiles[targets[0].x][targets[0].y].creep -= 10;
-                            if (this.world.tiles[targets[0].x][targets[0].y].creep < 0)
-                                this.world.tiles[targets[0].x][targets[0].y].creep = 0;
+                            this.world.tiles[targets[0].x][targets[0].y][targets[0].z].creep -= 10;
+                            if (this.world.tiles[targets[0].x][targets[0].y][targets[0].z].creep < 0)
+                                this.world.tiles[targets[0].x][targets[0].y][targets[0].z].creep = 0;
 
                             var dx = targets[0].x * this.tileSize + this.tileSize / 2 - center.x;
                             var dy = targets[0].y * this.tileSize + this.tileSize / 2 - center.y;
@@ -752,9 +859,10 @@ var game = {
                     for (var i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
                         for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
                             var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
+                            var tileHeight = this.getHighestTerrain(new Vector(i, j));
 
-                            if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j].creep > 0 && this.world.tiles[i][j].creep >= highestCreep) {
-                                highestCreep = this.world.tiles[i][j].creep;
+                            if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][tileHeight].creep > 0 && this.world.tiles[i][j][tileHeight].creep >= highestCreep) {
+                                highestCreep = this.world.tiles[i][j][tileHeight].creep;
                                 target = new Vector(i, j);
                             }
                         }
@@ -794,7 +902,7 @@ var game = {
     updateCollection: function (building, action) {
         this.collection = 0;
 
-        var height = this.world.tiles[building.x][building.y].height;
+        var height = this.getHighestTerrain(new Vector(building.x, building.y));
         var centerBuilding = building.getCenter();
 
         for (var i = -5; i < 7; i++) {
@@ -806,15 +914,16 @@ var game = {
                 var positionCurrentCenter = new Vector(
                     positionCurrent.x * this.tileSize + (this.tileSize / 2),
                     positionCurrent.y * this.tileSize + (this.tileSize / 2));
+                var tileHeight = this.getHighestTerrain(positionCurrent);
 
                 if (positionCurrent.x > -1 && positionCurrent.x < this.world.size.x && positionCurrent.y > -1 && positionCurrent.y < this.world.size.y) {
 
                     if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
-                        if (this.world.tiles[positionCurrent.x][positionCurrent.y].height == height && this.world.tiles[positionCurrent.x][positionCurrent.y].enabled) {
+                        if (tileHeight == height) {
                             if (action == "remove")
-                                this.world.tiles[positionCurrent.x][positionCurrent.y].collection = 0;
+                                this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collection = 0;
                             else
-                                this.world.tiles[positionCurrent.x][positionCurrent.y].collection = 1;
+                                this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collection = 1;
                         }
                     }
 
@@ -828,8 +937,10 @@ var game = {
     calculateCollection: function () {
         for (var i = 0; i < this.world.size.x; i++) {
             for (var j = 0; j < this.world.size.y; j++) {
-                if (this.world.tiles[i][j].collection == 1)
-                    this.collection += 1;
+                for (var k = 0; k < 10; k++) {
+                    if (this.world.tiles[i][j][k].collection == 1)
+                        this.collection += 1;
+                }
             }
         }
 
@@ -854,7 +965,7 @@ var game = {
         }
 
         this.spawnTimer++;
-        if (this.spawnTimer >= (125 / this.speed)) {
+        if (this.spawnTimer >= (5 / this.speed)) { // 125
             for (var i = 0; i < this.emitters.length; i++)
                 this.emitters[i].spawn();
             this.spawnTimer = 0;
@@ -862,29 +973,33 @@ var game = {
 
         for (var i = 0; i < this.world.size.x; i++) {
             for (var j = 0; j < this.world.size.y; j++) {
-                this.world.tiles[i][j].newcreep = this.world.tiles[i][j].creep;
+                for (var k = 0; k < 10; k++) {
+                    this.world.tiles[i][j][k].newcreep = this.world.tiles[i][j][k].creep;
+                }
             }
         }
 
         var minimum = .001;
 
         this.creeperTimer++;
-        if (this.creeperTimer > (125 / this.speed)) {
-            this.creeperTimer -= (125 / this.speed);
+        if (this.creeperTimer > (30 / this.speed)) { // 125
+            this.creeperTimer -= (30 / this.speed);
 
             for (var i = 0; i < this.world.size.x; i++) {
                 for (var j = 0; j < this.world.size.y; j++) {
 
-                    if (i - 1 > -1 && i + 1 < this.world.size.x - 1 && j - 1 > -2 && j + 1 < this.world.size.y) {
-                        if (this.world.tiles[i][j].enabled) {
-                            // right neighbour
-                            this.transferCreeper(this.world.tiles[i][j], this.world.tiles[i + 1][j]);
-                            // bottom right neighbour
-                            this.transferCreeper(this.world.tiles[i][j], this.world.tiles[i + 1][j + 1]);
-                            // bottom neighbour
-                            this.transferCreeper(this.world.tiles[i][j], this.world.tiles[i][j + 1]);
-                            // bottom left neighbour
-                            this.transferCreeper(this.world.tiles[i][j], this.world.tiles[i - 1][j + 1]);
+                    for (var height = 0; height < 10; height++) {
+                        if (i - 1 > -1 && i + 1 < this.world.size.x && j - 1 > -1 && j + 1 < this.world.size.y) {
+                            //if (height >= 0) {
+                                // right neighbour
+                                this.transferCreeper(height, this.world.tiles[i][j][height], this.world.tiles[i + 1][j][height]);
+                                // bottom right neighbour
+                                this.transferCreeper(height, this.world.tiles[i][j][height], this.world.tiles[i - 1][j][height]);
+                                // bottom neighbour
+                                this.transferCreeper(height, this.world.tiles[i][j][height], this.world.tiles[i][j + 1][height]);
+                                // bottom left neighbour
+                                this.transferCreeper(height, this.world.tiles[i][j][height], this.world.tiles[i][j - 1][height]);
+                            //}
                         }
                     }
                 }
@@ -892,26 +1007,37 @@ var game = {
 
             for (var i = 0; i < this.world.size.x; i++) {
                 for (var j = 0; j < this.world.size.y; j++) {
-                    this.world.tiles[i][j].creep = this.world.tiles[i][j].newcreep;
-                    if (this.world.tiles[i][j].creep > 10)
-                        this.world.tiles[i][j].creep = 10;
-                    if (this.world.tiles[i][j].creep < minimum)
-                        this.world.tiles[i][j].creep = 0;
+                    for (var k = 0; k < 10; k++) {
+                        this.world.tiles[i][j][k].creep = this.world.tiles[i][j][k].newcreep;
+
+                        if (this.world.tiles[i][j][k].creep > 1) {
+                            var delta = this.world.tiles[i][j][k].creep - 1;
+                            this.world.tiles[i][j][k].creep = 1;
+                            this.world.tiles[i][j][k + 1].creep = delta;
+                        }
+                        if (this.world.tiles[i][j][k].creep < 0) {
+                            var delta = 1 + this.world.tiles[i][j][k].creep;
+                            this.world.tiles[i][j][k].creep = 0;
+                            this.world.tiles[i][j][k - 1].creep = delta;
+                        }
+                        if (this.world.tiles[i][j][k].creep < minimum)
+                            this.world.tiles[i][j][k].creep = 0;
+                    }
                 }
             }
 
         }
     },
-    transferCreeper: function (source, target) {
+    transferCreeper: function (height, source, target) {
         var transferRate = .125;
 
         var sourceAmount = source.creep;
-        var sourceTotal = source.height + source.creep;
+        var sourceTotal = height + sourceAmount;
 
-        if (target.enabled) {
+        //if (target.enabled) {
             var targetAmount = target.creep;
             if (sourceAmount > 0 || targetAmount > 0) {
-                var targetTotal = target.height + target.creep;
+                var targetTotal = height + targetAmount;
                 var rightDelta = 0;
                 if (sourceTotal > targetTotal) {
                     rightDelta = sourceTotal - targetTotal;
@@ -930,7 +1056,7 @@ var game = {
                     target.newcreep -= delta;
                 }
             }
-        }
+        //}
     },
     /**
      * @author Alexander Zeillinger
@@ -1172,7 +1298,7 @@ var game = {
         var position = this.getTilePositionScrolled();
 
         if (position.x > -1 && position.x < this.world.size.x - size + 1 && position.y > -1 && position.y < this.world.size.y - size + 1) {
-            var height = this.world.tiles[position.x][position.y].height;
+            var height = this.getHighestTerrain(position);
 
             // 1. check for collision with another building
             for (var i = 0; i < this.buildings.length; i++) {
@@ -1199,15 +1325,16 @@ var game = {
                 for (var i = position.x; i < position.x + size; i++) {
                     for (var j = position.y; j < position.y + size; j++) {
                         if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y) {
-                            if (!this.world.tiles[i][j].enabled) {
+                            var tileHeight = this.getHighestTerrain(new Vector(i, j));
+                            if (tileHeight < 0) {
                                 collision = true;
                                 break;
                             }
-                            if (this.world.tiles[i][j].height != height) {
+                            if (tileHeight != height) {
                                 collision = true;
                                 break;
                             }
-                            if (!(this.world.tiles[i][j].index == 7 || this.world.tiles[i][j].index == 11 || this.world.tiles[i][j].index == 13 || this.world.tiles[i][j].index == 14 || this.world.tiles[i][j].index == 15)) {
+                            if (!(this.world.tiles[i][j][tileHeight].index == 7 || this.world.tiles[i][j][tileHeight].index == 11 || this.world.tiles[i][j][tileHeight].index == 13 || this.world.tiles[i][j][tileHeight].index == 14 || this.world.tiles[i][j][tileHeight].index == 15)) {
                                 collision = true;
                                 break;
                             }
@@ -1232,7 +1359,7 @@ var game = {
         }
     },
     updateBuildings: function () {
-        this.checkOperating();
+        //this.checkOperating();
 
         // move
         for (var i = 0; i < this.buildings.length; i++) {
@@ -1390,6 +1517,7 @@ var game = {
         var positionScrolledCenter = new Vector(
             positionScrolled.x * this.tileSize + (this.tileSize / 2) * size,
             positionScrolled.y * this.tileSize + (this.tileSize / 2) * size);
+        var positionScrolledHeight = this.getHighestTerrain(positionScrolled);
 
         if (this.canBePlaced(size) && (type == "collector" || type == "cannon" || type == "mortar" || type == "shield" || type == "beam")) {
 
@@ -1411,10 +1539,11 @@ var game = {
                     var drawPositionCurrent = Helper.tiled2screen(positionCurrent);
 
                     if (positionCurrent.x > -1 && positionCurrent.x < this.world.size.x && positionCurrent.y > -1 && positionCurrent.y < this.world.size.y) {
+                        var positionCurrentHeight = this.getHighestTerrain(positionCurrent);
 
                         if (Math.pow(positionCurrentCenter.x - positionScrolledCenter.x, 2) + Math.pow(positionCurrentCenter.y - positionScrolledCenter.y, 2) < Math.pow(radius, 2)) {
                             if (type == "collector") {
-                                if (this.world.tiles[positionCurrent.x][positionCurrent.y].height == this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
+                                if (positionCurrentHeight == positionScrolledHeight) {
                                     engine.canvas["buffer"].context.fillStyle = "#fff";
                                 }
                                 else {
@@ -1422,7 +1551,7 @@ var game = {
                                 }
                             }
                             if (type == "cannon") {
-                                if (this.world.tiles[positionCurrent.x][positionCurrent.y].height <= this.world.tiles[positionScrolled.x][positionScrolled.y].height) {
+                                if (positionCurrentHeight <= positionScrolledHeight) {
                                     engine.canvas["buffer"].context.fillStyle = "#fff";
                                 }
                                 else {
@@ -1458,27 +1587,29 @@ var game = {
 
                 if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
 
-                    if (this.world.tiles[iS][jS].collection == 1) {
-                        var up = 0, down = 0, left = 0, right = 0;
-                        if (jS - 1 < 0)
-                            up = 0;
-                        else
-                            up = this.world.tiles[iS][jS - 1].collection;
-                        if (jS + 1 > this.world.size.y - 1)
-                            down = 0;
-                        else
-                            down = this.world.tiles[iS][jS + 1].collection;
-                        if (iS - 1 < 0)
-                            left = 0;
-                        else
-                            left = this.world.tiles[iS - 1][jS].collection;
-                        if (iS + 1 > this.world.size.x - 1)
-                            right = 0;
-                        else
-                            right = this.world.tiles[iS + 1][jS].collection;
+                    for (var k = 0 ; k < 10; k++) {
+                        if (this.world.tiles[iS][jS][k].collection == 1) {
+                            var up = 0, down = 0, left = 0, right = 0;
+                            if (jS - 1 < 0)
+                                up = 0;
+                            else
+                                up = this.world.tiles[iS][jS - 1][k].collection;
+                            if (jS + 1 > this.world.size.y - 1)
+                                down = 0;
+                            else
+                                down = this.world.tiles[iS][jS + 1][k].collection;
+                            if (iS - 1 < 0)
+                                left = 0;
+                            else
+                                left = this.world.tiles[iS - 1][jS][k].collection;
+                            if (iS + 1 > this.world.size.x - 1)
+                                right = 0;
+                            else
+                                right = this.world.tiles[iS + 1][jS][k].collection;
 
-                        var index = (8 * down) + (4 * left) + (2 * up) + right;
-                        engine.canvas["buffer"].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                            var index = (8 * down) + (4 * left) + (2 * up) + right;
+                            engine.canvas["buffer"].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                        }
                     }
                 }
             }
@@ -1496,40 +1627,42 @@ var game = {
         engine.canvas["buffer"].context.fillStyle = '#fff';
 
         for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
-            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(22 / this.zoom); j++) {
+            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(23 / this.zoom); j++) {
 
                 var iS = i + this.scroll.x;
                 var jS = j + this.scroll.y;
 
                 if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
 
-                    if (this.world.tiles[iS][jS].creep > 0) {
-                        var creep = Math.ceil(this.world.tiles[iS][jS].creep);
+                    for (var k = 0; k < 10; k++) {
+                        if (this.world.tiles[iS][jS][k].creep > 0) {
+                            var creep = Math.ceil(this.world.tiles[iS][jS][k].creep);
 
-                        var up = 0, down = 0, left = 0, right = 0;
-                        if (jS - 1 < 0)
-                            up = 1;
-                        else if (Math.ceil(this.world.tiles[iS][jS - 1].creep) >= creep)
-                            up = 1;
-                        if (jS + 1 > this.world.size.y - 1)
-                            down = 1;
-                        else if (Math.ceil(this.world.tiles[iS][jS + 1].creep) >= creep)
-                            down = 1;
-                        if (iS - 1 < 0)
-                            left = 1;
-                        else if (Math.ceil(this.world.tiles[iS - 1][jS].creep) >= creep)
-                            left = 1;
-                        if (iS + 1 > this.world.size.x - 1)
-                            right = 1;
-                        else if (Math.ceil(this.world.tiles[iS + 1][jS].creep) >= creep)
-                            right = 1;
+                            var up = 0, down = 0, left = 0, right = 0;
+                            if (jS - 1 < 0)
+                                up = 0;
+                            else if (this.world.tiles[iS][jS - 1][k].creep > 0)
+                                up = 1;
+                            if (jS + 1 > this.world.size.y - 1)
+                                down = 0;
+                            else if (this.world.tiles[iS][jS + 1][k].creep > 0)
+                                down = 1;
+                            if (iS - 1 < 0)
+                                left = 0;
+                            else if (this.world.tiles[iS - 1][jS][k].creep > 0)
+                                left = 1;
+                            if (iS + 1 > this.world.size.x - 1)
+                                right = 0;
+                            else if (this.world.tiles[iS + 1][jS][k].creep > 0)
+                                right = 1;
 
-                        //if (creep > 1) {
-                        //    engine.canvas["buffer"].context.drawImage(engine.images["creep"], 15 * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
-                        //}
+                            //if (creep > 1) {
+                            //    engine.canvas["buffer"].context.drawImage(engine.images["creep"], 15 * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
+                            //}
 
-                        var index = (8 * down) + (4 * left) + (2 * up) + right;
-                        engine.canvas["buffer"].context.drawImage(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize * game.zoom, engine.halfHeight + j * this.tileSize * game.zoom, this.tileSize * game.zoom, this.tileSize * game.zoom);
+                            var index = (8 * down) + (4 * left) + (2 * up) + right;
+                            engine.canvas["buffer"].context.drawImage(engine.images["creep"], index * this.tileSize, 0 * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize * game.zoom, engine.halfHeight + j * this.tileSize * game.zoom, this.tileSize * game.zoom, this.tileSize * game.zoom);
+                        }
                     }
 
                     // creep value
@@ -1642,6 +1775,11 @@ var game = {
         }
 
         if (position.x > 0 && position.x < this.world.size.x && position.y > 0 && position.y < this.world.size.y) {
+
+            var total = 0;
+            for (var k = 0; k < 10; k++) {
+                total += this.world.tiles[position.x][position.y][k].creep;
+            }
             // draw height and creep meter
             engine.canvas["gui"].context.fillStyle = '#fff';
             engine.canvas["gui"].context.font = '9px';
@@ -1649,9 +1787,9 @@ var game = {
             engine.canvas["gui"].context.strokeStyle = '#fff';
             engine.canvas["gui"].context.lineWidth = 1;
             engine.canvas["gui"].context.fillStyle = "rgba(205, 133, 63, 1)";
-            engine.canvas["gui"].context.fillRect(555, 110, 25, -this.world.tiles[position.x][position.y].height * 10);
+            engine.canvas["gui"].context.fillRect(555, 110, 25, -this.getHighestTerrain(this.getTilePositionScrolled()) * 10 - 10);
             engine.canvas["gui"].context.fillStyle = "rgba(100, 150, 255, 1)";
-            engine.canvas["gui"].context.fillRect(555, 110 - this.world.tiles[position.x][position.y].height * 10, 25, -this.world.tiles[position.x][position.y].creep);
+            engine.canvas["gui"].context.fillRect(555, 110 - this.getHighestTerrain(this.getTilePositionScrolled()) * 10 - 10, 25, -total * 10);
             engine.canvas["gui"].context.fillStyle = "rgba(255, 255, 255, 1)";
             for (var i = 1; i < 11; i++) {
                 engine.canvas["gui"].context.fillText(i.toString(), 550, 120 - i * 10);
@@ -1661,7 +1799,7 @@ var game = {
                 engine.canvas["gui"].context.stroke();
             }
             engine.canvas["gui"].context.textAlign = 'left';
-            engine.canvas["gui"].context.fillText(this.world.tiles[position.x][position.y].creep.toFixed(2), 605, 10);
+            engine.canvas["gui"].context.fillText(total.toFixed(2), 605, 10);
         }
     }
 };
@@ -1826,8 +1964,9 @@ function Building(pX, pY, pImage, pType) {
 
             for (var i = 0; i < this.size; i++) {
                 for (var j = 0; j < this.size; j++) {
-                    if (game.world.tiles[this.x + i][this.y + j].creep > 0) {
-                        this.health -= 1;
+                    var height = game.getHighestTerrain(new Vector(this.x + i, this.y + j));
+                    if (game.world.tiles[this.x + i][this.y + j][height].creep > 0) {
+                        this.health -= game.world.tiles[this.x + i][this.y + j][height].creep;
                     }
                 }
             }
@@ -1890,10 +2029,12 @@ function Building(pX, pY, pImage, pType) {
                     if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
                         var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
                         if (distance < Math.pow(game.tileSize * 10, 2)) {
-                            if (game.world.tiles[i][j].creep > 0) {
-                                game.world.tiles[i][j].creep -= distance / game.tileSize * .1; // the closer to the shield the more creep is removed
-                                if (game.world.tiles[i][j].creep < 0) {
-                                    game.world.tiles[i][j].creep = 0;
+                            for (var k = 0; k < 10; k++) {
+                                if (game.world.tiles[i][j][k].creep > 0) {
+                                    game.world.tiles[i][j][k].creep -= distance / game.tileSize * .1; // the closer to the shield the more creep is removed
+                                    if (game.world.tiles[i][j][k].creep < 0) {
+                                        game.world.tiles[i][j][k].creep = 0;
+                                    }
                                 }
                             }
                         }
@@ -2126,9 +2267,11 @@ function Shell(pX, pY, pImage, pTX, pTY) {
                     if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
                         var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - this.tx, 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - this.ty, 2);
                         if (distance < Math.pow(game.tileSize * 4, 2)) {
+                            for (var k = 0; k < 10; k++) {
                             game.world.tiles[i][j].creep -= 10;
-                            if (game.world.tiles[i][j].creep < 0) {
-                                game.world.tiles[i][j].creep = 0;
+                                if (game.world.tiles[i][j][k].creep < 0) {
+                                    game.world.tiles[i][j][k].creep = 0;
+                                }
                             }
                         }
                     }
@@ -2199,9 +2342,10 @@ function Spore(pX, pY, pImage, pTX, pTY) {
                     if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
                         var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.tx + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.ty + game.tileSize), 2);
                         if (distance < Math.pow(game.tileSize, 2)) {
-                            game.world.tiles[i][j].creep += .05;
-                            if (game.world.tiles[i][j].creep > 1) {
-                                game.world.tiles[i][j].creep = 1;
+                            var tileHeight = game.getHighestTerrain(new Vector(i, j));
+                            game.world.tiles[i][j][tileHeight].creep += .05;
+                            if (game.world.tiles[i][j][tileHeight].creep > 1) {
+                                game.world.tiles[i][j][tileHeight].creep = 1;
                             }
                         }
                     }
@@ -2315,9 +2459,11 @@ function Ship(pX, pY, pImage, pType, pHome) {
                                 if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
                                     var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.tx + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.ty + game.tileSize), 2);
                                     if (distance < Math.pow(game.tileSize * 3, 2)) {
-                                        game.world.tiles[i][j].creep -= 10;
-                                        if (game.world.tiles[i][j].creep < 0) {
-                                            game.world.tiles[i][j].creep = 0;
+                                        for (var k = 0; k < 10; k++) {
+                                        game.world.tiles[i][j].creep -= 5;
+                                            if (game.world.tiles[i][j][k].creep < 0) {
+                                                game.world.tiles[i][j][k].creep = 0;
+                                            }
                                         }
                                     }
                                 }
@@ -2395,7 +2541,22 @@ function Emitter(pVector, pS) {
         engine.canvas["buffer"].context.drawImage(engine.images["emitter"], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
     };
     this.spawn = function () {
-        game.world.tiles[this.position.x + 1][this.position.y + 1].creep = this.strength;
+        var height = game.getHighestCreep(this.position);
+        if (height == -1)
+            height = game.getHighestTerrain(this.position);
+
+        var strength = this.strength;
+
+        for (var i = height; i < 10; i++) {
+            game.world.tiles[this.position.x][this.position.y][i].creep += strength;
+            if (game.world.tiles[this.position.x][this.position.y][i].creep > 1) {
+                var delta = game.world.tiles[this.position.x][this.position.y][i].creep - 1;
+                game.world.tiles[this.position.x][this.position.y][i].creep = 1;
+                strength = delta;
+                if (strength < 0)
+                    break;
+            }
+        }
     };
 }
 
@@ -2464,8 +2625,8 @@ function Explosion(pVector) {
  * A tile of the world
  */
 function Tile() {
-    this.index = 0;
-    this.height = 0;
+    this.index = -1;
+    this.full = false;
     this.creep = 0;
     this.newcreep = 0;
     this.collection = 0;
@@ -2475,6 +2636,12 @@ function Tile() {
 function Vector(pX, pY) {
     this.x = pX;
     this.y = pY;
+}
+
+function Vector3(pX, pY, pZ) {
+    this.x = pX;
+    this.y = pY;
+    this.z = pZ;
 }
 
 /**
@@ -2597,23 +2764,45 @@ function onKeyDown(evt) {
 
     // lower terrain ("N")
     if (evt.keyCode == 78) {
-        if (game.world.tiles[position.x][position.y].height > 0) {
-            game.world.tiles[position.x][position.y].height -= 1;
+        var height = game.getHighestTerrain(position);
+        if (height > -1) {
+            game.world.tiles[position.x][position.y][height].full = false;
+            // reset index around tile
+            for (var i = -1; i <= 1; i++) {
+                for (var j = -1; j <= 1; j++) {
+                    game.world.tiles[position.x + i][position.y + j][height].index = -1;
+                }
+            }
             game.drawTerrain();
         }
     }
 
     // raise terrain ("M")
     if (evt.keyCode == 77) {
-        if (game.world.tiles[position.x][position.y].height < 9) {
-            game.world.tiles[position.x][position.y].height += 1;
+        var height = game.getHighestTerrain(position);
+        if (height < 9) {
+            game.world.tiles[position.x][position.y][height + 1].full = true;
+            // reset index around tile
+            for (var i = -1; i <= 1; i++) {
+                for (var j = -1; j <= 1; j++) {
+                    game.world.tiles[position.x + i][position.y + j][height + 1].index = -1;
+                }
+            }
             game.drawTerrain();
         }
     }
 
     // enable/disable terrain ("B")
     if (evt.keyCode == 66) {
-        game.world.tiles[position.x][position.y].enabled = !game.world.tiles[position.x][position.y].enabled;
+        for (var i = 0; i < 10; i++) {
+            game.world.tiles[position.x][position.y][i].full = false;
+            // reset index around tile
+            for (var i = -1; i <= 1; i++) {
+                for (var j = -1; j <= 1; j++) {
+                    game.world.tiles[position.x + i][position.y + j][i].index = -1;
+                }
+            }
+        }
         game.drawTerrain();
     }
 
