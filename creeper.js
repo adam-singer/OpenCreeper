@@ -409,7 +409,7 @@ var game = {
             }
         }
 
-        for (var i = 0; i < this.world.size.x; i++) {
+        /*for (var i = 0; i < this.world.size.x; i++) {
             for (var j = 0; j < this.world.size.y; j++) {
                 for (var k = 0; k < 10; k++) {
 
@@ -454,7 +454,7 @@ var game = {
                     }
                  }
             }
-        }
+        }*/
 
         var randomPosition = new Vector(
             Math.floor(Math.random() * (this.world.size.x - 9)),
@@ -964,7 +964,7 @@ var game = {
         }
 
         this.spawnTimer++;
-        if (this.spawnTimer >= (125 / this.speed)) { // 125
+        if (this.spawnTimer >= (25 / this.speed)) { // 125
             for (var i = 0; i < this.emitters.length; i++)
                 this.emitters[i].spawn();
             this.spawnTimer = 0;
@@ -979,8 +979,8 @@ var game = {
         var minimum = .001;
 
         this.creeperTimer++;
-        if (this.creeperTimer > (125 / this.speed)) {
-            this.creeperTimer -= (125 / this.speed);
+        if (this.creeperTimer > (25 / this.speed)) {
+            this.creeperTimer -= (25 / this.speed);
 
             for (var i = 0; i < this.world.size.x; i++) {
                 for (var j = 0; j < this.world.size.y; j++) {
@@ -1011,42 +1011,42 @@ var game = {
                     this.world.tiles[i][j][0].creep = this.world.tiles[i][j][0].newcreep;
                     if (this.world.tiles[i][j][0].creep > 10)
                         this.world.tiles[i][j][0].creep = 10;
-                    if (this.world.tiles[i][j][0].newcreep < minimum)
-                        this.world.tiles[i][j][0].newcreep = 0;
+                    if (this.world.tiles[i][j][0].creep < minimum)
+                        this.world.tiles[i][j][0].creep = 0;
                 }
             }
 
         }
     },
     transferCreeper: function (height, height2, source, target) {
-        var transferRate = .125;
+        var transferRate = .25;
 
         var sourceAmount = source.creep;
         var sourceTotal = height + source.creep;
 
-        //if (target.full) {
+        if (height2 > -1) {
             var targetAmount = target.creep;
             if (sourceAmount > 0 || targetAmount > 0) {
                 var targetTotal = height2 + target.creep;
-                var rightDelta = 0;
+                var delta = 0;
                 if (sourceTotal > targetTotal) {
-                    rightDelta = sourceTotal - targetTotal;
-                    if (rightDelta > sourceAmount)
-                        rightDelta = sourceAmount;
-                    var delta = rightDelta * transferRate;
-                    source.newcreep -= delta;
-                    target.newcreep += delta;
+                    delta = sourceTotal - targetTotal;
+                    if (delta > sourceAmount)
+                        delta = sourceAmount;
+                    var adjustedDelta = delta * transferRate;
+                    source.newcreep -= adjustedDelta;
+                    target.newcreep += adjustedDelta;
                 }
-                else {
-                    rightDelta = targetTotal - sourceTotal;
-                    if (rightDelta > targetAmount)
-                        rightDelta = targetAmount;
-                    var delta = rightDelta * transferRate;
-                    source.newcreep += delta;
-                    target.newcreep -= delta;
-                }
+                /*else {
+                    delta = targetTotal - sourceTotal;
+                    if (delta > targetAmount)
+                        delta = targetAmount;
+                    var adjustedDelta = delta * transferRate;
+                    source.newcreep += adjustedDelta;
+                    target.newcreep -= adjustedDelta;
+                }*/
             }
-        //}
+        }
     },
     /**
      * @author Alexander Zeillinger
@@ -1349,7 +1349,7 @@ var game = {
         }
     },
     updateBuildings: function () {
-        //this.checkOperating();
+        this.checkOperating();
 
         // move
         for (var i = 0; i < this.buildings.length; i++) {
@@ -2519,7 +2519,7 @@ function Emitter(pVector, pS) {
         engine.canvas["buffer"].context.drawImage(engine.images["emitter"], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
     };
     this.spawn = function () {
-        game.world.tiles[this.position.x + 1][this.position.y + 1][0].creep = this.strength;
+        game.world.tiles[this.position.x + 1][this.position.y + 1][0].creep += this.strength;
     };
 }
 
@@ -2756,12 +2756,12 @@ function onKeyDown(evt) {
 
     // enable/disable terrain ("B")
     if (evt.keyCode == 66) {
-        for (var i = 0; i < 10; i++) {
-            game.world.tiles[position.x][position.y][i].full = false;
+        for (var k = 0; k < 10; k++) {
+            game.world.tiles[position.x][position.y][k].full = false;
             // reset index around tile
             for (var i = -1; i <= 1; i++) {
                 for (var j = -1; j <= 1; j++) {
-                    game.world.tiles[position.x + i][position.y + j][i].index = -1;
+                    game.world.tiles[position.x + i][position.y + j][k].index = -1;
                 }
             }
         }
