@@ -489,7 +489,7 @@ var game = {
             Math.floor(Math.random() * (this.world.size.x - 3)),
             Math.floor(Math.random() * (this.world.size.y - 3)));
 
-        var emitter = new Emitter(randomPosition, 1);
+        var emitter = new Emitter(randomPosition, 5);
         this.emitters.push(emitter);
 
         height = this.getHighestTerrain(new Vector(emitter.position.x + 1, emitter.position.y + 1));
@@ -817,13 +817,12 @@ var game = {
                         var radius = r * this.tileSize;
                         for (var i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
                             for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
-                                var tileHeight = this.getHighestTerrain(new Vector(i, j));
                                 // cannons can only shoot at tiles not higher than themselves
                                 if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y && tileHeight <= height) {
                                     var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
 
-                                    if (distance <= Math.pow(radius, 2) && this.world.tiles[i][j][tileHeight].creep > 0) {
-                                        targets.push(new Vector3(i, j, tileHeight));
+                                    if (distance <= Math.pow(radius, 2) && this.world.tiles[i][j][0].creep > 0) {
+                                        targets.push(new Vector(i, j));
                                     }
                                 }
                             }
@@ -831,9 +830,9 @@ var game = {
                         if (targets.length > 0) {
                             targets.shuffle();
 
-                            this.world.tiles[targets[0].x][targets[0].y][targets[0].z].creep -= 10;
-                            if (this.world.tiles[targets[0].x][targets[0].y][targets[0].z].creep < 0)
-                                this.world.tiles[targets[0].x][targets[0].y][targets[0].z].creep = 0;
+                            this.world.tiles[targets[0].x][targets[0].y][0].creep -= 10;
+                            if (this.world.tiles[targets[0].x][targets[0].y][0].creep < 0)
+                                this.world.tiles[targets[0].x][targets[0].y][0].creep = 0;
 
                             var dx = targets[0].x * this.tileSize + this.tileSize / 2 - center.x;
                             var dy = targets[0].y * this.tileSize + this.tileSize / 2 - center.y;
@@ -861,7 +860,7 @@ var game = {
                             var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
                             var tileHeight = this.getHighestTerrain(new Vector(i, j));
 
-                            if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][tileHeight].creep > 0 && this.world.tiles[i][j][tileHeight].creep >= highestCreep) {
+                            if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][0].creep > 0 && this.world.tiles[i][j][0].creep >= highestCreep) {
                                 highestCreep = this.world.tiles[i][j][tileHeight].creep;
                                 target = new Vector(i, j);
                             }
@@ -965,7 +964,7 @@ var game = {
         }
 
         this.spawnTimer++;
-        if (this.spawnTimer >= (5 / this.speed)) { // 125
+        if (this.spawnTimer >= (125 / this.speed)) { // 125
             for (var i = 0; i < this.emitters.length; i++)
                 this.emitters[i].spawn();
             this.spawnTimer = 0;
@@ -973,71 +972,62 @@ var game = {
 
         for (var i = 0; i < this.world.size.x; i++) {
             for (var j = 0; j < this.world.size.y; j++) {
-                for (var k = 0; k < 10; k++) {
-                    this.world.tiles[i][j][k].newcreep = this.world.tiles[i][j][k].creep;
-                }
+                this.world.tiles[i][j][0].newcreep = this.world.tiles[i][j][0].creep;
             }
         }
 
         var minimum = .001;
 
         this.creeperTimer++;
-        if (this.creeperTimer > (30 / this.speed)) { // 125
-            this.creeperTimer -= (30 / this.speed);
+        if (this.creeperTimer > (125 / this.speed)) {
+            this.creeperTimer -= (125 / this.speed);
 
             for (var i = 0; i < this.world.size.x; i++) {
                 for (var j = 0; j < this.world.size.y; j++) {
 
-                    for (var height = 0; height < 10; height++) {
-                        if (i - 1 > -1 && i + 1 < this.world.size.x && j - 1 > -1 && j + 1 < this.world.size.y) {
-                            //if (height >= 0) {
-                                // right neighbour
-                                this.transferCreeper(height, this.world.tiles[i][j][height], this.world.tiles[i + 1][j][height]);
-                                // bottom right neighbour
-                                this.transferCreeper(height, this.world.tiles[i][j][height], this.world.tiles[i - 1][j][height]);
-                                // bottom neighbour
-                                this.transferCreeper(height, this.world.tiles[i][j][height], this.world.tiles[i][j + 1][height]);
-                                // bottom left neighbour
-                                this.transferCreeper(height, this.world.tiles[i][j][height], this.world.tiles[i][j - 1][height]);
-                            //}
-                        }
+                    var height = this.getHighestTerrain(new Vector(i, j));
+                    if (i - 1 > -1 && i + 1 < this.world.size.x && j - 1 > -1 && j + 1 < this.world.size.y) {
+                        //if (height >= 0) {
+                            // right neighbour
+                            var height2 = this.getHighestTerrain(new Vector(i + 1, j));
+                            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i + 1][j][0]);
+                            // bottom right neighbour
+                            height2 = this.getHighestTerrain(new Vector(i - 1, j));
+                            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i - 1][j][0]);
+                            // bottom neighbour
+                            height2 = this.getHighestTerrain(new Vector(i, j + 1));
+                            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j + 1][0]);
+                            // bottom left neighbour
+                            height2 = this.getHighestTerrain(new Vector(i, j - 1));
+                            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j - 1][0]);
+                        //}
                     }
+
                 }
             }
 
             for (var i = 0; i < this.world.size.x; i++) {
                 for (var j = 0; j < this.world.size.y; j++) {
-                    for (var k = 0; k < 10; k++) {
-                        this.world.tiles[i][j][k].creep = this.world.tiles[i][j][k].newcreep;
-
-                        if (this.world.tiles[i][j][k].creep > 1) {
-                            var delta = this.world.tiles[i][j][k].creep - 1;
-                            this.world.tiles[i][j][k].creep = 1;
-                            this.world.tiles[i][j][k + 1].creep = delta;
-                        }
-                        if (this.world.tiles[i][j][k].creep < 0) {
-                            var delta = 1 + this.world.tiles[i][j][k].creep;
-                            this.world.tiles[i][j][k].creep = 0;
-                            this.world.tiles[i][j][k - 1].creep = delta;
-                        }
-                        if (this.world.tiles[i][j][k].creep < minimum)
-                            this.world.tiles[i][j][k].creep = 0;
-                    }
+                    this.world.tiles[i][j][0].creep = this.world.tiles[i][j][0].newcreep;
+                    if (this.world.tiles[i][j][0].creep > 10)
+                        this.world.tiles[i][j][0].creep = 10;
+                    if (this.world.tiles[i][j][0].newcreep < minimum)
+                        this.world.tiles[i][j][0].newcreep = 0;
                 }
             }
 
         }
     },
-    transferCreeper: function (height, source, target) {
+    transferCreeper: function (height, height2, source, target) {
         var transferRate = .125;
 
         var sourceAmount = source.creep;
-        var sourceTotal = height + sourceAmount;
+        var sourceTotal = height + source.creep;
 
-        //if (target.enabled) {
+        //if (target.full) {
             var targetAmount = target.creep;
             if (sourceAmount > 0 || targetAmount > 0) {
-                var targetTotal = height + targetAmount;
+                var targetTotal = height2 + target.creep;
                 var rightDelta = 0;
                 if (sourceTotal > targetTotal) {
                     rightDelta = sourceTotal - targetTotal;
@@ -1634,35 +1624,33 @@ var game = {
 
                 if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
 
-                    for (var k = 0; k < 10; k++) {
-                        if (this.world.tiles[iS][jS][k].creep > 0) {
-                            var creep = Math.ceil(this.world.tiles[iS][jS][k].creep);
+                    if (this.world.tiles[iS][jS][0].creep > 0) {
+                        var creep = Math.ceil(this.world.tiles[iS][jS][0].creep);
 
-                            var up = 0, down = 0, left = 0, right = 0;
-                            if (jS - 1 < 0)
-                                up = 0;
-                            else if (this.world.tiles[iS][jS - 1][k].creep > 0)
-                                up = 1;
-                            if (jS + 1 > this.world.size.y - 1)
-                                down = 0;
-                            else if (this.world.tiles[iS][jS + 1][k].creep > 0)
-                                down = 1;
-                            if (iS - 1 < 0)
-                                left = 0;
-                            else if (this.world.tiles[iS - 1][jS][k].creep > 0)
-                                left = 1;
-                            if (iS + 1 > this.world.size.x - 1)
-                                right = 0;
-                            else if (this.world.tiles[iS + 1][jS][k].creep > 0)
-                                right = 1;
+                        var up = 0, down = 0, left = 0, right = 0;
+                        if (jS - 1 < 0)
+                            up = 0;
+                        else if (Math.ceil(this.world.tiles[iS][jS - 1][0].creep) >= creep)
+                            up = 1;
+                        if (jS + 1 > this.world.size.y - 1)
+                            down = 0;
+                        else if (Math.ceil(this.world.tiles[iS][jS + 1][0].creep) >= creep)
+                            down = 1;
+                        if (iS - 1 < 0)
+                            left = 0;
+                        else if (Math.ceil(this.world.tiles[iS - 1][jS][0].creep) >= creep)
+                            left = 1;
+                        if (iS + 1 > this.world.size.x - 1)
+                            right = 0;
+                        else if (Math.ceil(this.world.tiles[iS + 1][jS][0].creep) >= creep)
+                            right = 1;
 
-                            //if (creep > 1) {
-                            //    engine.canvas["buffer"].context.drawImage(engine.images["creep"], 15 * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
-                            //}
+                        //if (creep > 1) {
+                        //    engine.canvas["buffer"].context.drawImage(engine.images["creep"], 15 * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
+                        //}
 
-                            var index = (8 * down) + (4 * left) + (2 * up) + right;
-                            engine.canvas["buffer"].context.drawImage(engine.images["creep"], index * this.tileSize, 0 * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize * game.zoom, engine.halfHeight + j * this.tileSize * game.zoom, this.tileSize * game.zoom, this.tileSize * game.zoom);
-                        }
+                        var index = (8 * down) + (4 * left) + (2 * up) + right;
+                        engine.canvas["buffer"].context.drawImage(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize * game.zoom, engine.halfHeight + j * this.tileSize * game.zoom, this.tileSize * game.zoom, this.tileSize * game.zoom);
                     }
 
                     // creep value
@@ -1776,10 +1764,8 @@ var game = {
 
         if (position.x > 0 && position.x < this.world.size.x && position.y > 0 && position.y < this.world.size.y) {
 
-            var total = 0;
-            for (var k = 0; k < 10; k++) {
-                total += this.world.tiles[position.x][position.y][k].creep;
-            }
+            var total = this.world.tiles[position.x][position.y][0].creep;
+
             // draw height and creep meter
             engine.canvas["gui"].context.fillStyle = '#fff';
             engine.canvas["gui"].context.font = '9px';
@@ -1964,9 +1950,8 @@ function Building(pX, pY, pImage, pType) {
 
             for (var i = 0; i < this.size; i++) {
                 for (var j = 0; j < this.size; j++) {
-                    var height = game.getHighestTerrain(new Vector(this.x + i, this.y + j));
-                    if (game.world.tiles[this.x + i][this.y + j][height].creep > 0) {
-                        this.health -= game.world.tiles[this.x + i][this.y + j][height].creep;
+                    if (game.world.tiles[this.x + i][this.y + j][0].creep > 0) {
+                        this.health -= game.world.tiles[this.x + i][this.y + j][0].creep;
                     }
                 }
             }
@@ -2029,12 +2014,10 @@ function Building(pX, pY, pImage, pType) {
                     if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
                         var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
                         if (distance < Math.pow(game.tileSize * 10, 2)) {
-                            for (var k = 0; k < 10; k++) {
-                                if (game.world.tiles[i][j][k].creep > 0) {
-                                    game.world.tiles[i][j][k].creep -= distance / game.tileSize * .1; // the closer to the shield the more creep is removed
-                                    if (game.world.tiles[i][j][k].creep < 0) {
-                                        game.world.tiles[i][j][k].creep = 0;
-                                    }
+                            if (game.world.tiles[i][j][0].creep > 0) {
+                                game.world.tiles[i][j][0].creep -= distance / game.tileSize * .1; // the closer to the shield the more creep is removed
+                                if (game.world.tiles[i][j][0].creep < 0) {
+                                    game.world.tiles[i][j][0].creep = 0;
                                 }
                             }
                         }
@@ -2267,11 +2250,9 @@ function Shell(pX, pY, pImage, pTX, pTY) {
                     if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
                         var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - this.tx, 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - this.ty, 2);
                         if (distance < Math.pow(game.tileSize * 4, 2)) {
-                            for (var k = 0; k < 10; k++) {
-                            game.world.tiles[i][j].creep -= 10;
-                                if (game.world.tiles[i][j][k].creep < 0) {
-                                    game.world.tiles[i][j][k].creep = 0;
-                                }
+                            game.world.tiles[i][j][0].creep -= 10;
+                            if (game.world.tiles[i][j][0].creep < 0) {
+                                game.world.tiles[i][j][0].creep = 0;
                             }
                         }
                     }
@@ -2342,10 +2323,9 @@ function Spore(pX, pY, pImage, pTX, pTY) {
                     if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
                         var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.tx + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.ty + game.tileSize), 2);
                         if (distance < Math.pow(game.tileSize, 2)) {
-                            var tileHeight = game.getHighestTerrain(new Vector(i, j));
-                            game.world.tiles[i][j][tileHeight].creep += .05;
-                            if (game.world.tiles[i][j][tileHeight].creep > 1) {
-                                game.world.tiles[i][j][tileHeight].creep = 1;
+                            game.world.tiles[i][j][0].creep += .05;
+                            if (game.world.tiles[i][j][0].creep > 1) {
+                                game.world.tiles[i][j][0].creep = 1;
                             }
                         }
                     }
@@ -2459,11 +2439,9 @@ function Ship(pX, pY, pImage, pType, pHome) {
                                 if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
                                     var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.tx + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.ty + game.tileSize), 2);
                                     if (distance < Math.pow(game.tileSize * 3, 2)) {
-                                        for (var k = 0; k < 10; k++) {
-                                        game.world.tiles[i][j].creep -= 5;
-                                            if (game.world.tiles[i][j][k].creep < 0) {
-                                                game.world.tiles[i][j][k].creep = 0;
-                                            }
+                                        game.world.tiles[i][j][0].creep -= 5;
+                                        if (game.world.tiles[i][j][0].creep < 0) {
+                                            game.world.tiles[i][j][0].creep = 0;
                                         }
                                     }
                                 }
@@ -2541,22 +2519,7 @@ function Emitter(pVector, pS) {
         engine.canvas["buffer"].context.drawImage(engine.images["emitter"], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
     };
     this.spawn = function () {
-        var height = game.getHighestCreep(this.position);
-        if (height == -1)
-            height = game.getHighestTerrain(this.position);
-
-        var strength = this.strength;
-
-        for (var i = height; i < 10; i++) {
-            game.world.tiles[this.position.x][this.position.y][i].creep += strength;
-            if (game.world.tiles[this.position.x][this.position.y][i].creep > 1) {
-                var delta = game.world.tiles[this.position.x][this.position.y][i].creep - 1;
-                game.world.tiles[this.position.x][this.position.y][i].creep = 1;
-                strength = delta;
-                if (strength < 0)
-                    break;
-            }
-        }
+        game.world.tiles[this.position.x + 1][this.position.y + 1][0].creep = this.strength;
     };
 }
 
@@ -2630,7 +2593,6 @@ function Tile() {
     this.creep = 0;
     this.newcreep = 0;
     this.collection = 0;
-    this.enabled = true;
 }
 
 function Vector(pX, pY) {
