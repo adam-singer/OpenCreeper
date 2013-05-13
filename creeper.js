@@ -71,7 +71,7 @@ var engine = {
         this.addSound("explosion", "wav");
 
         // load images
-        this.imageSrcs = ["level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon", "cannongun", "base", "collector", "reactor", "storage", "speed", "packet_energy", "packet_health", "relay", "emitter", "creep",
+        this.imageSrcs = ["numbers", "level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon", "cannongun", "base", "collector", "reactor", "storage", "speed", "packet_energy", "packet_health", "relay", "emitter", "creep",
             "mortar", "shell", "beam", "spore", "bomber", "bombership", "smoke", "explosion", "targetcursor", "sporetower", "forcefield", "shield"];
 
         $('#time').stopwatch().stopwatch('start');
@@ -205,6 +205,7 @@ var game = {
     emitters: null,
     sporetowers: null,
     packetQueue: null,
+    terraformingHeight : 1,
     mode: null,
     init: function () {
         this.buildings = [];
@@ -306,7 +307,8 @@ var game = {
         DEFAULT: 0,
         BUILDING_SELECTED: 1,
         SHIP_SELECTED: 2,
-        ICON_SELECTED: 3
+        ICON_SELECTED: 3,
+        TERRAFORM: 4
     },
     /**
      * @author Alexander Zeillinger
@@ -361,6 +363,16 @@ var game = {
         this.stop();
         this.reset();
         this.run();
+    },
+    toggleTerraform: function() {
+        if (this.mode == this.modes.TERRAFORM) {
+            this.mode = this.modes.DEFAULT;
+            $("#terraform").val("Terraform Off");
+        }
+        else {
+            this.mode = this.modes.TERRAFORM;
+            $("#terraform").val("Terraform On");
+        }
     },
     faster: function() {
         $('#buttonslower').show();
@@ -1731,6 +1743,11 @@ var game = {
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .5;
 
+            // draw building
+            engine.canvas["buffer"].context.drawImage(engine.images[this.symbols[this.activeSymbol].imageID], drawPosition.x, drawPosition.y, this.symbols[this.activeSymbol].size * this.tileSize * this.zoom, this.symbols[this.activeSymbol].size * this.tileSize * this.zoom);
+            if (this.symbols[this.activeSymbol].imageID == "cannon")
+                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], drawPosition.x, drawPosition.y, 48 * this.zoom, 48 * this.zoom);
+
             // draw green or red box
             // make sure there isn't a building on this tile yet
             if (this.canBePlaced(this.symbols[this.activeSymbol].size)) {
@@ -1739,12 +1756,8 @@ var game = {
             else {
                 engine.canvas["buffer"].context.strokeStyle = "#f00";
             }
+            engine.canvas["buffer"].context.lineWidth = 4 * this.zoom;
             engine.canvas["buffer"].context.strokeRect(drawPosition.x, drawPosition.y, this.tileSize * this.symbols[this.activeSymbol].size * this.zoom, this.tileSize * this.symbols[this.activeSymbol].size * this.zoom);
-
-            // draw building
-            engine.canvas["buffer"].context.drawImage(engine.images[this.symbols[this.activeSymbol].imageID], drawPosition.x, drawPosition.y, this.symbols[this.activeSymbol].size * this.tileSize * this.zoom, this.symbols[this.activeSymbol].size * this.tileSize * this.zoom);
-            if (this.symbols[this.activeSymbol].imageID == "cannon")
-                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], drawPosition.x, drawPosition.y, 48 * this.zoom, 48 * this.zoom);
 
             engine.canvas["buffer"].context.restore();
 
@@ -1949,7 +1962,7 @@ function Building(pX, pY, pImage, pType) {
     this.drawBox = function () {
         if (this.hovered || this.selected) {
             var position = Helper.tiled2screen(new Vector(this.x, this.y));
-            engine.canvas["buffer"].context.lineWidth = 1;
+            engine.canvas["buffer"].context.lineWidth = 2 * game.zoom;
             engine.canvas["buffer"].context.strokeStyle = "#000";
             engine.canvas["buffer"].context.strokeRect(position.x, position.y, game.tileSize * this.size * game.zoom, game.tileSize * this.size * game.zoom);
         }
@@ -2807,6 +2820,16 @@ function onKeyDown(evt) {
         game.drawTerrain();
     }
 
+    // select height for terraforming
+    if (game.mode == game.modes.TERRAFORM) {
+        if (evt.keyCode >= 48 && evt.keyCode <= 57) {
+            game.terraformingHeight = evt.keyCode - 48;
+            if (game.terraformingHeight == 0)
+                game.terraformingHeight = 10;
+        }
+
+    }
+
 }
 
 function onKeyUp(evt) {
@@ -2902,8 +2925,6 @@ function onClick(evt) {
             if (game.buildings[i].selected) {
                 $('#selection').show();
                 $('#selection').html("Type: " + game.buildings[i].type + "<br/>" +
-                    "Size: " + game.buildings[i].size + "<br/>" +
-                    "Range: " + game.buildings[i].nodeRadius * game.tileSize + "<br/>" +
                     "Health/HR/MaxHealth: " + game.buildings[i].health + "/" + game.buildings[i].healthRequests + "/" + game.buildings[i].maxHealth);
                 buildingSelected = game.buildings[i];
             }
@@ -2964,6 +2985,7 @@ function onRightClick() {
     }
 
     $('#selection').html("");
+    $("#terraform").val("Terraform Off");
     game.clearSymbols();
 }
 
@@ -3164,6 +3186,38 @@ function draw() {
 
         if (game.activeSymbol != -1) {
             game.drawPositionInfo();
+        }
+
+        if (game.mode == game.modes.TERRAFORM) {
+            var positionScrolled = game.getTilePositionScrolled();
+            var drawPosition = Helper.tiled2screen(positionScrolled);
+            engine.canvas["buffer"].context.drawImage(engine.images["numbers"], (game.terraformingHeight - 1) * 16, 0, 16, 16, drawPosition.x, drawPosition.y, 16 * game.zoom, 16 * game.zoom);
+
+            engine.canvas["buffer"].context.strokeStyle = '#fff';
+            engine.canvas["buffer"].context.lineWidth = 1;
+
+            engine.canvas["buffer"].context.beginPath();
+            engine.canvas["buffer"].context.moveTo(0, drawPosition.y);
+            engine.canvas["buffer"].context.lineTo(1280, drawPosition.y);
+            engine.canvas["buffer"].context.stroke();
+
+            engine.canvas["buffer"].context.beginPath();
+            engine.canvas["buffer"].context.moveTo(0, drawPosition.y + game.tileSize * game.zoom);
+            engine.canvas["buffer"].context.lineTo(1280, drawPosition.y + game.tileSize * game.zoom);
+            engine.canvas["buffer"].context.stroke();
+
+            engine.canvas["buffer"].context.beginPath();
+            engine.canvas["buffer"].context.moveTo(drawPosition.x, 0);
+            engine.canvas["buffer"].context.lineTo(drawPosition.x, engine.halfHeight * 2);
+            engine.canvas["buffer"].context.stroke();
+
+            engine.canvas["buffer"].context.beginPath();
+            engine.canvas["buffer"].context.moveTo(drawPosition.x + game.tileSize * game.zoom, 0);
+            engine.canvas["buffer"].context.lineTo(drawPosition.x + game.tileSize * game.zoom, engine.halfHeight * 2);
+            engine.canvas["buffer"].context.stroke();
+
+            engine.canvas["buffer"].context.stroke();
+
         }
     }
 
