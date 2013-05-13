@@ -60,6 +60,10 @@ var engine = {
         engine.canvas["collection"] = new Canvas($("<canvas width='1280' height='" + height + "' style='position: absolute'>"));
         document.getElementById('canvasContainer').appendChild(engine.canvas["collection"].element[0]);
 
+        // creeper
+        engine.canvas["creeper"] = new Canvas($("<canvas width='1280' height='" + height + "' style='position: absolute'>"));
+        document.getElementById('canvasContainer').appendChild(engine.canvas["creeper"].element[0]);
+
         // load sounds
         this.addSound("shot", "wav");
         this.addSound("click", "wav");
@@ -384,6 +388,7 @@ var game = {
             this.zoom = parseFloat(this.zoom.toFixed(2));
             this.drawTerrain();
             this.drawCollection();
+            this.drawCreeper();
             this.updateZoomElement();
         }
     },
@@ -393,6 +398,7 @@ var game = {
             this.zoom = parseFloat(this.zoom.toFixed(2));
             this.drawTerrain();
             this.drawCollection();
+            this.drawCreeper();
             this.updateZoomElement();
         }
     },
@@ -1004,17 +1010,17 @@ var game = {
             this.spawnTimer = 0;
         }
 
-        for (var i = 0; i < this.world.size.x; i++) {
-            for (var j = 0; j < this.world.size.y; j++) {
-                this.world.tiles[i][j][0].newcreep = this.world.tiles[i][j][0].creep;
-            }
-        }
-
         var minimum = .001;
 
         this.creeperTimer++;
         if (this.creeperTimer > (25 / this.speed)) {
             this.creeperTimer -= (25 / this.speed);
+
+            for (var i = 0; i < this.world.size.x; i++) {
+                for (var j = 0; j < this.world.size.y; j++) {
+                    this.world.tiles[i][j][0].newcreep = this.world.tiles[i][j][0].creep;
+                }
+            }
 
             for (var i = 0; i < this.world.size.x; i++) {
                 for (var j = 0; j < this.world.size.y; j++) {
@@ -1049,6 +1055,8 @@ var game = {
                         this.world.tiles[i][j][0].creep = 0;
                 }
             }
+
+            this.drawCreeper();
 
         }
     },
@@ -1535,6 +1543,7 @@ var game = {
         if (this.scrolling.left || this.scrolling.right || this.scrolling.up || this.scrolling.down) {
             this.drawTerrain();
             this.drawCollection();
+            this.drawCreeper();
         }
     },
     drawRangeBoxes: function(type, radius, size) {
@@ -1645,12 +1654,13 @@ var game = {
     /**
      * @author Alexander Zeillinger
      *
-     * Draws the creep.
+     * Draws the creeper.
      */
-    drawCreep: function() {
-        engine.canvas["buffer"].context.font = '9px';
-        engine.canvas["buffer"].context.lineWidth = 1;
-        engine.canvas["buffer"].context.fillStyle = '#fff';
+    drawCreeper: function() {
+        engine.canvas["creeper"].clear();
+        //engine.canvas["buffer"].context.font = '9px';
+        //engine.canvas["buffer"].context.lineWidth = 1;
+        //engine.canvas["buffer"].context.fillStyle = '#fff';
 
         for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
             for (var j = Math.floor(-23 / this.zoom); j < Math.floor(23 / this.zoom); j++) {
@@ -1686,7 +1696,7 @@ var game = {
                         //}
 
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
-                        engine.canvas["buffer"].context.drawImage(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize * game.zoom, engine.halfHeight + j * this.tileSize * game.zoom, this.tileSize * game.zoom, this.tileSize * game.zoom);
+                        engine.canvas["creeper"].context.drawImage(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize * game.zoom, engine.halfHeight + j * this.tileSize * game.zoom, this.tileSize * game.zoom, this.tileSize * game.zoom);
                     }
 
                     // creep value
@@ -2354,9 +2364,6 @@ function Spore(pX, pY, pImage, pTX, pTY) {
                         var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.tx + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.ty + game.tileSize), 2);
                         if (distance < Math.pow(game.tileSize, 2)) {
                             game.world.tiles[i][j][0].creep += .05;
-                            if (game.world.tiles[i][j][0].creep > 1) {
-                                game.world.tiles[i][j][0].creep = 1;
-                            }
                         }
                     }
                 }
@@ -3067,8 +3074,6 @@ function draw() {
     // clear canvas
     engine.canvas["buffer"].clear();
     engine.canvas["main"].clear();
-
-    game.drawCreep();
 
     // draw emitters
     for (var i = 0; i < game.emitters.length; i++) {
