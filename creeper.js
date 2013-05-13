@@ -899,8 +899,6 @@ var game = {
         }
     },
     updateCollection: function (building, action) {
-        this.collection = 0;
-
         var height = this.getHighestTerrain(new Vector(building.x, building.y));
         var centerBuilding = building.getCenter();
 
@@ -917,12 +915,31 @@ var game = {
 
                 if (positionCurrent.x > -1 && positionCurrent.x < this.world.size.x && positionCurrent.y > -1 && positionCurrent.y < this.world.size.y) {
 
-                    if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
-                        if (tileHeight == height) {
-                            if (action == "remove")
-                                this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collection = 0;
-                            else
+                    if (action == "add") {
+                        if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
+                            if (tileHeight == height) {
                                 this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collection = 1;
+                            }
+                        }
+                    }
+                    else if (action == "remove") {
+
+                        if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
+                            if (tileHeight == height) {
+                                this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collection = 0;
+                            }
+                        }
+
+                        for (var k = 0; k < this.buildings.length; k++) {
+                            if (this.buildings[k] != building && this.buildings[k].type == "Collector") {
+                                var heightK = this.getHighestTerrain(new Vector(this.buildings[k].x, this.buildings[k].y));
+                                var centerBuildingK = this.buildings[k].getCenter();
+                                if (Math.pow(positionCurrentCenter.x - centerBuildingK.x, 2) + Math.pow(positionCurrentCenter.y - centerBuildingK.y, 2) < Math.pow(this.tileSize * 6, 2)) {
+                                    if (tileHeight == heightK) {
+                                        this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collection = 1;
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -934,6 +951,8 @@ var game = {
         this.calculateCollection();
     },
     calculateCollection: function () {
+        this.collection = 0;
+
         for (var i = 0; i < this.world.size.x; i++) {
             for (var j = 0; j < this.world.size.y; j++) {
                 for (var k = 0; k < 10; k++) {
