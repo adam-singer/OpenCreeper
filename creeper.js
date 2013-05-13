@@ -56,6 +56,10 @@ var engine = {
             document.getElementById('canvasContainer').appendChild(engine.canvas["level" + i].element[0]);
         }
 
+        // collection
+        engine.canvas["collection"] = new Canvas($("<canvas width='1280' height='" + height + "' style='position: absolute'>"));
+        document.getElementById('canvasContainer').appendChild(engine.canvas["collection"].element[0]);
+
         // load sounds
         this.addSound("shot", "wav");
         this.addSound("click", "wav");
@@ -167,7 +171,6 @@ var game = {
     speed: 1,
     zoom: 1,
     running: null,
-    mode: null,
     paused: false,
     currentEnergy: 0,
     maxEnergy: 0,
@@ -198,6 +201,7 @@ var game = {
     emitters: null,
     sporetowers: null,
     packetQueue: null,
+    mode: null,
     init: function () {
         this.buildings = [];
         this.packets = [];
@@ -218,6 +222,7 @@ var game = {
         $('#lose').hide();
         $('#win').hide();
 
+        this.mode = this.modes.DEFAULT;
         this.buildings.length = 0;
         this.packets.length = 0;
         this.shells.length = 0;
@@ -293,6 +298,12 @@ var game = {
         "k70": "F",
         "k71": "G",
         "k72": "H"},
+    modes: {
+        DEFAULT: 0,
+        BUILDING_SELECTED: 1,
+        SHIP_SELECTED: 2,
+        ICON_SELECTED: 3
+    },
     /**
      * @author Alexander Zeillinger
      *
@@ -372,6 +383,7 @@ var game = {
             this.zoom += .2;
             this.zoom = parseFloat(this.zoom.toFixed(2));
             this.drawTerrain();
+            this.drawCollection();
             this.updateZoomElement();
         }
     },
@@ -380,6 +392,7 @@ var game = {
             this.zoom -= .2;
             this.zoom = parseFloat(this.zoom.toFixed(2));
             this.drawTerrain();
+            this.drawCollection();
             this.updateZoomElement();
         }
     },
@@ -947,6 +960,8 @@ var game = {
 
             }
         }
+
+        this.drawCollection();
 
         this.calculateCollection();
     },
@@ -1519,6 +1534,7 @@ var game = {
 
         if (this.scrolling.left || this.scrolling.right || this.scrolling.up || this.scrolling.down) {
             this.drawTerrain();
+            this.drawCollection();
         }
     },
     drawRangeBoxes: function(type, radius, size) {
@@ -1584,9 +1600,10 @@ var game = {
      *
      * Draws the green collection areas of Collectors.
      */
-    drawCollectionAreas: function() {
-        engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.globalAlpha = .5;
+    drawCollection: function() {
+        engine.canvas["collection"].clear();
+        engine.canvas["collection"].context.save();
+        engine.canvas["collection"].context.globalAlpha = .5;
 
         for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
             for (var j = Math.floor(-23 / this.zoom); j < Math.floor(22 / this.zoom); j++) {
@@ -1617,13 +1634,13 @@ var game = {
                                 right = this.world.tiles[iS + 1][jS][k].collection;
 
                             var index = (8 * down) + (4 * left) + (2 * up) + right;
-                            engine.canvas["buffer"].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                            engine.canvas["collection"].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
                         }
                     }
                 }
             }
         }
-        engine.canvas["buffer"].context.restore();
+        engine.canvas["collection"].context.restore();
     },
     /**
      * @author Alexander Zeillinger
@@ -1757,13 +1774,7 @@ var game = {
      * Draws the attack symbols of ships.
      */
     drawAttackSymbol: function () {
-        var shipSelected = false;
-        for (var i = 0; i < this.ships.length; i++) {
-            if (this.ships[i].selected)
-                shipSelected = true;
-        }
-
-        if (shipSelected) {
+        if (this.mode == this.modes.SHIP_SELECTED) {
             var position = Helper.tiled2screen(this.getTilePositionScrolled());
             engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], position.x - this.tileSize, position.y - this.tileSize);
         }
@@ -2496,18 +2507,20 @@ function Ship(pX, pY, pImage, pType, pHome) {
             engine.canvas["buffer"].context.stroke();
         }
 
-        if (this.status == 1 && this.selected) {
+        if (this.selected) {
             engine.canvas["buffer"].context.strokeStyle = "#fff";
             engine.canvas["buffer"].context.beginPath();
             engine.canvas["buffer"].context.arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, Math.PI * 2, true);
             engine.canvas["buffer"].context.closePath();
             engine.canvas["buffer"].context.stroke();
 
-            var cursorPosition = Helper.real2screen(new Vector(this.tx, this.ty));
-            engine.canvas["buffer"].context.save();
-            engine.canvas["buffer"].context.globalAlpha = .5;
-            engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], cursorPosition.x - game.tileSize * game.zoom, cursorPosition.y - game.tileSize * game.zoom, 48 * game.zoom, 48 * game.zoom);
-            engine.canvas["buffer"].context.restore();
+            if (this.status == 1) {
+                var cursorPosition = Helper.real2screen(new Vector(this.tx, this.ty));
+                engine.canvas["buffer"].context.save();
+                engine.canvas["buffer"].context.globalAlpha = .5;
+                engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], cursorPosition.x - game.tileSize * game.zoom, cursorPosition.y - game.tileSize * game.zoom, 48 * game.zoom, 48 * game.zoom);
+                engine.canvas["buffer"].context.restore();
+            }
         }
 
         // draw ship
@@ -2855,14 +2868,14 @@ function onClick(evt) {
         }
     }
 
-    var shipSelected = false;
     // select a ship if hovered
     for (var i = 0; i < game.ships.length; i++) {
         game.ships[i].selected = game.ships[i].hovered;
         if (game.ships[i].selected)
-            shipSelected = true;
+            game.mode = game.modes.SHIP_SELECTED;
     }
 
+    // reposition building
     for (var i = 0; i < game.buildings.length; i++) {
       if (game.buildings[i].built && game.buildings[i].selected && game.buildings[i].canMove) {
         // check if it can be placed
@@ -2875,7 +2888,7 @@ function onClick(evt) {
     }
 
     // select a building if hovered
-    if (!shipSelected) {
+    if (game.mode == game.modes.DEFAULT) {
         var buildingSelected = null;
         for (var i = 0; i < game.buildings.length; i++) {
             game.buildings[i].selected = game.buildings[i].hovered;
@@ -2929,6 +2942,8 @@ function onDoubleClick(evt) {
 }
 
 function onRightClick() {
+    game.mode = game.modes.DEFAULT;
+
     // unselect all currently selected buildings
     for (var i = 0; i < game.buildings.length; i++) {
         game.buildings[i].selected = false;
@@ -3033,9 +3048,10 @@ Object.prototype.clone = function() {
     var newObj = (this instanceof Array) ? [] : {};
     for (var i in this) {
         if (i == 'clone') continue;
-        if (this[i] && typeof this[i] == "object") {
+        /*if (this[i] && typeof this[i] == "object") {
             newObj[i] = this[i].clone();
-        } else newObj[i] = this[i]
+        } else newObj[i] = this[i]*/
+        newObj[i] = this[i];
     } return newObj;
 };
 
@@ -3052,7 +3068,6 @@ function draw() {
     engine.canvas["buffer"].clear();
     engine.canvas["main"].clear();
 
-    game.drawCollectionAreas();
     game.drawCreep();
 
     // draw emitters
