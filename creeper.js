@@ -71,7 +71,7 @@ var engine = {
         this.addSound("explosion", "wav");
 
         // load images
-        this.imageSrcs = ["numbers", "level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon", "cannongun", "base", "collector", "reactor", "storage", "speed", "packet_energy", "packet_health", "relay", "emitter", "creep",
+        this.imageSrcs = ["numbers", "level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon", "cannongun", "base", "collector", "reactor", "storage", "terp", "packet_energy", "packet_health", "relay", "emitter", "creep",
             "mortar", "shell", "beam", "spore", "bomber", "bombership", "smoke", "explosion", "targetcursor", "sporetower", "forcefield", "shield"];
 
         $('#time').stopwatch().stopwatch('start');
@@ -272,7 +272,8 @@ var game = {
         size: {
             x: 128,
             y: 128
-        }
+        },
+        terraform: null // separate array to store terraform information
     },
     alert: {
         x: 0,
@@ -416,13 +417,16 @@ var game = {
     },
     createWorld: function () {
         this.world.tiles = new Array(this.world.size.x);
+        this.world.terraform = new Array(this.world.size.x);
         for (var i = 0; i < this.world.size.x; i++) {
             this.world.tiles[i] = new Array(this.world.size.y);
+            this.world.terraform[i] = new Array(this.world.size.y);
             for (var j = 0; j < this.world.size.y; j++) {
                 this.world.tiles[i][j] = [];
                 for (var k = 0; k < 10; k++) {
                     this.world.tiles[i][j][k] = new Tile();
                 }
+                this.world.terraform[i][j] = {target: -1, progress: 0};
             }
         }
 
@@ -497,7 +501,6 @@ var game = {
         var building = new Building(randomPosition.x, randomPosition.y, "base", "Base");
         building.health = 40;
         building.maxHealth = 40;
-        building.nodeRadius = 10;
         building.built = true;
         building.size = 9;
         this.buildings.push(building);
@@ -557,6 +560,15 @@ var game = {
         var building = new Building(x, y, type, name);
         building.health = 0;
 
+        if (building.type == "Terp") {
+            building.maxHealth = 5; //60
+            building.maxEnergy = 20;
+            building.energy = 0;
+            building.size = 3;
+            building.canMove = true;
+            building.needsEnergy = true;
+            building.weaponRadius = 12;
+        }
         if (building.type == "Shield") {
             building.maxHealth = 5; //75
             building.maxEnergy = 20;
@@ -615,11 +627,6 @@ var game = {
             building.needsEnergy = true;
             building.size = 3;
         }
-
-        if (building.type == "Relay")
-            building.nodeRadius = 20;
-        else
-            building.nodeRadius = 10;
 
         this.buildings.push(building);
     },
@@ -703,6 +710,7 @@ var game = {
         this.symbols.push(new UISymbol(1 * 81, 56, "mortar", "S", 3, 40, 12));
         this.symbols.push(new UISymbol(2 * 81, 56, "beam", "D", 3, 20, 12));
         this.symbols.push(new UISymbol(3 * 81, 56, "bomber", "F", 3, 75, 0));
+        this.symbols.push(new UISymbol(4 * 81, 56, "terp", "G", 3, 60, 12));
     },
     /**
      * @author Alexander Zeillinger
@@ -828,14 +836,89 @@ var game = {
 
                 this.buildings[t].energyTimer++;
                 var center = this.buildings[t].getCenter();
-                if (this.buildings[t].type == "Shield" && this.buildings[t].energy > 0) {
+
+                if (this.buildings[t].type == "Terp" && this.buildings[t].energy > 0) {
+                    // find lowest target
+                    if (this.buildings[t].weaponTargetPosition == null) {
+
+                        // get building x and building y
+                        var x = this.buildings[t].x;
+                        var y = this.buildings[t].y;
+
+                        // find lowest tile
+                        var target = null;
+                        var lowestTile = 10;
+                        for (var i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
+                            for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
+                                var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
+                                var tileHeight = this.getHighestTerrain(new Vector(i, j));
+
+                                if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.terraform[i][j].target > -1 && tileHeight <= lowestTile) {
+                                    lowestTile = tileHeight;
+                                    target = new Vector(i, j);
+                                }
+                            }
+                        }
+                        if (target) {
+                            this.buildings[t].weaponTargetPosition = target;
+                        }
+                    }
+                    else {
+                        if (this.buildings[t].energyTimer > 20) {
+                            this.buildings[t].energyTimer = 0;
+                            this.buildings[t].energy -= 1;
+                        }
+
+                        this.buildings[t].operating = true;
+                        var terraformElement = this.world.terraform[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y];
+                        terraformElement.progress += 1;
+                        if (terraformElement.progress == 100) {
+                            terraformElement.progress = 0;
+
+                            var height = this.getHighestTerrain(this.buildings[t].weaponTargetPosition);
+
+                            if (height < terraformElement.target) {
+                                this.world.tiles[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y][height + 1].full = true;
+                                // reset index around tile
+                                for (var i = -1; i <= 1; i++) {
+                                    for (var j = -1; j <= 1; j++) {
+                                        this.world.tiles[this.buildings[t].weaponTargetPosition.x + i][this.buildings[t].weaponTargetPosition.y + j][height + 1].index = -1;
+                                    }
+                                }
+                            }
+                            else {
+                                this.world.tiles[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y][height].full = false;
+                                // reset index around tile
+                                for (var i = -1; i <= 1; i++) {
+                                    for (var j = -1; j <= 1; j++) {
+                                        this.world.tiles[this.buildings[t].weaponTargetPosition.x + i][this.buildings[t].weaponTargetPosition.y + j][height].index = -1;
+                                    }
+                                }
+                            }
+
+                            this.drawTerrain();
+
+                            height = this.getHighestTerrain(this.buildings[t].weaponTargetPosition);
+                            if (height == terraformElement.target) {
+                                this.world.terraform[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y].progress = 0;
+                                this.world.terraform[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y].target = -1;
+                            }
+
+                            this.buildings[t].weaponTargetPosition = null;
+                            this.buildings[t].operating = false;
+                        }
+                    }
+                }
+
+                else if (this.buildings[t].type == "Shield" && this.buildings[t].energy > 0) {
                     if (this.buildings[t].energyTimer > 20) {
                         this.buildings[t].energyTimer = 0;
                         this.buildings[t].energy -= 1;
                     }
                     this.buildings[t].operating = true;
                 }
-                if (this.buildings[t].type == "Cannon" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 10) {
+
+                else if (this.buildings[t].type == "Cannon" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 10) {
                     this.buildings[t].energyTimer = 0;
 
                     var x = this.buildings[t].x;
@@ -876,7 +959,8 @@ var game = {
                         }
                     }
                 }
-                if (this.buildings[t].type == "Mortar" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 200) {
+
+                else if (this.buildings[t].type == "Mortar" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 200) {
                     this.buildings[t].energyTimer = 0;
 
                     // get building x and building y
@@ -889,10 +973,9 @@ var game = {
                     for (var i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
                         for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
                             var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
-                            var tileHeight = this.getHighestTerrain(new Vector(i, j));
 
                             if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][0].creep > 0 && this.world.tiles[i][j][0].creep >= highestCreep) {
-                                highestCreep = this.world.tiles[i][j][tileHeight].creep;
+                                highestCreep = this.world.tiles[i][j][0].creep;
                                 target = new Vector(i, j);
                             }
                         }
@@ -905,7 +988,8 @@ var game = {
                         this.buildings[t].energy -= 1;
                     }
                 }
-                if (this.buildings[t].type == "Beam" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 0) {
+
+                else if (this.buildings[t].type == "Beam" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 0) {
                     this.buildings[t].energyTimer = 0;
 
                     // find spore in range
@@ -1928,7 +2012,7 @@ function Building(pX, pY, pImage, pType) {
     this.operating = false;
     this.selected = false;
     this.hovered = false;
-    this.weaponTargetPosition = new Vector(0, 0);
+    this.weaponTargetPosition = null;
     this.type = pType;
     this.health = 0;
     this.maxHealth = 0;
@@ -1938,7 +2022,6 @@ function Building(pX, pY, pImage, pType) {
     this.healthRequests = 0;
     this.energyRequests = 0;
     this.requestTimer = 0;
-    this.nodeRadius = 0;
     this.weaponRadius = 0;
     this.built = false;
     this.targetAngle = 0;
@@ -2144,6 +2227,22 @@ function Building(pX, pY, pImage, pType) {
             }
             if (this.type == "Shield") {
                 engine.canvas["buffer"].context.drawImage(engine.images["forcefield"], center.x - 84 * game.zoom, center.y - 84 * game.zoom, 168 * game.zoom, 168 * game.zoom);
+            }
+            if (this.type == "Terp") {
+                var targetPosition = Helper.tiled2screen(this.weaponTargetPosition);
+                engine.canvas["buffer"].context.strokeStyle = '#f00';
+                engine.canvas["buffer"].context.lineWidth = 4;
+                engine.canvas["buffer"].context.beginPath();
+                engine.canvas["buffer"].context.moveTo(center.x, center.y);
+                engine.canvas["buffer"].context.lineTo(targetPosition.x + 8, targetPosition.y + 8);
+                engine.canvas["buffer"].context.stroke();
+
+                engine.canvas["buffer"].context.strokeStyle = '#fff';
+                engine.canvas["buffer"].context.lineWidth = 2;
+                engine.canvas["buffer"].context.beginPath();
+                engine.canvas["buffer"].context.moveTo(center.x, center.y);
+                engine.canvas["buffer"].context.lineTo(targetPosition.x + 8, targetPosition.y + 8);
+                engine.canvas["buffer"].context.stroke();
             }
         }
 
@@ -2822,8 +2921,16 @@ function onKeyDown(evt) {
 
     // select height for terraforming
     if (game.mode == game.modes.TERRAFORM) {
+
+        // remove terraform number
+        if (evt.keyCode == 46) {
+            game.world.terraform[position.x][position.y].target = -1;
+            game.world.terraform[position.x][position.y].progress = 0;
+        }
+
+        // set terraform value
         if (evt.keyCode >= 48 && evt.keyCode <= 57) {
-            game.terraformingHeight = evt.keyCode - 48;
+            game.terraformingHeight = parseInt(evt.keyCode) - 48;
             if (game.terraformingHeight == 0)
                 game.terraformingHeight = 10;
         }
@@ -2876,6 +2983,11 @@ function onClickGUI(evt) {
 
 function onClick(evt) {
     var position = game.getTilePositionScrolled();
+
+    if (game.mode == game.modes.TERRAFORM) {
+        game.world.terraform[position.x][position.y].target = game.terraformingHeight;
+        game.world.terraform[position.x][position.y].progress = 0;
+    }
 
     for (var i = 0; i < game.ships.length; i++) {
         if (game.ships[i].selected) {
@@ -3096,6 +3208,21 @@ function draw() {
     // clear canvas
     engine.canvas["buffer"].clear();
     engine.canvas["main"].clear();
+
+    // draw terraform numbers
+    for (var i = Math.floor(-40 / game.zoom); i < Math.floor(40 / game.zoom); i++) {
+        for (var j = Math.floor(-23 / game.zoom); j < Math.floor(23 / game.zoom); j++) {
+
+            var iS = i + game.scroll.x;
+            var jS = j + game.scroll.y;
+
+            if (iS > -1 && iS < game.world.size.x && jS > -1 && jS < game.world.size.y) {
+                if (game.world.terraform[iS][jS].target > -1) {
+                    engine.canvas["buffer"].context.drawImage(engine.images["numbers"], (game.world.terraform[iS][jS].target - 1) * 16, 0, game.tileSize, game.tileSize, 640 + i * game.tileSize * game.zoom, engine.halfHeight + j * game.tileSize * game.zoom, game.tileSize * game.zoom, game.tileSize * game.zoom);
+                }
+            }
+        }
+    }
 
     // draw emitters
     for (var i = 0; i < game.emitters.length; i++) {
