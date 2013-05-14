@@ -1,5 +1,5 @@
 ﻿/*!
- * Open Creeper v1.1.0
+ * Open Creeper v1.2.0
  * http://alexanderzeillinger.github.com/OpenCreeper/
  *
  * Copyright 2012, Alexander Zeillinger
@@ -134,7 +134,7 @@ var engine = {
         if (evt.pageX > this.canvas["main"].left && evt.pageX < this.canvas["main"].right && evt.pageY > this.canvas["main"].top && evt.pageY < this.canvas["main"].bottom) {
             this.mouse.x = evt.pageX - this.canvas["main"].left;
             this.mouse.y = evt.pageY - this.canvas["main"].top;
-            var position = game.getTilePositionScrolled();
+            var position = game.getHoveredTilePosition();
 
             engine.mouse.dragEnd = new Vector(position.x, position.y);
 
@@ -321,7 +321,7 @@ var game = {
      *
      * Returns the position of the tile the mouse is hovering above.
      */
-    getTilePositionScrolled: function () {
+    getHoveredTilePosition: function () {
         return new Vector(
             Math.floor((engine.mouse.x - 640) / (this.tileSize * this.zoom)) + this.scroll.x,
             Math.floor((engine.mouse.y - engine.halfHeight) / (this.tileSize * this.zoom)) + this.scroll.y);
@@ -936,6 +936,7 @@ var game = {
                         var radius = r * this.tileSize;
                         for (var i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
                             for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
+                                var tileHeight = this.getHighestTerrain(new Vector(i, j));
                                 // cannons can only shoot at tiles not higher than themselves
                                 if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y && tileHeight <= height) {
                                     var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
@@ -1428,7 +1429,7 @@ var game = {
     canBePlaced: function (position, size, building) {
         var collision = false;
 
-        //var position = this.getTilePositionScrolled();
+        //var position = this.getHoveredTilePosition();
 
         if (position.x > -1 && position.x < this.world.size.x - size + 1 && position.y > -1 && position.y < this.world.size.y - size + 1) {
             var height = this.getHighestTerrain(position);
@@ -1648,7 +1649,7 @@ var game = {
         }
     },
     drawRangeBoxes: function(position, type, radius, size) {
-        var positionScrolled = position; //this.getTilePositionScrolled();
+        var positionScrolled = position; //this.getHoveredTilePosition();
         var positionScrolledCenter = new Vector(
             positionScrolled.x * this.tileSize + (this.tileSize / 2) * size,
             positionScrolled.y * this.tileSize + (this.tileSize / 2) * size);
@@ -1838,11 +1839,11 @@ var game = {
             game.ghosts.push({position: end});
         }
         else {
-            game.ghosts.push({position: this.getTilePositionScrolled()})
+            game.ghosts.push({position: this.getHoveredTilePosition()})
         }
 
         for (var j = 0; j < game.ghosts.length; j++) {
-            var positionScrolled = new Vector(game.ghosts[j].position.x, game.ghosts[j].position.y); //this.getTilePositionScrolled();
+            var positionScrolled = new Vector(game.ghosts[j].position.x, game.ghosts[j].position.y); //this.getHoveredTilePosition();
             var drawPosition = Helper.tiled2screen(positionScrolled);
             var positionScrolledCenter = new Vector(
                 positionScrolled.x * this.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size,
@@ -1943,7 +1944,7 @@ var game = {
      */
     drawAttackSymbol: function () {
         if (this.mode == this.modes.SHIP_SELECTED) {
-            var position = Helper.tiled2screen(this.getTilePositionScrolled());
+            var position = Helper.tiled2screen(this.getHoveredTilePosition());
             engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], position.x - this.tileSize, position.y - this.tileSize);
         }
     },
@@ -1953,7 +1954,7 @@ var game = {
      * Draws the GUI with symbols, height and creep meter.
      */
     drawGUI: function () {
-        var position = game.getTilePositionScrolled();
+        var position = game.getHoveredTilePosition();
 
         engine.canvas["gui"].clear();
         for (var i = 0; i < this.symbols.length; i++) {
@@ -1971,9 +1972,9 @@ var game = {
             engine.canvas["gui"].context.strokeStyle = '#fff';
             engine.canvas["gui"].context.lineWidth = 1;
             engine.canvas["gui"].context.fillStyle = "rgba(205, 133, 63, 1)";
-            engine.canvas["gui"].context.fillRect(555, 110, 25, -this.getHighestTerrain(this.getTilePositionScrolled()) * 10 - 10);
+            engine.canvas["gui"].context.fillRect(555, 110, 25, -this.getHighestTerrain(this.getHoveredTilePosition()) * 10 - 10);
             engine.canvas["gui"].context.fillStyle = "rgba(100, 150, 255, 1)";
-            engine.canvas["gui"].context.fillRect(555, 110 - this.getHighestTerrain(this.getTilePositionScrolled()) * 10 - 10, 25, -total * 10);
+            engine.canvas["gui"].context.fillRect(555, 110 - this.getHighestTerrain(this.getHoveredTilePosition()) * 10 - 10, 25, -total * 10);
             engine.canvas["gui"].context.fillStyle = "rgba(255, 255, 255, 1)";
             for (var i = 1; i < 11; i++) {
                 engine.canvas["gui"].context.fillText(i.toString(), 550, 120 - i * 10);
@@ -2175,7 +2176,7 @@ function Building(pX, pY, pImage, pType) {
     };
     this.drawRepositionInfo = function () {
         if (this.built && this.selected && this.canMove) {
-            var positionScrolled = game.getTilePositionScrolled();
+            var positionScrolled = game.getHoveredTilePosition();
             var drawPosition = Helper.tiled2screen(positionScrolled);
             var positionScrolledCenter = new Vector(
                 positionScrolled.x * game.tileSize + (game.tileSize / 2) * this.size,
@@ -2933,7 +2934,7 @@ function onKeyDown(evt) {
     if(evt.keyCode == 40)
         game.scrolling.down = true;
 
-    var position = game.getTilePositionScrolled();
+    var position = game.getHoveredTilePosition();
 
     // lower terrain ("N")
     if (evt.keyCode == 78) {
@@ -3042,7 +3043,7 @@ function onClickGUI(evt) {
 }
 
 function onClick(evt) {
-    var position = game.getTilePositionScrolled();
+    var position = game.getHoveredTilePosition();
 
     // set terraforming target
     if (game.mode == game.modes.TERRAFORM) {
@@ -3156,7 +3157,7 @@ function onRightClick() {
 
 function onMouseDown(evt) {
     if (evt.which == 1) { // left mouse button
-        var position = game.getTilePositionScrolled();
+        var position = game.getHoveredTilePosition();
 
         if (!engine.mouse.dragStart) {
             engine.mouse.dragStart = new Vector(position.x, position.y);
@@ -3388,7 +3389,7 @@ function draw() {
         }
 
         if (game.mode == game.modes.TERRAFORM) {
-            var positionScrolled = game.getTilePositionScrolled();
+            var positionScrolled = game.getHoveredTilePosition();
             var drawPosition = Helper.tiled2screen(positionScrolled);
             engine.canvas["buffer"].context.drawImage(engine.images["numbers"], game.terraformingHeight * 16, 0, 16, 16, drawPosition.x, drawPosition.y, 16 * game.zoom, 16 * game.zoom);
 
