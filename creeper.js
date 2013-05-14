@@ -205,7 +205,7 @@ var game = {
     emitters: null,
     sporetowers: null,
     packetQueue: null,
-    terraformingHeight : 1,
+    terraformingHeight : 0,
     mode: null,
     init: function () {
         this.buildings = [];
@@ -1649,7 +1649,7 @@ var game = {
             positionScrolled.y * this.tileSize + (this.tileSize / 2) * size);
         var positionScrolledHeight = this.getHighestTerrain(positionScrolled);
 
-        if (this.canBePlaced(size) && (type == "collector" || type == "cannon" || type == "mortar" || type == "shield" || type == "beam")) {
+        if (this.canBePlaced(size) && (type == "collector" || type == "cannon" || type == "mortar" || type == "shield" || type == "beam" || type == "terp")) {
 
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .25;
@@ -1688,7 +1688,7 @@ var game = {
                                     engine.canvas["buffer"].context.fillStyle = "#f00";
                                 }
                             }
-                            if (type == "mortar" || type == "shield" || type == "beam") {
+                            if (type == "mortar" || type == "shield" || type == "beam" || type == "terp") {
                                 engine.canvas["buffer"].context.fillStyle = "#fff";
                             }
                             engine.canvas["buffer"].context.fillRect(drawPositionCurrent.x, drawPositionCurrent.y, this.tileSize * this.zoom, this.tileSize * this.zoom);
@@ -2113,7 +2113,6 @@ function Building(pX, pY, pImage, pType) {
         }
     };
     this.drawRepositionInfo = function () {
-        // only armed buildings can move
         if (this.built && this.selected && this.canMove) {
             var positionScrolled = game.getTilePositionScrolled();
             var drawPosition = Helper.tiled2screen(positionScrolled);
@@ -2226,7 +2225,7 @@ function Building(pX, pY, pImage, pType) {
                 engine.canvas["buffer"].context.stroke();
             }
             if (this.type == "Shield") {
-                engine.canvas["buffer"].context.drawImage(engine.images["forcefield"], center.x - 84 * game.zoom, center.y - 84 * game.zoom, 168 * game.zoom, 168 * game.zoom);
+                engine.canvas["buffer"].context.drawImage(engine.images["forcefield"], center.x - 168 * game.zoom, center.y - 168 * game.zoom, 336 * game.zoom, 336 * game.zoom);
             }
             if (this.type == "Terp") {
                 var targetPosition = Helper.tiled2screen(this.weaponTargetPosition);
@@ -2930,9 +2929,9 @@ function onKeyDown(evt) {
 
         // set terraform value
         if (evt.keyCode >= 48 && evt.keyCode <= 57) {
-            game.terraformingHeight = parseInt(evt.keyCode) - 48;
-            if (game.terraformingHeight == 0)
-                game.terraformingHeight = 10;
+            game.terraformingHeight = parseInt(evt.keyCode) - 49;
+            if (game.terraformingHeight == -1)
+                game.terraformingHeight = 9;
         }
 
     }
@@ -3218,7 +3217,7 @@ function draw() {
 
             if (iS > -1 && iS < game.world.size.x && jS > -1 && jS < game.world.size.y) {
                 if (game.world.terraform[iS][jS].target > -1) {
-                    engine.canvas["buffer"].context.drawImage(engine.images["numbers"], (game.world.terraform[iS][jS].target - 1) * 16, 0, game.tileSize, game.tileSize, 640 + i * game.tileSize * game.zoom, engine.halfHeight + j * game.tileSize * game.zoom, game.tileSize * game.zoom, game.tileSize * game.zoom);
+                    engine.canvas["buffer"].context.drawImage(engine.images["numbers"], game.world.terraform[iS][jS].target * 16, 0, game.tileSize, game.tileSize, 640 + i * game.tileSize * game.zoom, engine.halfHeight + j * game.tileSize * game.zoom, game.tileSize * game.zoom, game.tileSize * game.zoom);
                 }
             }
         }
@@ -3318,7 +3317,7 @@ function draw() {
         if (game.mode == game.modes.TERRAFORM) {
             var positionScrolled = game.getTilePositionScrolled();
             var drawPosition = Helper.tiled2screen(positionScrolled);
-            engine.canvas["buffer"].context.drawImage(engine.images["numbers"], (game.terraformingHeight - 1) * 16, 0, 16, 16, drawPosition.x, drawPosition.y, 16 * game.zoom, 16 * game.zoom);
+            engine.canvas["buffer"].context.drawImage(engine.images["numbers"], game.terraformingHeight * 16, 0, 16, 16, drawPosition.x, drawPosition.y, 16 * game.zoom, 16 * game.zoom);
 
             engine.canvas["buffer"].context.strokeStyle = '#fff';
             engine.canvas["buffer"].context.lineWidth = 1;
