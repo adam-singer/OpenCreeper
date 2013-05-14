@@ -54,9 +54,11 @@ var engine = {
         engine.canvas["gui"] = new Canvas($("#guiCanvas"));
 
         for (var i = 0; i < 10; i++) {
-            engine.canvas["level" + i] = new Canvas($("<canvas width='1280' height='" + height + "' style='position: absolute'>"));
-            document.getElementById('canvasContainer').appendChild(engine.canvas["level" + i].element[0]);
+            engine.canvas["level" + i] = new Canvas($("<canvas width='" + (128 * 16 + 2560) + "' height='" + (128 * 16 + 1440) + "' style='position: absolute'>"));
         }
+
+        engine.canvas["levelfinal"] = new Canvas($("<canvas width='1280' height='" + height + "' style='position: absolute'>"));
+        document.getElementById('canvasContainer').appendChild(engine.canvas["levelfinal"].element[0]);
 
         // collection
         engine.canvas["collection"] = new Canvas($("<canvas width='1280' height='" + height + "' style='position: absolute'>"));
@@ -336,25 +338,15 @@ var game = {
         }
         return height;
     },
-    getHighestCreep: function (pVector) {
-        var height = -1;
-        for (var i = 9; i > 0; i--) {
-            if (this.world.tiles[pVector.x][pVector.y][i].creep) {
-                height = i;
-                break;
-            }
-        }
-        return height;
-    },
     pause: function() {
         $('#pause').hide();
-        $('#unpause').show();
+        $('#resume').show();
         $('#paused').show();
         this.paused = true;
     },
-    unpause: function() {
+    resume: function() {
         $('#pause').show();
-        $('#unpause').hide();
+        $('#resume').hide();
         $('#paused').hide();
         this.paused = false;
     },
@@ -404,7 +396,7 @@ var game = {
         if (this.zoom < 1.4) {
             this.zoom += .2;
             this.zoom = parseFloat(this.zoom.toFixed(2));
-            this.drawTerrain();
+            this.copyTerrain();
             this.drawCollection();
             this.drawCreeper();
             this.updateZoomElement();
@@ -414,7 +406,7 @@ var game = {
         if (this.zoom > .6) {
             this.zoom -= .2;
             this.zoom = parseFloat(this.zoom.toFixed(2));
-            this.drawTerrain();
+            this.copyTerrain();
             this.drawCollection();
             this.drawCreeper();
             this.updateZoomElement();
@@ -503,7 +495,7 @@ var game = {
         this.scroll.x = randomPosition.x + 4;
         this.scroll.y = randomPosition.y + 4;
 
-        var building = new Building(randomPosition.x, randomPosition.y, "base", "Base");
+        var building = new Building(randomPosition.x, randomPosition.y, "base");
         building.health = 40;
         building.maxHealth = 40;
         building.built = true;
@@ -561,11 +553,11 @@ var game = {
         }
 
     },
-    addBuilding: function (x, y, type, name) {
-        var building = new Building(x, y, type, name);
+    addBuilding: function (x, y, type) {
+        var building = new Building(x, y, type);
         building.health = 0;
 
-        if (building.type == "Terp") {
+        if (building.imageID == "terp") {
             building.maxHealth = 5; //60
             building.maxEnergy = 20;
             building.energy = 0;
@@ -574,7 +566,7 @@ var game = {
             building.needsEnergy = true;
             building.weaponRadius = 12;
         }
-        if (building.type == "Shield") {
+        if (building.imageID == "shield") {
             building.maxHealth = 5; //75
             building.maxEnergy = 20;
             building.energy = 0;
@@ -582,30 +574,30 @@ var game = {
             building.canMove = true;
             building.needsEnergy = true;
         }
-        if (building.type == "Bomber") {
+        if (building.imageID == "bomber") {
             building.maxHealth = 5; // 75
             building.maxEnergy = 15;
             building.energy = 0;
             building.size = 3;
             building.needsEnergy = true;
         }
-        if (building.type == "Storage") {
+        if (building.imageID == "storage") {
             building.maxHealth = 8;
             building.size = 3;
         }
-        if (building.type == "Reactor") {
+        if (building.imageID == "reactor") {
             building.maxHealth = 50;
             building.size = 3;
         }
-        if (building.type == "Collector") {
+        if (building.imageID == "collector") {
             building.maxHealth = 5;
             building.size = 3;
         }
-        if (building.type == "Relay") {
+        if (building.imageID == "relay") {
             building.maxHealth = 10;
             building.size = 3;
         }
-        if (building.type == "Cannon") {
+        if (building.imageID == "cannon") {
             building.maxHealth = 25;
             building.maxEnergy = 40;
             building.energy = 0;
@@ -614,7 +606,7 @@ var game = {
             building.needsEnergy = true;
             building.size = 3;
         }
-        if (building.type == "Mortar") {
+        if (building.imageID == "mortar") {
             building.maxHealth = 40;
             building.maxEnergy = 20;
             building.energy = 0;
@@ -623,7 +615,7 @@ var game = {
             building.needsEnergy = true;
             building.size = 3;
         }
-        if (building.type == "Beam") {
+        if (building.imageID == "beam") {
             building.maxHealth = 20;
             building.maxEnergy = 10;
             building.energy = 0;
@@ -643,18 +635,18 @@ var game = {
             engine.playSound("explosion");
         }
 
-        if (building.type == "Base") {
+        if (building.imageID == "base") {
             $('#lose').toggle();
             this.stop();
         }
-        if (building.type == "Collector") {
+        if (building.imageID == "collector") {
             this.updateCollection(building, "remove");
         }
-        if (building.type == "Storage") {
+        if (building.imageID == "storage") {
             this.maxEnergy -= 10;
             this.updateEnergyElement();
         }
-        if (building.type == "Speed") {
+        if (building.imageID == "speed") {
             this.packetSpeed /= 1.01;
         }
 
@@ -705,17 +697,17 @@ var game = {
         $("#mainCanvas").css('cursor', 'default');
     },
     setupUI: function () {
-        this.symbols.push(new UISymbol(0 * 81, 0, "cannon", "Q", 3, 25, 8));
-        this.symbols.push(new UISymbol(1 * 81, 0, "collector", "W", 3, 5, 6));
-        this.symbols.push(new UISymbol(2 * 81, 0, "reactor", "E", 3, 50, 0));
-        this.symbols.push(new UISymbol(3 * 81, 0, "storage", "R", 3, 8, 0));
-        this.symbols.push(new UISymbol(4 * 81, 0, "shield", "T", 3, 50, 10));
+        this.symbols.push(new UISymbol(new Vector(     0, 0), "cannon", "Q", 3, 25, 8));
+        this.symbols.push(new UISymbol(new Vector(    81, 0), "collector", "W", 3, 5, 6));
+        this.symbols.push(new UISymbol(new Vector(2 * 81, 0), "reactor", "E", 3, 50, 0));
+        this.symbols.push(new UISymbol(new Vector(3 * 81, 0), "storage", "R", 3, 8, 0));
+        this.symbols.push(new UISymbol(new Vector(4 * 81, 0), "shield", "T", 3, 50, 10));
 
-        this.symbols.push(new UISymbol(0 * 81, 56, "relay", "A", 3, 10, 8));
-        this.symbols.push(new UISymbol(1 * 81, 56, "mortar", "S", 3, 40, 12));
-        this.symbols.push(new UISymbol(2 * 81, 56, "beam", "D", 3, 20, 12));
-        this.symbols.push(new UISymbol(3 * 81, 56, "bomber", "F", 3, 75, 0));
-        this.symbols.push(new UISymbol(4 * 81, 56, "terp", "G", 3, 60, 12));
+        this.symbols.push(new UISymbol(new Vector(     0, 56), "relay", "A", 3, 10, 8));
+        this.symbols.push(new UISymbol(new Vector(    81, 56), "mortar", "S", 3, 40, 12));
+        this.symbols.push(new UISymbol(new Vector(2 * 81, 56), "beam", "D", 3, 20, 12));
+        this.symbols.push(new UISymbol(new Vector(3 * 81, 56), "bomber", "F", 3, 75, 0));
+        this.symbols.push(new UISymbol(new Vector(4 * 81, 56), "terp", "G", 3, 60, 12));
     },
     /**
      * @author Alexander Zeillinger
@@ -728,11 +720,11 @@ var game = {
         }
 
         // 1st pass - draw masks
-        for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
-            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(23 / this.zoom); j++) {
+        for (var i = 0; i < this.world.size.x; i++) {
+            for (var j = 0; j < this.world.size.y; j++) {
 
-                var iS = i + this.scroll.x;
-                var jS = j + this.scroll.y;
+                var iS = i;
+                var jS = j;
 
                 if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
 
@@ -760,7 +752,7 @@ var game = {
                                     right = 1;
 
                                 // save index for later use
-                                this.world.tiles[iS][jS][k].index = (8 * down) + (4 * left) + (2 * up) + right;;
+                                this.world.tiles[iS][jS][k].index = (8 * down) + (4 * left) + (2 * up) + right;
                             }
 
                             var index = this.world.tiles[iS][jS][k].index;
@@ -769,7 +761,7 @@ var game = {
                             if (k + 1 < 10 && index == this.world.tiles[iS][jS][k + 1].index)
                                 continue;
 
-                            engine.canvas["level" + k].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                            engine.canvas["level" + k].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 1280 + i * this.tileSize, 720 + j * this.tileSize, this.tileSize, this.tileSize);
 
                             // don't draw anymore under tiles that don't have transparent parts
                             if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
@@ -782,36 +774,36 @@ var game = {
 
         // 2nd pass - draw textures
         for (var i = 0; i < 10; i++) {
-            var tempCanvas = document.createElement('canvas');
-            tempCanvas.width = Math.floor(256 * this.zoom);
-            tempCanvas.height = Math.floor(256 * this.zoom);
-            var ctx = tempCanvas.getContext('2d');
+            //var tempCanvas = document.createElement('canvas');
+            //tempCanvas.width = Math.floor(256 * 1);
+            //tempCanvas.height = Math.floor(256 * 1);
+            //var ctx = tempCanvas.getContext('2d');
 
-            ctx.drawImage(engine.images["level" + i], 0, 0, Math.floor(256 * this.zoom), Math.floor(256 * this.zoom));
-            var pattern = engine.canvas["level" + i].context.createPattern(tempCanvas, 'repeat');
+            //ctx.drawImage(engine.images["level" + i], 0, 0, Math.floor(256 * 1), Math.floor(256 * 1));
+            var pattern = engine.canvas["level" + i].context.createPattern(engine.images["level" + i], 'repeat');
 
             engine.canvas["level" + i].context.globalCompositeOperation = 'source-in';
             engine.canvas["level" + i].context.fillStyle = pattern;
 
-            engine.canvas["level" + i].context.save();
-            var translation = new Vector(
-                 -640 + Math.floor(this.tileSize * this.zoom) + Math.floor(this.scroll.x * this.tileSize * this.zoom),
-                 -engine.halfHeight + Math.floor(this.tileSize * this.zoom) + Math.floor(this.scroll.y * this.tileSize * this.zoom));
-            engine.canvas["level" + i].context.translate(-translation.x, -translation.y);
+            //engine.canvas["level" + i].context.save();
+            //var translation = new Vector(
+            //     -engine.canvas["level" + i].element[0].width / 2 + Math.floor(this.tileSize * 1) + Math.floor(this.scroll.x * this.tileSize * 1),
+            //     -engine.canvas["level" + i].element[0].height / 2 + Math.floor(this.tileSize * 1) + Math.floor(this.scroll.y * this.tileSize * 1));
+            //engine.canvas["level" + i].context.translate(-translation.x, -translation.y);
 
             //engine.canvas["level" + i].context.fill();
-            engine.canvas["level" + i].context.fillRect(translation.x, translation.y, engine.canvas["level" + i].element[0].width, engine.canvas["level" + i].element[0].height);
-            engine.canvas["level" + i].context.restore();
+            engine.canvas["level" + i].context.fillRect(0, 0, engine.canvas["level" + i].element[0].width, engine.canvas["level" + i].element[0].height);
+            //engine.canvas["level" + i].context.restore();
 
             engine.canvas["level" + i].context.globalCompositeOperation = 'source-over';
         }
 
         // 3rd pass - draw borders
-        for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
-            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(23 / this.zoom); j++) {
+        for (var i = 0; i < this.world.size.x; i++) {
+            for (var j = 0; j < this.world.size.y; j++) {
 
-                var iS = i + this.scroll.x;
-                var jS = j + this.scroll.y;
+                var iS = i;
+                var jS = j;
 
                 if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
 
@@ -823,7 +815,7 @@ var game = {
                             if (k + 1 < 10 && index == this.world.tiles[iS][jS][k + 1].index)
                                 continue;
 
-                            engine.canvas["level" + k].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, (this.tileSize +2 ) * this.zoom, (this.tileSize +2 ) * this.zoom);
+                            engine.canvas["level" + k].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, 1280 + i * this.tileSize, 720 + j * this.tileSize, (this.tileSize + 2), (this.tileSize + 2));
 
                             if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
                                 break;
@@ -832,7 +824,12 @@ var game = {
                 }
             }
         }
-
+    },
+    copyTerrain: function() {
+        engine.canvas["levelfinal"].clear();
+        for (var k = 0; k < 10; k++) {
+            engine.canvas["levelfinal"].context.drawImage(engine.canvas["level" + k].element[0], 1280 + this.scroll.x * this.tileSize - 40 * this.tileSize * (1 / this.zoom), 720 + this.scroll.y * this.tileSize - 23 * this.tileSize * (1 / this.zoom), 80 * this.tileSize * (1 / this.zoom), 46 * this.tileSize * (1 / this.zoom), 0, 0, 1280, 720); // copy from buffer to context
+        }
     },
     checkOperating: function () {
         for (var t = 0; t < this.buildings.length; t++) {
@@ -842,7 +839,7 @@ var game = {
                 this.buildings[t].energyTimer++;
                 var center = this.buildings[t].getCenter();
 
-                if (this.buildings[t].type == "Terp" && this.buildings[t].energy > 0) {
+                if (this.buildings[t].imageID == "terp" && this.buildings[t].energy > 0) {
                     // find lowest target
                     if (this.buildings[t].weaponTargetPosition == null) {
 
@@ -855,12 +852,15 @@ var game = {
                         var lowestTile = 10;
                         for (var i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
                             for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
-                                var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
-                                var tileHeight = this.getHighestTerrain(new Vector(i, j));
 
-                                if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.terraform[i][j].target > -1 && tileHeight <= lowestTile) {
-                                    lowestTile = tileHeight;
-                                    target = new Vector(i, j);
+                                if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y) {
+                                    var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
+                                    var tileHeight = this.getHighestTerrain(new Vector(i, j));
+
+                                    if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.terraform[i][j].target > -1 && tileHeight <= lowestTile) {
+                                        lowestTile = tileHeight;
+                                        target = new Vector(i, j);
+                                    }
                                 }
                             }
                         }
@@ -901,7 +901,8 @@ var game = {
                                 }
                             }
 
-                            this.drawTerrain();
+                            this.drawTerrain(); // TODO: only redraw the parts that have changed
+                            this.copyTerrain();
 
                             height = this.getHighestTerrain(this.buildings[t].weaponTargetPosition);
                             if (height == terraformElement.target) {
@@ -915,7 +916,7 @@ var game = {
                     }
                 }
 
-                else if (this.buildings[t].type == "Shield" && this.buildings[t].energy > 0) {
+                else if (this.buildings[t].imageID == "shield" && this.buildings[t].energy > 0) {
                     if (this.buildings[t].energyTimer > 20) {
                         this.buildings[t].energyTimer = 0;
                         this.buildings[t].energy -= 1;
@@ -923,7 +924,7 @@ var game = {
                     this.buildings[t].operating = true;
                 }
 
-                else if (this.buildings[t].type == "Cannon" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 10) {
+                else if (this.buildings[t].imageID == "cannon" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 10) {
                     this.buildings[t].energyTimer = 0;
 
                     var x = this.buildings[t].x;
@@ -936,13 +937,16 @@ var game = {
                         var radius = r * this.tileSize;
                         for (var i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
                             for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
-                                var tileHeight = this.getHighestTerrain(new Vector(i, j));
-                                // cannons can only shoot at tiles not higher than themselves
-                                if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y && tileHeight <= height) {
-                                    var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
 
-                                    if (distance <= Math.pow(radius, 2) && this.world.tiles[i][j][0].creep > 0) {
-                                        targets.push(new Vector(i, j));
+                                // cannons can only shoot at tiles not higher than themselves
+                                if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y) {
+                                    var tileHeight = this.getHighestTerrain(new Vector(i, j));
+                                    if (tileHeight <= height) {
+                                        var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
+
+                                        if (distance <= Math.pow(radius, 2) && this.world.tiles[i][j][0].creep > 0) {
+                                            targets.push(new Vector(i, j));
+                                        }
                                     }
                                 }
                             }
@@ -966,7 +970,7 @@ var game = {
                     }
                 }
 
-                else if (this.buildings[t].type == "Mortar" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 200) {
+                else if (this.buildings[t].imageID == "mortar" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 200) {
                     this.buildings[t].energyTimer = 0;
 
                     // get building x and building y
@@ -995,7 +999,7 @@ var game = {
                     }
                 }
 
-                else if (this.buildings[t].type == "Beam" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 0) {
+                else if (this.buildings[t].imageID == "beam" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 0) {
                     this.buildings[t].energyTimer = 0;
 
                     // find spore in range
@@ -1052,7 +1056,7 @@ var game = {
                         }
 
                         for (var k = 0; k < this.buildings.length; k++) {
-                            if (this.buildings[k] != building && this.buildings[k].type == "Collector") {
+                            if (this.buildings[k] != building && this.buildings[k].imageID == "collector") {
                                 var heightK = this.getHighestTerrain(new Vector(this.buildings[k].x, this.buildings[k].y));
                                 var centerBuildingK = this.buildings[k].getCenter();
                                 if (Math.pow(positionCurrentCenter.x - centerBuildingK.x, 2) + Math.pow(positionCurrentCenter.y - centerBuildingK.y, 2) < Math.pow(this.tileSize * 6, 2)) {
@@ -1089,7 +1093,7 @@ var game = {
         this.collection = parseInt(this.collection * .1);
 
         for (var t = 0; t < this.buildings.length; t++) {
-            if (this.buildings[t].type == "Reactor" || this.buildings[t].type == "Base") {
+            if (this.buildings[t].imageID == "reactor" || this.buildings[t].imageID == "base") {
                 this.collection += 1;
             }
         }
@@ -1206,7 +1210,7 @@ var game = {
             } else {
                 // if the node is not the target AND built it is a valid neighbour
                 // also the neighbour must not be moving
-                if (!this.buildings[i].moving && this.buildings[i].type != "Base") {
+                if (!this.buildings[i].moving && this.buildings[i].imageID != "base") {
                      if (this.buildings[i] != target) {
                           if (this.buildings[i].built) {
                               centerI = this.buildings[i].getCenter();
@@ -1214,7 +1218,7 @@ var game = {
                               var distance = Helper.distance(centerI, centerNode);
 
                               var allowedDistance = 10 * this.tileSize;
-                              if (node.type == "Relay" && this.buildings[i].type == "Relay") {
+                              if (node.imageID == "relay" && this.buildings[i].imageID == "relay") {
                                   allowedDistance = 20 * this.tileSize;
                               }
                               if (distance <= allowedDistance) {
@@ -1229,7 +1233,7 @@ var game = {
                          var distance = Helper.distance(centerI, centerNode);
 
                          var allowedDistance = 10 * this.tileSize;
-                         if (node.type == "Relay" && this.buildings[i].type == "Relay") {
+                         if (node.imageID == "relay" && this.buildings[i].imageID == "relay") {
                              allowedDistance = 20 * this.tileSize;
                          }
                          if (distance <= allowedDistance) {
@@ -1310,7 +1314,7 @@ var game = {
                     var newRoute = new Route();
 
                     // copy current list of nodes from old route to new route
-                    newRoute.nodes = oldRoute.nodes.clone();
+                    newRoute.nodes = Helper.clone(oldRoute.nodes);
 
                     // add the new node to the new route
                     newRoute.nodes.push(neighbours[i]);
@@ -1372,7 +1376,7 @@ var game = {
             //packet.currentTarget = routes[0].nodes[1];
 
             // adjust speed if packet is travelling between relays
-            if (routes[0].nodes[1].type == "Relay") {
+            if (routes[0].nodes[1].imageID == "relay") {
                 packet.speedMultiplier = 2;
             }
             else {
@@ -1382,11 +1386,11 @@ var game = {
             return routes[0].nodes[1];
         }
         else {
-            if (packet.type == "Energy")
+            if (packet.type == "energy")
                 packet.target.energyRequests -= 4;
             if (packet.target.energyRequests < 0)
                 packet.target.energyRequests = 0;
-            if (packet.type == "Health")
+            if (packet.type == "health")
                 packet.target.healthRequests--;
             if (packet.target.healthRequests < 0)
                 packet.target.healthRequests = 0;
@@ -1395,19 +1399,15 @@ var game = {
         }
     },
     queuePacket: function (building, type) {
-        var img;
-        if (type == "Energy")
-            img = "packet_energy";
-        if (type == "Health")
-            img = "packet_health";
+        var img = "packet_" + type;
         var center = game.base.getCenter();
-        var packet = new Packet(center.x, center.y, img, type);
+        var packet = new Packet(center, img, type);
         packet.target = building;
         packet.currentTarget = game.base;
         if (this.findRoute(packet) != null) {
-            if (packet.type == "Health")
+            if (packet.type == "health")
                 packet.target.healthRequests++;
-            if (packet.type == "Energy")
+            if (packet.type == "energy")
                 packet.target.energyRequests += 4;
             this.packetQueue.push(packet);
         }
@@ -1519,11 +1519,11 @@ var game = {
             if (this.buildings[i].active && !this.buildings[i].moving) {
                 this.buildings[i].requestTimer++;
                 // request health
-                if (this.buildings[i].type != "Base") {
+                if (this.buildings[i].imageID != "base") {
                     var healthAndRequestDelta = this.buildings[i].maxHealth - this.buildings[i].health - this.buildings[i].healthRequests;
                     if (healthAndRequestDelta > 0 && this.buildings[i].requestTimer > 50) {
                         this.buildings[i].requestTimer = 0;
-                        this.queuePacket(this.buildings[i], "Health");
+                        this.queuePacket(this.buildings[i], "health");
                     }
                 }
                 // request energy
@@ -1531,7 +1531,7 @@ var game = {
                     var energyAndRequestDelta = this.buildings[i].maxEnergy - this.buildings[i].energy - this.buildings[i].energyRequests;
                     if (energyAndRequestDelta > 0 && this.buildings[i].requestTimer > 50) {
                         this.buildings[i].requestTimer = 0;
-                        this.queuePacket(this.buildings[i], "Energy");
+                        this.queuePacket(this.buildings[i], "energy");
                     }
                 }
             }
@@ -1643,17 +1643,16 @@ var game = {
         }
 
         if (this.scrolling.left || this.scrolling.right || this.scrolling.up || this.scrolling.down) {
-            this.drawTerrain();
+            this.copyTerrain();
             this.drawCollection();
             this.drawCreeper();
         }
     },
     drawRangeBoxes: function(position, type, radius, size) {
-        var positionScrolled = position; //this.getHoveredTilePosition();
-        var positionScrolledCenter = new Vector(
-            positionScrolled.x * this.tileSize + (this.tileSize / 2) * size,
-            positionScrolled.y * this.tileSize + (this.tileSize / 2) * size);
-        var positionScrolledHeight = this.getHighestTerrain(positionScrolled);
+        var positionCenter = new Vector(
+            position.x * this.tileSize + (this.tileSize / 2) * size,
+            position.y * this.tileSize + (this.tileSize / 2) * size);
+        var positionHeight = this.getHighestTerrain(position);
 
         if (this.canBePlaced(position, size) && (type == "collector" || type == "cannon" || type == "mortar" || type == "shield" || type == "beam" || type == "terp")) {
 
@@ -1666,8 +1665,8 @@ var game = {
                 for (var j = -radius; j < radius; j++) {
 
                     var positionCurrent = new Vector(
-                        positionScrolled.x + i,
-                        positionScrolled.y + j);
+                        position.x + i,
+                        position.y + j);
                     var positionCurrentCenter = new Vector(
                         positionCurrent.x * this.tileSize + (this.tileSize / 2),
                         positionCurrent.y * this.tileSize + (this.tileSize / 2));
@@ -1677,9 +1676,9 @@ var game = {
                     if (positionCurrent.x > -1 && positionCurrent.x < this.world.size.x && positionCurrent.y > -1 && positionCurrent.y < this.world.size.y) {
                         var positionCurrentHeight = this.getHighestTerrain(positionCurrent);
 
-                        if (Math.pow(positionCurrentCenter.x - positionScrolledCenter.x, 2) + Math.pow(positionCurrentCenter.y - positionScrolledCenter.y, 2) < Math.pow(radius, 2)) {
+                        if (Math.pow(positionCurrentCenter.x - positionCenter.x, 2) + Math.pow(positionCurrentCenter.y - positionCenter.y, 2) < Math.pow(radius, 2)) {
                             if (type == "collector") {
-                                if (positionCurrentHeight == positionScrolledHeight) {
+                                if (positionCurrentHeight == positionHeight) {
                                     engine.canvas["buffer"].context.fillStyle = "#fff";
                                 }
                                 else {
@@ -1687,7 +1686,7 @@ var game = {
                                 }
                             }
                             if (type == "cannon") {
-                                if (positionCurrentHeight <= positionScrolledHeight) {
+                                if (positionCurrentHeight <= positionHeight) {
                                     engine.canvas["buffer"].context.fillStyle = "#fff";
                                 }
                                 else {
@@ -1839,7 +1838,8 @@ var game = {
             game.ghosts.push({position: end});
         }
         else {
-            game.ghosts.push({position: this.getHoveredTilePosition()})
+            if (engine.mouse.active)
+                game.ghosts.push({position: this.getHoveredTilePosition()})
         }
 
         for (var j = 0; j < game.ghosts.length; j++) {
@@ -1881,7 +1881,7 @@ var game = {
                     var drawCenter = Helper.real2screen(center);
 
                     var allowedDistance = 10 * this.tileSize;
-                    if (this.buildings[i].type == "Relay" && this.symbols[this.activeSymbol].imageID == "relay") {
+                    if (this.buildings[i].imageID == "relay" && this.symbols[this.activeSymbol].imageID == "relay") {
                         allowedDistance = 20 * this.tileSize;
                     }
 
@@ -1961,7 +1961,7 @@ var game = {
             this.symbols[i].draw(engine.canvas["gui"].context);
         }
 
-        if (position.x > 0 && position.x < this.world.size.x && position.y > 0 && position.y < this.world.size.y) {
+        if (position.x > -1 && position.x < this.world.size.x && position.y > -1 && position.y < this.world.size.y) {
 
             var total = this.world.tiles[position.x][position.y][0].creep;
 
@@ -1994,22 +1994,10 @@ var game = {
 /**
  * @author Alexander Zeillinger
  *
- * Generic game object
- */
-function GameObject(pX, pY, pImage) {
-    this.x = pX;
-    this.y = pY;
-    this.imageID = pImage;
-}
-
-/**
- * @author Alexander Zeillinger
- *
  * Building symbols in the GUI
  */
-function UISymbol(pX, pY, pImage, pKey, pSize, pPackets, pRadius) {
-    this.x = pX;
-    this.y = pY;
+function UISymbol(pPosition, pImage, pKey, pSize, pPackets, pRadius) {
+    this.position = pPosition;
     this.imageID = pImage;
     this.key = pKey;
     this.active = false;
@@ -2031,33 +2019,30 @@ function UISymbol(pX, pY, pImage, pKey, pSize, pPackets, pRadius) {
                 pContext.fillStyle = "#454";
             }
         }
-        pContext.fillRect(this.x + 1, this.y + 1, this.width, this.height);
+        pContext.fillRect(this.position.x + 1, this.position.y + 1, this.width, this.height);
 
-        pContext.drawImage(engine.images[this.imageID], this.x + 24, this.y + 20, 32, 32); // scale buildings to 32x32
+        pContext.drawImage(engine.images[this.imageID], this.position.x + 24, this.position.y + 20, 32, 32); // scale buildings to 32x32
         // draw cannon gun and ships
         if (this.imageID == "cannon")
-            pContext.drawImage(engine.images["cannongun"], this.x + 24, this.y + 20, 32, 32);
+            pContext.drawImage(engine.images["cannongun"], this.position.x + 24, this.position.y + 20, 32, 32);
         if (this.imageID == "bomber")
-            pContext.drawImage(engine.images["bombership"], this.x + 24, this.y + 20, 32, 32);
+            pContext.drawImage(engine.images["bombership"], this.position.x + 24, this.position.y + 20, 32, 32);
         pContext.fillStyle = '#fff';
         pContext.font = '10px';
         pContext.textAlign = 'center';
-        pContext.fillText(this.imageID.substring(0, 1).toUpperCase() + this.imageID.substring(1), this.x + (this.width / 2), this.y + 15);
+        pContext.fillText(this.imageID.substring(0, 1).toUpperCase() + this.imageID.substring(1), this.position.x + (this.width / 2), this.position.y + 15);
         pContext.textAlign = 'left';
-        pContext.fillText("(" + this.key + ")", this.x + 5, this.y + 50);
+        pContext.fillText("(" + this.key + ")", this.position.x + 5, this.position.y + 50);
         pContext.textAlign = 'right';
-        pContext.fillText(this.packets, this.x + this.width - 5, this.y + 50);
-        //pContext.fillText(this.size + "x" + this.size, this.x + (this.width / 2), this.y + 60);
-
+        pContext.fillText(this.packets, this.position.x + this.width - 5, this.position.y + 50);
     };
     this.checkHovered = function () {
-        this.hovered = false;
-        this.hovered = (engine.mouseGUI.x > this.x && engine.mouseGUI.x < this.x + this.width && engine.mouseGUI.y > this.y && engine.mouseGUI.y < this.y + this.height);
+        this.hovered = (engine.mouseGUI.x > this.position.x && engine.mouseGUI.x < this.position.x + this.width && engine.mouseGUI.y > this.position.y && engine.mouseGUI.y < this.position.y + this.height);
     };
     this.setActive = function () {
         this.active = false;
-        if (engine.mouseGUI.x > this.x && engine.mouseGUI.x < this.x + this.width && engine.mouseGUI.y > this.y && engine.mouseGUI.y < this.y + this.height) {
-            game.activeSymbol = Math.floor(this.x / 81) + (Math.floor(this.y / 56)) * 5;
+        if (engine.mouseGUI.x > this.position.x && engine.mouseGUI.x < this.position.x + this.width && engine.mouseGUI.y > this.position.y && engine.mouseGUI.y < this.position.y + this.height) {
+            game.activeSymbol = Math.floor(this.position.x / 81) + (Math.floor(this.position.y / 56)) * 5;
             this.active = true;
         }
     };
@@ -2068,14 +2053,14 @@ function UISymbol(pX, pY, pImage, pKey, pSize, pPackets, pRadius) {
  *
  * Buildings
  */
-function Building(pX, pY, pImage, pType) {
-    this.base = GameObject;
-    this.base(pX, pY, pImage);
+function Building(pX, pY, pImage) {
+    this.x = pX;
+    this.y = pY;
+    this.imageID = pImage;
     this.operating = false;
     this.selected = false;
     this.hovered = false;
     this.weaponTargetPosition = null;
-    this.type = pType;
     this.health = 0;
     this.maxHealth = 0;
     this.energy = 0;
@@ -2203,7 +2188,7 @@ function Building(pX, pY, pImage, pType) {
         }
     };
     this.shield = function () {
-        if (this.built && this.type == "Shield" && !this.moving) {
+        if (this.built && this.imageID == "shield" && !this.moving) {
             var center = this.getCenter();
 
             for (var i = this.x - 9; i < this.x + 10; i++) {
@@ -2232,14 +2217,14 @@ function Building(pX, pY, pImage, pType) {
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .5;
             engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
-            if (this.type == "Cannon") {
+            if (this.imageID == "cannon") {
                 engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
             }
             engine.canvas["buffer"].context.restore();
         }
         else {
             engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
-            if (this.type == "Cannon") {
+            if (this.imageID == "cannon") {
                 engine.canvas["buffer"].context.save();
                 engine.canvas["buffer"].context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);
                 engine.canvas["buffer"].context.rotate(this.targetAngle);
@@ -2262,7 +2247,7 @@ function Building(pX, pY, pImage, pType) {
 
         // draw shots
         if (this.operating) {
-            if (this.type == "Cannon") {
+            if (this.imageID == "cannon") {
                 var targetPosition = Helper.tiled2screen(this.weaponTargetPosition);
                 engine.canvas["buffer"].context.strokeStyle = "#f00";
                 engine.canvas["buffer"].context.beginPath();
@@ -2270,7 +2255,7 @@ function Building(pX, pY, pImage, pType) {
                 engine.canvas["buffer"].context.lineTo(targetPosition.x, targetPosition.y);
                 engine.canvas["buffer"].context.stroke();
             }
-            if (this.type == "Beam") {
+            if (this.imageID == "beam") {
                 var targetPosition = Helper.real2screen(this.weaponTargetPosition);
                 engine.canvas["buffer"].context.strokeStyle = '#f00';
                 engine.canvas["buffer"].context.lineWidth = 4;
@@ -2286,10 +2271,10 @@ function Building(pX, pY, pImage, pType) {
                 engine.canvas["buffer"].context.lineTo(targetPosition.x, targetPosition.y);
                 engine.canvas["buffer"].context.stroke();
             }
-            if (this.type == "Shield") {
+            if (this.imageID == "shield") {
                 engine.canvas["buffer"].context.drawImage(engine.images["forcefield"], center.x - 168 * game.zoom, center.y - 168 * game.zoom, 336 * game.zoom, 336 * game.zoom);
             }
-            if (this.type == "Terp") {
+            if (this.imageID == "terp") {
                 var targetPosition = Helper.tiled2screen(this.weaponTargetPosition);
                 engine.canvas["buffer"].context.strokeStyle = '#f00';
                 engine.canvas["buffer"].context.lineWidth = 4;
@@ -2324,17 +2309,15 @@ function Building(pX, pY, pImage, pType) {
         }
     };
 }
-Building.prototype = new GameObject;
-Building.prototype.constructor = Building;
 
 /**
  * @author Alexander Zeillinger
  *
  * Packets
  */
-function Packet(pX, pY, pImage, pType) {
-    this.base = GameObject;
-    this.base(pX, pY, pImage);
+function Packet(pPosition, pImage, pType) {
+    this.position = pPosition;
+    this.imageID = pImage;
     this.speed = new Vector(0, 0);
     this.target = null;
     this.currentTarget = null;
@@ -2344,30 +2327,30 @@ function Packet(pX, pY, pImage, pType) {
     this.move = function () {
         this.calculateVector();
 
-        this.x += this.speed.x;
-        this.y += this.speed.y;
+        this.position.x += this.speed.x;
+        this.position.y += this.speed.y;
 
         var centerTarget = this.currentTarget.getCenter();
-        if (this.x > centerTarget.x - 1 && this.x < centerTarget.x + 1 && this.y > centerTarget.y - 1 && this.y < centerTarget.y + 1) {
+        if (this.position.x > centerTarget.x - 1 && this.position.x < centerTarget.x + 1 && this.position.y > centerTarget.y - 1 && this.position.y < centerTarget.y + 1) {
             // if the final node was reached deliver and remove
             if (this.currentTarget == this.target) {
                 //console.log("target node reached!");
                 this.remove = true;
                 // deliver package
-                if (this.type == "Health") {
+                if (this.type == "health") {
                     this.target.health += 1;
                     this.target.healthRequests--;
                     if (this.target.health >= this.target.maxHealth) {
                         this.target.health = this.target.maxHealth;
                         if (!this.target.built) {
                             this.target.built = true;
-                            if (this.target.type == "Collector")
+                            if (this.target.imageID == "collector")
                                 game.updateCollection(this.target, "add");
-                            if (this.target.type == "Storage")
+                            if (this.target.imageID == "storage")
                                 game.maxEnergy += 20;
-                            if (this.target.type == "Speed")
+                            if (this.target.imageID == "speed")
                                 game.packetSpeed *= 1.01;
-                            if (this.target.type == "Bomber") {
+                            if (this.target.imageID == "bomber") {
                                 var ship = new Ship(this.target.x * game.tileSize, this.target.y * game.tileSize, "bombership", "Bomber", this.target);
                                 this.target.ship = ship;
                                 game.ships.push(ship);
@@ -2375,7 +2358,7 @@ function Packet(pX, pY, pImage, pType) {
                         }
                     }
                 }
-                if (this.type == "Energy") {
+                if (this.type == "energy") {
                     this.target.energy += 4;
                     this.target.energyRequests -= 4;
                     if (this.target.energy > this.target.maxEnergy)
@@ -2391,9 +2374,8 @@ function Packet(pX, pY, pImage, pType) {
     };
     this.calculateVector = function () {
         var targetPosition = this.currentTarget.getCenter();
-        var ownPosition = new Vector(this.x, this.y);
-        var delta = new Vector(targetPosition.x - ownPosition.x, targetPosition.y - ownPosition.y);
-        var distance = Helper.distance(targetPosition, ownPosition);
+        var delta = new Vector(targetPosition.x - this.position.x, targetPosition.y - this.position.y);
+        var distance = Helper.distance(targetPosition, this.position);
 
         this.speed.x = (delta.x / distance) * game.packetSpeed * game.speed * this.speedMultiplier;
         this.speed.y = (delta.y / distance) * game.packetSpeed * game.speed * this.speedMultiplier;
@@ -2404,12 +2386,10 @@ function Packet(pX, pY, pImage, pType) {
             this.speed.y = delta.y;
     };
     this.draw = function () {
-        var position = Helper.real2screen(new Vector(this.x, this.y));
+        var position = Helper.real2screen(this.position);
         engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x - 8 * game.zoom, position.y - 8 * game.zoom, 16 * game.zoom, 16 * game.zoom);
     }
 }
-Packet.prototype = new GameObject;
-Packet.prototype.constructor = Packet;
 
 /**
  * @author Alexander Zeillinger
@@ -2417,8 +2397,9 @@ Packet.prototype.constructor = Packet;
  * Shells (fired by Mortars)
  */
 function Shell(pX, pY, pImage, pTX, pTY) {
-    this.base = GameObject;
-    this.base(pX, pY, pImage);
+    this.x = pX;
+    this.y = pY;
+    this.imageID = pImage;
     this.speed = new Vector(0, 0);
     this.tx = pTX;
     this.ty = pTY;
@@ -2483,8 +2464,6 @@ function Shell(pX, pY, pImage, pTX, pTY) {
         engine.canvas["buffer"].context.restore();
     };
 }
-Shell.prototype = new GameObject;
-Shell.prototype.constructor = Shell;
 
 /**
  * @author Alexander Zeillinger
@@ -2492,8 +2471,9 @@ Shell.prototype.constructor = Shell;
  * Spore (fired by Sporetower)
  */
 function Spore(pX, pY, pImage, pTX, pTY) {
-    this.base = GameObject;
-    this.base(pX, pY, pImage);
+    this.x = pX;
+    this.y = pY;
+    this.imageID = pImage;
     this.speed = new Vector(0, 0);
     this.tx = pTX;
     this.ty = pTY;
@@ -2552,8 +2532,6 @@ function Spore(pX, pY, pImage, pTX, pTY) {
         engine.canvas["buffer"].context.restore();
     };
 }
-Spore.prototype = new GameObject;
-Spore.prototype.constructor = Spore;
 
 /**
  * @author Alexander Zeillinger
@@ -2561,8 +2539,9 @@ Spore.prototype.constructor = Spore;
  * Ships (Bomber)
  */
 function Ship(pX, pY, pImage, pType, pHome) {
-    this.base = GameObject;
-    this.base(pX, pY, pImage);
+    this.x = pX;
+    this.y = pY;
+    this.imageID = pImage;
     this.speed = new Vector(0, 0);
     this.tx = 0;
     this.ty = 0;
@@ -2715,17 +2694,15 @@ function Ship(pX, pY, pImage, pType, pHome) {
         engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + 1, (44 * game.zoom / this.maxEnergy) * this.energy, 3);
     };
 }
-Ship.prototype = new GameObject;
-Ship.prototype.constructor = Ship;
 
 /**
  * @author Alexander Zeillinger
  *
  * Emitter
  */
-function Emitter(pVector, pS) {
-    this.position = pVector;
-    this.strength = pS;
+function Emitter(pPosition, pStrength) {
+    this.position = pPosition;
+    this.strength = pStrength;
     this.draw = function () {
         var position = Helper.tiled2screen(this.position);
         engine.canvas["buffer"].context.drawImage(engine.images["emitter"], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
@@ -2740,8 +2717,8 @@ function Emitter(pVector, pS) {
  *
  * Sporetower
  */
-function Sporetower(pVector) {
-    this.position = pVector;
+function Sporetower(pPosition) {
+    this.position = pPosition;
     this.health = 100;
     this.getCenter = function () {
         return new Vector(
@@ -2769,8 +2746,8 @@ function Sporetower(pVector) {
  *
  * Smoke is created by weapon fire of Cannons, or exhaust trail of ships and spores.
  */
-function Smoke(pVector) {
-    this.position = new Vector(pVector.x, pVector.y);
+function Smoke(pPosition) {
+    this.position = new Vector(pPosition.x, pPosition.y);
     this.frame = 0;
     this.draw = function () {
         var position = Helper.real2screen(this.position);
@@ -2785,8 +2762,8 @@ function Smoke(pVector) {
  *
  * Created on explosion of buildings, spores and shells
  */
-function Explosion(pVector) {
-    this.position = new Vector(pVector.x, pVector.y);
+function Explosion(pPosition) {
+    this.position = new Vector(pPosition.x, pPosition.y);
     this.frame = 0;
     this.draw = function () {
         var position = Helper.real2screen(this.position);
@@ -2810,12 +2787,6 @@ function Tile() {
 function Vector(pX, pY) {
     this.x = pX;
     this.y = pY;
-}
-
-function Vector3(pX, pY, pZ) {
-    this.x = pX;
-    this.y = pY;
-    this.z = pZ;
 }
 
 /**
@@ -2855,6 +2826,7 @@ function init() {
     engine.loadImages(function() {
         game.init();
         game.drawTerrain();
+        game.copyTerrain();
 
         //engine.sounds["music"].loop = true;
         //engine.sounds["music"].play();
@@ -2900,16 +2872,16 @@ function onKeyDown(evt) {
     if (evt.keyCode == 46) {
         for (var i = 0; i < game.buildings.length; i++) {
             if (game.buildings[i].selected) {
-                if (game.buildings[i].type != "Base")
+                if (game.buildings[i].imageID != "base")
                     game.removeBuilding(game.buildings[i]);
             }
         }
     }
 
-    // pause/unpause
+    // pause/resume
     if (evt.keyCode == 80) {
         if (game.paused)
-            game.unpause();
+            game.resume();
         else
             game.pause();
     }
@@ -2948,6 +2920,7 @@ function onKeyDown(evt) {
                 }
             }
             game.drawTerrain();
+            game.copyTerrain();
         }
     }
 
@@ -2963,6 +2936,7 @@ function onKeyDown(evt) {
                 }
             }
             game.drawTerrain();
+            game.copyTerrain();
         }
     }
 
@@ -2978,6 +2952,7 @@ function onKeyDown(evt) {
             }
         }
         game.drawTerrain();
+        game.copyTerrain();
     }
 
     // select height for terraforming
@@ -3201,7 +3176,7 @@ function onMouseScroll(evt) {
             building = game.buildings[i];
 
     var center = game.base.getCenter();
-    var packet = new Packet(center.x, center.y, "packet_health", "Health");
+    var packet = new Packet(center, "packet_health", "health");
     packet.target = building;
     packet.currentTarget = game.base;
     //packet.currentTarget = game.findRoute(packet);
@@ -3231,18 +3206,26 @@ Helper.distance = function(a, b) {
     return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
 };
 
-// calculates canvas coordinates from tile coordinates
+// converts tile coordinates to canvas coordinates
 Helper.tiled2screen = function(pVector) {
     return new Vector(
         640 + (pVector.x - game.scroll.x) * game.tileSize * game.zoom,
         engine.halfHeight + (pVector.y - game.scroll.y) * game.tileSize * game.zoom);
 };
 
-// calculates canvas coordinates from real coordinates
+// converts full coordinates to canvas coordinates
 Helper.real2screen = function(pVector) {
     return new Vector(
         640 + (pVector.x - game.scroll.x * game.tileSize) * game.zoom,
         engine.halfHeight + (pVector.y - game.scroll.y * game.tileSize) * game.zoom);
+};
+
+Helper.clone = function(pObject) {
+    var newObject = [];
+    for (var attr in pObject) {
+        newObject[attr] = pObject[attr];
+    }
+    return newObject;
 };
 
 // Thanks to http://www.hardcode.nl/subcategory_1/article_317-array-shuffle-function
@@ -3255,18 +3238,6 @@ Array.prototype.shuffle = function () {
         this[i] = this[p];
         this[p] = t;
     }
-};
-
-// Thanks to http://my.opera.com/GreyWyvern/blog/show.dml/1725165
-Object.prototype.clone = function() {
-    var newObj = (this instanceof Array) ? [] : {};
-    for (var i in this) {
-        if (i == 'clone') continue;
-        /*if (this[i] && typeof this[i] == "object") {
-            newObj[i] = this[i].clone();
-        } else newObj[i] = this[i]*/
-        newObj[i] = this[i];
-    } return newObj;
 };
 
 /**
@@ -3318,7 +3289,7 @@ function draw() {
                     var drawCenterJ = Helper.real2screen(centerJ);
 
                     var allowedDistance = 10 * game.tileSize;
-                    if (game.buildings[i].type == "Relay" && game.buildings[j].type == "Relay") {
+                    if (game.buildings[i].imageID == "relay" && game.buildings[j].imageID == "relay") {
                         allowedDistance = 20 * game.tileSize;
                     }
 
