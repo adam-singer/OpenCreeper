@@ -861,7 +861,7 @@ var game = {
 
             // redraw mask
             for (var t = 9; t > -1; t--) {
-                tempContext[t].clearRect(0 , 0, this.tileSize, this.tileSize);
+                tempContext[t].clearRect(0, 0, this.tileSize, this.tileSize);
 
                 if (this.world.tiles[iS][jS][t].full) {
                     var index = this.world.tiles[iS][jS][t].index;
@@ -910,19 +910,21 @@ var game = {
 
             // redraw borders
             for (var t = 9; t > -1; t--) {
-                var index = this.world.tiles[iS][jS][t].index;
+                if (this.world.tiles[iS][jS][t].full) {
+                    var index = this.world.tiles[iS][jS][t].index;
 
-                if (index < 0 || (t + 1 < 10 && index == this.world.tiles[iS][jS][t + 1].index))
-                    continue;
+                    if (index < 0 || (t + 1 < 10 && index == this.world.tiles[iS][jS][t + 1].index))
+                        continue;
 
-                tempContext[t].drawImage(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, 0, 0, (this.tileSize + 2), (this.tileSize + 2));
+                    tempContext[t].drawImage(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, 0, 0, (this.tileSize + 2), (this.tileSize + 2));
 
-                if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
-                    break;
+                    if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
+                        break;
+                }
             }
 
             engine.canvas["levelbuffer"].context.clearRect(engine.width + iS * this.tileSize, engine.height + jS * this.tileSize, this.tileSize, this.tileSize);
-            for (var t = 0; t <= k; t++) {
+            for (var t = 0; t < 10; t++) {
                 engine.canvas["levelbuffer"].context.drawImage(tempCanvas[t], 0, 0, this.tileSize, this.tileSize, engine.width + iS * this.tileSize, engine.height + jS * this.tileSize, this.tileSize, this.tileSize);
             }
         }
@@ -1933,14 +1935,23 @@ var game = {
             for (var i = 1; i < times; i++) {
                 var newX = Math.floor(start.x + (delta.x / distance) * i * 10);
                 var newY = Math.floor(start.y + (delta.y / distance) * i * 10);
-                var ghost = {position: new Vector(newX, newY)};
-                game.ghosts.push(ghost);
+
+                if (newX > -1 && newX < this.world.size.x && newY > -1 && newY < this.world.size.y) {
+                    var ghost = {position: new Vector(newX, newY)};
+                    game.ghosts.push(ghost);
+                }
             }
-            game.ghosts.push({position: end});
+            if (end.x > -1 && end.x < this.world.size.x && end.y > -1 && end.y < this.world.size.y) {
+                game.ghosts.push({position: end});
+            }
         }
         else {
-            if (engine.mouse.active)
-                game.ghosts.push({position: this.getHoveredTilePosition()})
+            if (engine.mouse.active) {
+                var position = this.getHoveredTilePosition();
+                if (position.x > -1 && position.x < this.world.size.x && position.y > -1 && position.y < this.world.size.y) {
+                    game.ghosts.push({position: position})
+                }
+            }
         }
 
         for (var j = 0; j < game.ghosts.length; j++) {
