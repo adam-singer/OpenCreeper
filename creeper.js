@@ -31,6 +31,9 @@ var engine = {
         x: 0,
         y: 0
     },
+    width: 0,
+    height: 0,
+    halfWidth: 0,
     halfHeight: 0,
     /**
      * @author Alexander Zeillinger
@@ -38,34 +41,39 @@ var engine = {
      * Initializes the canvases and mouse, loads sounds and images.
      */
     init: function () {
-        var height = window.innerHeight > 720 ? 720 : window.innerHeight;
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+        engine.width = width;
+        engine.height = height;
+        engine.halfWidth = Math.floor(width / 2);
         engine.halfHeight = Math.floor(height / 2);
 
-        // main: contains everything but the terrain
-        engine.canvas["main"] = new Canvas($("<canvas width='1280' height='" + height + "' style='position: absolute;z-index: 1'>"));
+        // main
+        engine.canvas["main"] = new Canvas($("<canvas width='" + width + "' height='" + height + "' style='position: absolute;z-index: 1'>"));
         document.getElementById('canvasContainer').appendChild(engine.canvas["main"].element[0]);
         engine.canvas["main"].top = engine.canvas["main"].element.offset().top;
         engine.canvas["main"].left = engine.canvas["main"].element.offset().left;
 
         // buffer
-        engine.canvas["buffer"] = new Canvas($("<canvas width='1280' height='" + height + "'>"));
+        engine.canvas["buffer"] = new Canvas($("<canvas width='" + width + "' height='" + height + "'>"));
 
         // gui
         engine.canvas["gui"] = new Canvas($("#guiCanvas"));
 
         for (var i = 0; i < 10; i++) {
-            engine.canvas["level" + i] = new Canvas($("<canvas width='" + (128 * 16 + 2560) + "' height='" + (128 * 16 + 1440) + "' style='position: absolute'>"));
+            engine.canvas["level" + i] = new Canvas($("<canvas width='" + (128 * 16 + width * 2) + "' height='" + (128 * 16 + height * 2) + "' style='position: absolute'>"));
         }
 
-        engine.canvas["levelfinal"] = new Canvas($("<canvas width='1280' height='" + height + "' style='position: absolute'>"));
+        engine.canvas["levelbuffer"] = new Canvas($("<canvas width='" + (128 * 16 + width * 2) + "' height='" + (128 * 16 + height * 2) + "' style='position: absolute'>"));
+        engine.canvas["levelfinal"] = new Canvas($("<canvas width='" + width + "' height='" + height + "' style='position: absolute'>"));
         document.getElementById('canvasContainer').appendChild(engine.canvas["levelfinal"].element[0]);
 
         // collection
-        engine.canvas["collection"] = new Canvas($("<canvas width='1280' height='" + height + "' style='position: absolute'>"));
+        engine.canvas["collection"] = new Canvas($("<canvas width='" + width + "' height='" + height + "' style='position: absolute'>"));
         document.getElementById('canvasContainer').appendChild(engine.canvas["collection"].element[0]);
 
         // creeper
-        engine.canvas["creeper"] = new Canvas($("<canvas width='1280' height='" + height + "' style='position: absolute'>"));
+        engine.canvas["creeper"] = new Canvas($("<canvas width='" + width + "' height='" + height + "' style='position: absolute'>"));
         document.getElementById('canvasContainer').appendChild(engine.canvas["creeper"].element[0]);
 
         // load sounds
@@ -325,7 +333,7 @@ var game = {
      */
     getHoveredTilePosition: function () {
         return new Vector(
-            Math.floor((engine.mouse.x - 640) / (this.tileSize * this.zoom)) + this.scroll.x,
+            Math.floor((engine.mouse.x - engine.halfWidth) / (this.tileSize * this.zoom)) + this.scroll.x,
             Math.floor((engine.mouse.y - engine.halfHeight) / (this.tileSize * this.zoom)) + this.scroll.y);
     },
     getHighestTerrain: function (pVector) {
@@ -393,7 +401,7 @@ var game = {
         }
     },
     zoomIn: function() {
-        if (this.zoom < 1.4) {
+        if (this.zoom < 1.6) {
             this.zoom += .2;
             this.zoom = parseFloat(this.zoom.toFixed(2));
             this.copyTerrain();
@@ -403,7 +411,7 @@ var game = {
         }
     },
     zoomOut: function() {
-        if (this.zoom > .6) {
+        if (this.zoom > .4) {
             this.zoom -= .2;
             this.zoom = parseFloat(this.zoom.toFixed(2));
             this.copyTerrain();
@@ -722,51 +730,43 @@ var game = {
         // 1st pass - draw masks
         for (var i = 0; i < this.world.size.x; i++) {
             for (var j = 0; j < this.world.size.y; j++) {
+                for (var k = 9; k > -1; k--) {
 
-                var iS = i;
-                var jS = j;
+                    if (this.world.tiles[i][j][k].full) {
 
-                if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
+                        // calculate index
+                        var up = 0, down = 0, left = 0, right = 0;
+                        if (j - 1 < 0)
+                            up = 0;
+                        else if (this.world.tiles[i][j - 1][k].full)
+                            up = 1;
+                        if (j + 1 > this.world.size.y - 1)
+                            down = 0;
+                        else if (this.world.tiles[i][j + 1][k].full)
+                            down = 1;
+                        if (i - 1 < 0)
+                            left = 0;
+                        else if (this.world.tiles[i - 1][j][k].full)
+                            left = 1;
+                        if (i + 1 > this.world.size.x - 1)
+                            right = 0;
+                        else if (this.world.tiles[i + 1][j][k].full)
+                            right = 1;
 
-                    for (var k = 9; k > -1; k--) {
-                        if (this.world.tiles[iS][jS][k].full) {
+                        // save index for later use
+                        this.world.tiles[i][j][k].index = (8 * down) + (4 * left) + (2 * up) + right;
 
-                            // only calculate index when it hasn't been calculated yet
-                            if (this.world.tiles[iS][jS][k].index == -1) {
-                                var up = 0, down = 0, left = 0, right = 0;
-                                if (jS - 1 < 0)
-                                    up = 0;
-                                else if (this.world.tiles[iS][jS - 1][k].full)
-                                    up = 1;
-                                if (jS + 1 > this.world.size.y - 1)
-                                    down = 0;
-                                else if (this.world.tiles[iS][jS + 1][k].full)
-                                    down = 1;
-                                if (iS - 1 < 0)
-                                    left = 0;
-                                else if (this.world.tiles[iS - 1][jS][k].full)
-                                    left = 1;
-                                if (iS + 1 > this.world.size.x - 1)
-                                    right = 0;
-                                else if (this.world.tiles[iS + 1][jS][k].full)
-                                    right = 1;
+                        var index = this.world.tiles[i][j][k].index;
 
-                                // save index for later use
-                                this.world.tiles[iS][jS][k].index = (8 * down) + (4 * left) + (2 * up) + right;
-                            }
+                        // skip tiles that are identical to the one above
+                        if (k + 1 < 10 && index == this.world.tiles[i][j][k + 1].index)
+                            continue;
 
-                            var index = this.world.tiles[iS][jS][k].index;
+                        engine.canvas["level" + k].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, engine.width + i * this.tileSize, engine.height + j * this.tileSize, this.tileSize, this.tileSize);
 
-                            // skip tiles that are identical to the one above
-                            if (k + 1 < 10 && index == this.world.tiles[iS][jS][k + 1].index)
-                                continue;
-
-                            engine.canvas["level" + k].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 1280 + i * this.tileSize, 720 + j * this.tileSize, this.tileSize, this.tileSize);
-
-                            // don't draw anymore under tiles that don't have transparent parts
-                            if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
-                                break;
-                        }
+                        // don't draw anymore under tiles that don't have transparent parts
+                        if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
+                            break;
                     }
                 }
             }
@@ -774,62 +774,159 @@ var game = {
 
         // 2nd pass - draw textures
         for (var i = 0; i < 10; i++) {
-            //var tempCanvas = document.createElement('canvas');
-            //tempCanvas.width = Math.floor(256 * 1);
-            //tempCanvas.height = Math.floor(256 * 1);
-            //var ctx = tempCanvas.getContext('2d');
-
-            //ctx.drawImage(engine.images["level" + i], 0, 0, Math.floor(256 * 1), Math.floor(256 * 1));
             var pattern = engine.canvas["level" + i].context.createPattern(engine.images["level" + i], 'repeat');
-
             engine.canvas["level" + i].context.globalCompositeOperation = 'source-in';
             engine.canvas["level" + i].context.fillStyle = pattern;
-
-            //engine.canvas["level" + i].context.save();
-            //var translation = new Vector(
-            //     -engine.canvas["level" + i].element[0].width / 2 + Math.floor(this.tileSize * 1) + Math.floor(this.scroll.x * this.tileSize * 1),
-            //     -engine.canvas["level" + i].element[0].height / 2 + Math.floor(this.tileSize * 1) + Math.floor(this.scroll.y * this.tileSize * 1));
-            //engine.canvas["level" + i].context.translate(-translation.x, -translation.y);
-
-            //engine.canvas["level" + i].context.fill();
             engine.canvas["level" + i].context.fillRect(0, 0, engine.canvas["level" + i].element[0].width, engine.canvas["level" + i].element[0].height);
-            //engine.canvas["level" + i].context.restore();
-
             engine.canvas["level" + i].context.globalCompositeOperation = 'source-over';
         }
 
         // 3rd pass - draw borders
         for (var i = 0; i < this.world.size.x; i++) {
             for (var j = 0; j < this.world.size.y; j++) {
+                for (var k = 9; k > -1; k--) {
 
-                var iS = i;
-                var jS = j;
+                    if (this.world.tiles[i][j][k].full) {
 
-                if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
+                        var index = this.world.tiles[i][j][k].index;
 
-                    for (var k = 9; k > -1; k--) {
-                        if (this.world.tiles[iS][jS][k].full) {
+                        if (k + 1 < 10 && index == this.world.tiles[i][j][k + 1].index)
+                            continue;
 
-                            var index = this.world.tiles[iS][jS][k].index;
+                        engine.canvas["level" + k].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, engine.width + i * this.tileSize, engine.height + j * this.tileSize, (this.tileSize + 2), (this.tileSize + 2));
 
-                            if (k + 1 < 10 && index == this.world.tiles[iS][jS][k + 1].index)
-                                continue;
-
-                            engine.canvas["level" + k].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, 1280 + i * this.tileSize, 720 + j * this.tileSize, (this.tileSize + 2), (this.tileSize + 2));
-
-                            if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
-                                break;
-                        }
+                        if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
+                            break;
                     }
                 }
             }
         }
+
+        engine.canvas["levelbuffer"].clear();
+        for (var k = 0; k < 10; k++) {
+            engine.canvas["levelbuffer"].context.drawImage(engine.canvas["level" + k].element[0], 0, 0);
+        }
+        $('#loading').hide();
     },
     copyTerrain: function() {
         engine.canvas["levelfinal"].clear();
-        for (var k = 0; k < 10; k++) {
-            engine.canvas["levelfinal"].context.drawImage(engine.canvas["level" + k].element[0], 1280 + this.scroll.x * this.tileSize - 40 * this.tileSize * (1 / this.zoom), 720 + this.scroll.y * this.tileSize - 23 * this.tileSize * (1 / this.zoom), 80 * this.tileSize * (1 / this.zoom), 46 * this.tileSize * (1 / this.zoom), 0, 0, 1280, 720); // copy from buffer to context
+        var left = engine.width + this.scroll.x * this.tileSize - (engine.width / this.tileSize / 2) * this.tileSize * (1 / this.zoom);
+        var top = engine.height + this.scroll.y * this.tileSize - (engine.height / this.tileSize / 2) * this.tileSize * (1 / this.zoom);
+        var width = (engine.width / this.tileSize) * this.tileSize * (1 / this.zoom);
+        var height = (engine.height / this.tileSize) * this.tileSize * (1 / this.zoom);
+        engine.canvas["levelfinal"].context.drawImage(engine.canvas["levelbuffer"].element[0], left, top, width, height, 0, 0, engine.width, engine.height);
+    },
+    redrawTile: function(tilesToRedraw) {
+        var tempCanvas = [];
+        var tempContext = [];
+        for (var t = 0; t < 10; t++) {
+            tempCanvas[t] = document.createElement('canvas');
+            tempCanvas[t].width = this.tileSize;
+            tempCanvas[t].height = this.tileSize;
+            tempContext[t] = tempCanvas[t].getContext('2d');
         }
+
+        for (var i = 0; i < tilesToRedraw.length; i++) {
+
+            var iS = tilesToRedraw[i].x;
+            var jS = tilesToRedraw[i].y;
+            var k = tilesToRedraw[i].z;
+
+            // recalculate index
+            if (this.world.tiles[iS][jS][k].full) {
+
+                var up = 0, down = 0, left = 0, right = 0;
+                if (jS - 1 < 0)
+                    up = 0;
+                else if (this.world.tiles[iS][jS - 1][k].full)
+                    up = 1;
+                if (jS + 1 > this.world.size.y - 1)
+                    down = 0;
+                else if (this.world.tiles[iS][jS + 1][k].full)
+                    down = 1;
+                if (iS - 1 < 0)
+                    left = 0;
+                else if (this.world.tiles[iS - 1][jS][k].full)
+                    left = 1;
+                if (iS + 1 > this.world.size.x - 1)
+                    right = 0;
+                else if (this.world.tiles[iS + 1][jS][k].full)
+                    right = 1;
+
+                // save index for later use
+                this.world.tiles[iS][jS][k].index = (8 * down) + (4 * left) + (2 * up) + right;
+            }
+            else
+             this.world.tiles[iS][jS][k].index = -1;
+
+            // redraw mask
+            for (var t = 9; t > -1; t--) {
+                tempContext[t].clearRect(0 , 0, this.tileSize, this.tileSize);
+
+                if (this.world.tiles[iS][jS][t].full) {
+                    var index = this.world.tiles[iS][jS][t].index;
+
+                    // skip tiles that are identical to the one above
+                    if (t + 1 < 10 && index == this.world.tiles[iS][jS][t + 1].index)
+                        continue;
+
+                    tempContext[t].drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 0, 0, this.tileSize, this.tileSize);
+
+                    // don't draw anymore under tiles that don't have transparent parts
+                    if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
+                        break;
+                }
+            }
+
+            // redraw pattern
+            for (var t = 9; t > -1; t--) {
+                /*var tCanvas = document.createElement('canvas');
+                tCanvas.width = 256;
+                tCanvas.height = 256;
+                var ctx = tCanvas.getContext('2d');
+
+                ctx.drawImage(engine.images["level" + t], 0, 0);
+                var pattern = tempContext[t].createPattern(tCanvas, 'repeat');*/
+
+                if (this.world.tiles[iS][jS][t].full) {
+                    var pattern = tempContext[t].createPattern(engine.images["level" + t], 'repeat');
+
+                    tempContext[t].globalCompositeOperation = 'source-in';
+                    tempContext[t].fillStyle = pattern;
+
+                    tempContext[t].save();
+                    var translation = new Vector(
+                         engine.width + Math.floor(iS * this.tileSize),
+                         engine.height + Math.floor(jS * this.tileSize));
+                    tempContext[t].translate(-translation.x, -translation.y);
+
+                    //tempContext[t].fill();
+                    tempContext[t].fillRect(translation.x, translation.y, this.tileSize, this.tileSize);
+                    tempContext[t].restore();
+
+                    tempContext[t].globalCompositeOperation = 'source-over';
+                }
+            }
+
+            // redraw borders
+            for (var t = 9; t > -1; t--) {
+                var index = this.world.tiles[iS][jS][t].index;
+
+                if (index < 0 || (t + 1 < 10 && index == this.world.tiles[iS][jS][t + 1].index))
+                    continue;
+
+                tempContext[t].drawImage(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, 0, 0, (this.tileSize + 2), (this.tileSize + 2));
+
+                if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
+                    break;
+            }
+
+            engine.canvas["levelbuffer"].context.clearRect(engine.width + iS * this.tileSize, engine.height + jS * this.tileSize, this.tileSize, this.tileSize);
+            for (var t = 0; t <= k; t++) {
+                engine.canvas["levelbuffer"].context.drawImage(tempCanvas[t], 0, 0, this.tileSize, this.tileSize, engine.width + iS * this.tileSize, engine.height + jS * this.tileSize, this.tileSize, this.tileSize);
+            }
+        }
+        this.copyTerrain();
     },
     checkOperating: function () {
         for (var t = 0; t < this.buildings.length; t++) {
@@ -881,13 +978,14 @@ var game = {
                             terraformElement.progress = 0;
 
                             var height = this.getHighestTerrain(this.buildings[t].weaponTargetPosition);
+                            var tilesToRedraw = [];
 
                             if (height < terraformElement.target) {
                                 this.world.tiles[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y][height + 1].full = true;
                                 // reset index around tile
                                 for (var i = -1; i <= 1; i++) {
                                     for (var j = -1; j <= 1; j++) {
-                                        this.world.tiles[this.buildings[t].weaponTargetPosition.x + i][this.buildings[t].weaponTargetPosition.y + j][height + 1].index = -1;
+                                        tilesToRedraw.push({x: this.buildings[t].weaponTargetPosition.x + i, y: this.buildings[t].weaponTargetPosition.y + j, z: height + 1});
                                     }
                                 }
                             }
@@ -896,12 +994,12 @@ var game = {
                                 // reset index around tile
                                 for (var i = -1; i <= 1; i++) {
                                     for (var j = -1; j <= 1; j++) {
-                                        this.world.tiles[this.buildings[t].weaponTargetPosition.x + i][this.buildings[t].weaponTargetPosition.y + j][height].index = -1;
+                                        tilesToRedraw.push({x: this.buildings[t].weaponTargetPosition.x + i, y: this.buildings[t].weaponTargetPosition.y + j, z: height});
                                     }
                                 }
                             }
 
-                            this.drawTerrain(); // TODO: only redraw the parts that have changed
+                            this.redrawTile(tilesToRedraw);
                             this.copyTerrain();
 
                             height = this.getHighestTerrain(this.buildings[t].weaponTargetPosition);
@@ -1715,8 +1813,11 @@ var game = {
         engine.canvas["collection"].context.save();
         engine.canvas["collection"].context.globalAlpha = .5;
 
-        for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
-            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(22 / this.zoom); j++) {
+        var timesX = Math.floor(engine.halfWidth / this.tileSize / this.zoom);
+        var timesY = Math.floor(engine.halfHeight / this.tileSize / this.zoom);
+
+        for (var i = -timesX; i <= timesX; i++) {
+            for (var j = -timesY; j <= timesY; j++) {
 
                 var iS = i + this.scroll.x;
                 var jS = j + this.scroll.y;
@@ -1744,7 +1845,7 @@ var game = {
                                 right = this.world.tiles[iS + 1][jS][k].collection;
 
                             var index = (8 * down) + (4 * left) + (2 * up) + right;
-                            engine.canvas["collection"].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 640 + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+                            engine.canvas["collection"].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, engine.halfWidth + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
                         }
                     }
                 }
@@ -1759,12 +1860,12 @@ var game = {
      */
     drawCreeper: function() {
         engine.canvas["creeper"].clear();
-        //engine.canvas["buffer"].context.font = '9px';
-        //engine.canvas["buffer"].context.lineWidth = 1;
-        //engine.canvas["buffer"].context.fillStyle = '#fff';
 
-        for (var i = Math.floor(-40 / this.zoom); i < Math.floor(40 / this.zoom); i++) {
-            for (var j = Math.floor(-23 / this.zoom); j < Math.floor(23 / this.zoom); j++) {
+        var timesX = Math.floor(engine.halfWidth / this.tileSize / this.zoom);
+        var timesY = Math.floor(engine.halfHeight / this.tileSize / this.zoom);
+
+        for (var i = -timesX; i <= timesX; i++) {
+            for (var j = -timesY; j <= timesY; j++) {
 
                 var iS = i + this.scroll.x;
                 var jS = j + this.scroll.y;
@@ -1797,7 +1898,7 @@ var game = {
                         //}
 
                         var index = (8 * down) + (4 * left) + (2 * up) + right;
-                        engine.canvas["creeper"].context.drawImage(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, 640 + i * this.tileSize * game.zoom, engine.halfHeight + j * this.tileSize * game.zoom, this.tileSize * game.zoom, this.tileSize * game.zoom);
+                        engine.canvas["creeper"].context.drawImage(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, engine.halfWidth + i * this.tileSize * game.zoom, engine.halfHeight + j * this.tileSize * game.zoom, this.tileSize * game.zoom, this.tileSize * game.zoom);
                     }
 
                     // creep value
@@ -2913,13 +3014,14 @@ function onKeyDown(evt) {
         var height = game.getHighestTerrain(position);
         if (height > -1) {
             game.world.tiles[position.x][position.y][height].full = false;
+            var tilesToRedraw = [];
             // reset index around tile
             for (var i = -1; i <= 1; i++) {
                 for (var j = -1; j <= 1; j++) {
-                    game.world.tiles[position.x + i][position.y + j][height].index = -1;
+                    tilesToRedraw.push({x: position.x + i, y: position.y + j, z: height});
                 }
             }
-            game.drawTerrain();
+            game.redrawTile(tilesToRedraw);
             game.copyTerrain();
         }
     }
@@ -2929,29 +3031,31 @@ function onKeyDown(evt) {
         var height = game.getHighestTerrain(position);
         if (height < 9) {
             game.world.tiles[position.x][position.y][height + 1].full = true;
+            var tilesToRedraw = [];
             // reset index around tile
             for (var i = -1; i <= 1; i++) {
                 for (var j = -1; j <= 1; j++) {
-                    game.world.tiles[position.x + i][position.y + j][height + 1].index = -1;
+                    tilesToRedraw.push({x: position.x + i, y: position.y + j, z: height + 1});
                 }
             }
-            game.drawTerrain();
+            game.redrawTile(tilesToRedraw);
             game.copyTerrain();
         }
     }
 
-    // enable/disable terrain ("B")
+    // clear terrain ("B")
     if (evt.keyCode == 66) {
         for (var k = 0; k < 10; k++) {
             game.world.tiles[position.x][position.y][k].full = false;
+            var tilesToRedraw = [];
             // reset index around tile
             for (var i = -1; i <= 1; i++) {
                 for (var j = -1; j <= 1; j++) {
-                    game.world.tiles[position.x + i][position.y + j][k].index = -1;
+                    tilesToRedraw.push({x: position.x + i, y: position.y + j, z: k});
                 }
             }
         }
-        game.drawTerrain();
+        game.redrawTile(tilesToRedraw);
         game.copyTerrain();
     }
 
@@ -3209,14 +3313,14 @@ Helper.distance = function(a, b) {
 // converts tile coordinates to canvas coordinates
 Helper.tiled2screen = function(pVector) {
     return new Vector(
-        640 + (pVector.x - game.scroll.x) * game.tileSize * game.zoom,
+        engine.halfWidth + (pVector.x - game.scroll.x) * game.tileSize * game.zoom,
         engine.halfHeight + (pVector.y - game.scroll.y) * game.tileSize * game.zoom);
 };
 
 // converts full coordinates to canvas coordinates
 Helper.real2screen = function(pVector) {
     return new Vector(
-        640 + (pVector.x - game.scroll.x * game.tileSize) * game.zoom,
+        engine.halfWidth + (pVector.x - game.scroll.x * game.tileSize) * game.zoom,
         engine.halfHeight + (pVector.y - game.scroll.y * game.tileSize) * game.zoom);
 };
 
@@ -3254,15 +3358,18 @@ function draw() {
     engine.canvas["main"].clear();
 
     // draw terraform numbers
-    for (var i = Math.floor(-40 / game.zoom); i < Math.floor(40 / game.zoom); i++) {
-        for (var j = Math.floor(-23 / game.zoom); j < Math.floor(23 / game.zoom); j++) {
+    var timesX = Math.floor(engine.halfWidth / this.tileSize / this.zoom);
+    var timesY = Math.floor(engine.halfHeight / this.tileSize / this.zoom);
+
+    for (var i = -timesX; i <= timesX; i++) {
+        for (var j = -timesY; j <= timesY; j++) {
 
             var iS = i + game.scroll.x;
             var jS = j + game.scroll.y;
 
             if (iS > -1 && iS < game.world.size.x && jS > -1 && jS < game.world.size.y) {
                 if (game.world.terraform[iS][jS].target > -1) {
-                    engine.canvas["buffer"].context.drawImage(engine.images["numbers"], game.world.terraform[iS][jS].target * 16, 0, game.tileSize, game.tileSize, 640 + i * game.tileSize * game.zoom, engine.halfHeight + j * game.tileSize * game.zoom, game.tileSize * game.zoom, game.tileSize * game.zoom);
+                    engine.canvas["buffer"].context.drawImage(engine.images["numbers"], game.world.terraform[iS][jS].target * 16, 0, game.tileSize, game.tileSize, engine.halfWidth + i * game.tileSize * game.zoom, engine.halfHeight + j * game.tileSize * game.zoom, game.tileSize * game.zoom, game.tileSize * game.zoom);
                 }
             }
         }
@@ -3362,19 +3469,19 @@ function draw() {
         if (game.mode == game.modes.TERRAFORM) {
             var positionScrolled = game.getHoveredTilePosition();
             var drawPosition = Helper.tiled2screen(positionScrolled);
-            engine.canvas["buffer"].context.drawImage(engine.images["numbers"], game.terraformingHeight * 16, 0, 16, 16, drawPosition.x, drawPosition.y, 16 * game.zoom, 16 * game.zoom);
+            engine.canvas["buffer"].context.drawImage(engine.images["numbers"], game.terraformingHeight * game.tileSize, 0, game.tileSize, game.tileSize, drawPosition.x, drawPosition.y, game.tileSize * game.zoom, game.tileSize * game.zoom);
 
             engine.canvas["buffer"].context.strokeStyle = '#fff';
             engine.canvas["buffer"].context.lineWidth = 1;
 
             engine.canvas["buffer"].context.beginPath();
             engine.canvas["buffer"].context.moveTo(0, drawPosition.y);
-            engine.canvas["buffer"].context.lineTo(1280, drawPosition.y);
+            engine.canvas["buffer"].context.lineTo(engine.width, drawPosition.y);
             engine.canvas["buffer"].context.stroke();
 
             engine.canvas["buffer"].context.beginPath();
             engine.canvas["buffer"].context.moveTo(0, drawPosition.y + game.tileSize * game.zoom);
-            engine.canvas["buffer"].context.lineTo(1280, drawPosition.y + game.tileSize * game.zoom);
+            engine.canvas["buffer"].context.lineTo(engine.width, drawPosition.y + game.tileSize * game.zoom);
             engine.canvas["buffer"].context.stroke();
 
             engine.canvas["buffer"].context.beginPath();

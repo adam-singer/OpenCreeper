@@ -83,6 +83,16 @@
                 left: 50%;
                 display: none;
             }
+            #loading {
+                padding: 50px;
+                color: #fff;
+                font-size: 36px;
+                width: 150px;
+                margin-left: -75px;
+                position: fixed;
+                top: 100px;
+                left: 50%;
+            }
             #paused {
                 color: #fff;
                 font-size: 36px;
@@ -107,7 +117,7 @@
     </head>
     <body>
 		
-		<div id="canvasContainer" style="width: 1280px; margin: 0 auto;">
+		<div id="canvasContainer" style="width: 100%;">
 
 		</div>
 
@@ -146,6 +156,7 @@
             <!--<input type="button" id="r" name="r" value="r" onclick="request();">-->
         </div>
 
+        <div id="loading">Loading...</div>
         <div id="lose">You lose!</div>
         <div id="win">You win!</div>
         <div id="paused">Paused</div>
