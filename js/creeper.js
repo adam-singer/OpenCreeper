@@ -139,7 +139,6 @@ var engine = {
                 Math.floor(engine.halfWidth / (game.tileSize * game.zoom)) + game.scroll.x,
                 Math.floor(engine.halfHeight / (game.tileSize * game.zoom)) + game.scroll.y);
             var distance = Helper.distance(screenCenter, position);
-            console.log(distance);
             volume = Helper.clamp(game.zoom / Math.pow(distance / 20, 2), 0, 1);
         }
 
@@ -356,9 +355,9 @@ var game = {
     /**
      * Checks if the given position is within the world
      *
-     * @param   x
-     * @param   y
-     * @return  boolean
+     * @param   {int}   x
+     * @param   {int}   y
+     * @return  {Boolean}   boolean
      */
     withinWorld: function(x, y) {
         return (x > -1 && x < this.world.size.x && y > -1 && y < this.world.size.y)
@@ -369,6 +368,9 @@ var game = {
             Math.floor((engine.mouse.x - engine.halfWidth) / (this.tileSize * this.zoom)) + this.scroll.x,
             Math.floor((engine.mouse.y - engine.halfHeight) / (this.tileSize * this.zoom)) + this.scroll.y);
     },
+    /**
+     * @param {Vector} pVector The position of the tile to check
+     */
     getHighestTerrain: function (pVector) {
         var height = -1;
         for (var i = 9; i > -1; i--) {
@@ -529,6 +531,7 @@ var game = {
             }
         }*/
 
+        // create base
         var randomPosition = new Vector(
             Helper.randomInt(0, this.world.size.x - 9),
             Helper.randomInt(0, this.world.size.y - 9));
@@ -536,7 +539,7 @@ var game = {
         this.scroll.x = randomPosition.x + 4;
         this.scroll.y = randomPosition.y + 4;
 
-        var building = new Building(randomPosition.x, randomPosition.y, "base");
+        var building = new Building(randomPosition, "base");
         building.health = 40;
         building.maxHealth = 40;
         building.built = true;
@@ -544,19 +547,20 @@ var game = {
         this.buildings.push(building);
         game.base = building;
 
-        var height = this.getHighestTerrain(new Vector(building.x + 4, building.y + 4));
+        var height = this.getHighestTerrain(new Vector(building.position.x + 4, building.position.y + 4));
         if (height < 0)
             height = 0;
         for (var i = 0; i < 9; i++) {
             for (var j = 0; j < 9; j++) {
                 for (var k = 0; k < 10; k++) {
-                    this.world.tiles[building.x + i][building.y + j][k].full = (k <= height);
+                    this.world.tiles[building.position.x + i][building.position.y + j][k].full = (k <= height);
                 }
             }
         }
 
         this.calculateCollection();
 
+        // create emitter
         randomPosition = new Vector(
             Helper.randomInt(0, this.world.size.x - 3),
             Helper.randomInt(0, this.world.size.x - 3));
@@ -575,6 +579,7 @@ var game = {
             }
         }
 
+        // create sporetower
         randomPosition = new Vector(
             Helper.randomInt(0, this.world.size.x - 3),
             Helper.randomInt(0, this.world.size.x - 3));
@@ -595,8 +600,12 @@ var game = {
         }
 
     },
-    addBuilding: function (x, y, type) {
-        var building = new Building(x, y, type);
+    /**
+     * @param {Vector} position The position of the new building
+     * @param {String} type The type of the new building
+     */
+    addBuilding: function (position, type) {
+        var building = new Building(position, type);
         building.health = 0;
 
         if (building.imageID == "terp") {
@@ -669,12 +678,15 @@ var game = {
 
         this.buildings.push(building);
     },
+    /**
+     * @param {Building} building The building to remove
+     */
     removeBuilding: function (building) {
 
         // only explode building when it has been built
         if (building.built) {
             this.explosions.push(new Explosion(building.getCenter()));
-            engine.playSound("explosion", new Vector(building.x, building.y));
+            engine.playSound("explosion", building.position);
         }
 
         if (building.imageID == "base") {
@@ -845,6 +857,9 @@ var game = {
         var height = (engine.height / this.tileSize) * this.tileSize * (1 / this.zoom);
         engine.canvas["levelfinal"].context.drawImage(engine.canvas["levelbuffer"].element[0], left, top, width, height, 0, 0, engine.width, engine.height);
     },
+    /**
+     * @param {Array} tilesToRedraw An array of tiles to redraw
+     */
     redrawTile: function(tilesToRedraw) {
         var tempCanvas = [];
         var tempContext = [];
@@ -972,8 +987,8 @@ var game = {
                     if (this.buildings[t].weaponTargetPosition == null) {
 
                         // get building x and building y
-                        var x = this.buildings[t].x;
-                        var y = this.buildings[t].y;
+                        var x = this.buildings[t].position.x;
+                        var y = this.buildings[t].position.y;
 
                         // find lowest tile
                         var target = null;
@@ -1056,9 +1071,9 @@ var game = {
                 else if (this.buildings[t].imageID == "cannon" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 10) {
                     this.buildings[t].energyTimer = 0;
 
-                    var x = this.buildings[t].x;
-                    var y = this.buildings[t].y;
-                    var height = this.getHighestTerrain(new Vector(this.buildings[t].x, this.buildings[t].y));
+                    var x = this.buildings[t].position.x;
+                    var y = this.buildings[t].position.y;
+                    var height = this.getHighestTerrain(this.buildings[t].position);
 
                     // find closest random target
                     for (var r = 0; r < this.buildings[t].weaponRadius + 1; r++) {
@@ -1104,8 +1119,8 @@ var game = {
                     this.buildings[t].energyTimer = 0;
 
                     // get building x and building y
-                    var x = this.buildings[t].x;
-                    var y = this.buildings[t].y;
+                    var x = this.buildings[t].position.x;
+                    var y = this.buildings[t].position.y;
 
                     // find most creep in range
                     var target = null;
@@ -1122,7 +1137,7 @@ var game = {
                     }
                     if (target) {
                         engine.playSound("shot", new Vector(x, y));
-                        var shell = new Shell(center.x, center.y, "shell", target.x * this.tileSize + this.tileSize / 2, target.y * this.tileSize + this.tileSize / 2);
+                        var shell = new Shell(center, "shell", new Vector(target.x * this.tileSize + this.tileSize / 2, target.y * this.tileSize + this.tileSize / 2));
                         shell.init();
                         this.shells.push(shell);
                         this.buildings[t].energy -= 1;
@@ -1144,7 +1159,8 @@ var game = {
                             this.spores[i].health -= 2;
                             if (this.spores[i].health <= 0) {
                                 this.spores[i].remove = true;
-                                engine.playSound("explosion", new Vector(this.spores[i].x / this.tileSize, this.spores[i].y / this.tileSize));                                this.explosions.push(new Explosion(sporeCenter));
+                                engine.playSound("explosion", Helper.real2tiled(this.spores[i].position));
+                                this.explosions.push(new Explosion(sporeCenter));
                             }
                         }
                     }
@@ -1152,16 +1168,20 @@ var game = {
             }
         }
     },
+    /**
+     * @param {Building} building The building to update
+     * @param {String} action Add or Remove action
+     */
     updateCollection: function (building, action) {
-        var height = this.getHighestTerrain(new Vector(building.x, building.y));
+        var height = this.getHighestTerrain(building.position);
         var centerBuilding = building.getCenter();
 
         for (var i = -5; i < 7; i++) {
             for (var j = -5; j < 7; j++) {
 
                 var positionCurrent = new Vector(
-                    building.x + i,
-                    building.y + j);
+                    building.position.x + i,
+                    building.position.y + j);
                 var positionCurrentCenter = new Vector(
                     positionCurrent.x * this.tileSize + (this.tileSize / 2),
                     positionCurrent.y * this.tileSize + (this.tileSize / 2));
@@ -1186,7 +1206,7 @@ var game = {
 
                         for (var k = 0; k < this.buildings.length; k++) {
                             if (this.buildings[k] != building && this.buildings[k].imageID == "collector") {
-                                var heightK = this.getHighestTerrain(new Vector(this.buildings[k].x, this.buildings[k].y));
+                                var heightK = this.getHighestTerrain(new Vector(this.buildings[k].position.x, this.buildings[k].position.y));
                                 var centerBuildingK = this.buildings[k].getCenter();
                                 if (Math.pow(positionCurrentCenter.x - centerBuildingK.x, 2) + Math.pow(positionCurrentCenter.y - centerBuildingK.y, 2) < Math.pow(this.tileSize * 6, 2)) {
                                     if (tileHeight == heightK) {
@@ -1322,12 +1342,15 @@ var game = {
     },
     /**
      * Used for A*, finds all neighbouring nodes of a given node.
+     *
+     * @param {Building} node The current node
+     * @param {Building} target The target node
      */
     getNeighbours: function (node, target) {
         var neighbours = [], centerI, centerNode;
         //if (node.built) {
         for (var i = 0; i < this.buildings.length; i++) {
-            if (this.buildings[i].x == node.x && this.buildings[i].y == node.y) {
+            if (this.buildings[i].position.x == node.x && this.buildings[i].position.y == node.y) {
                 // console.log("is me");
             } else {
                 // if the node is not the target AND built it is a valid neighbour
@@ -1370,11 +1393,14 @@ var game = {
     },
     /**
      * Used for A*, checks if a node is already in a given route.
+     *
+     * @param {Building} neighbour The node to check
+     * @param {Array} route The route to check
      */
     inRoute: function (neighbour, route) {
         var found = false;
         for (var i = 0; i < route.length; i++) {
-            if (neighbour.x == route[i].x && neighbour.y == route[i].y) {
+            if (neighbour.position.x == route[i].position.x && neighbour.position.y == route[i].position.y) {
                 found = true;
                 break;
             }
@@ -1383,6 +1409,8 @@ var game = {
     },
     /**
      * Main function of A*, finds a path to the target node.
+     *
+     * @param {Packet} packet The packet to find a path for
      */
     findRoute: function (packet) {
         // A* using Branch and Bound with dynamic programming and underestimates, thanks to: http://ai-depot.com/Tutorial/PathFinding-Optimal.html
@@ -1516,6 +1544,10 @@ var game = {
             return null;
         }
     },
+    /**
+     * @param {Building} building The packet target building
+     * @param {String} type The type of the packet
+     */
     queuePacket: function (building, type) {
         var img = "packet_" + type;
         var center = game.base.getCenter();
@@ -1530,6 +1562,9 @@ var game = {
             this.packetQueue.push(packet);
         }
     },
+    /**
+     * @param {Packet} packet The packet to send
+     */
     sendPacket: function (packet) {
         packet.currentTarget = this.findRoute(packet);
         if (packet.currentTarget != null) {
@@ -1541,6 +1576,10 @@ var game = {
     },
     /**
      * Checks if a building can be placed on the current tile.
+     *
+     * @param {Vector} position The position to place the building
+     * @param {int} size The size of the building
+     * @param {Building} building The building to place
      */
     canBePlaced: function (position, size, building) {
         var collision = false;
@@ -1552,10 +1591,10 @@ var game = {
             for (var i = 0; i < this.buildings.length; i++) {
                 if (building && building == this.buildings[i])
                     continue;
-                var x1 = this.buildings[i].x * this.tileSize;
-                var x2 = this.buildings[i].x * this.tileSize + this.buildings[i].size * this.tileSize - 1;
-                var y1 = this.buildings[i].y * this.tileSize;
-                var y2 = this.buildings[i].y * this.tileSize + this.buildings[i].size * this.tileSize - 1;
+                var x1 = this.buildings[i].position.x * this.tileSize;
+                var x2 = this.buildings[i].position.x * this.tileSize + this.buildings[i].size * this.tileSize - 1;
+                var y1 = this.buildings[i].position.y * this.tileSize;
+                var y2 = this.buildings[i].position.y * this.tileSize + this.buildings[i].size * this.tileSize - 1;
 
                 var cx1 = position.x * this.tileSize;
                 var cx2 = position.x * this.tileSize + size * this.tileSize - 1;
@@ -1762,6 +1801,12 @@ var game = {
             this.drawCreeper();
         }
     },
+    /**
+     * @param {Vector} position The position of the building
+     * @param {String} type The type of the building
+     * @param {int} radius The radius of the building
+     * @param {int} size The size of the building
+     */
     drawRangeBoxes: function(position, type, radius, size) {
         var positionCenter = new Vector(
             position.x * this.tileSize + (this.tileSize / 2) * size,
@@ -2159,9 +2204,8 @@ function UISymbol(pPosition, pImage, pKey, pSize, pPackets, pRadius) {
     };
 }
 
-function Building(pX, pY, pImage) {
-    this.x = pX;
-    this.y = pY;
+function Building(pPosition, pImage) {
+    this.position = pPosition;
     this.imageID = pImage;
     this.operating = false;
     this.selected = false;
@@ -2187,7 +2231,7 @@ function Building(pX, pY, pImage) {
     this.needsEnergy = false;
     this.ship = null;
     this.updateHoverState = function () {
-        var position = Helper.tiled2screen(new Vector(this.x, this.y));
+        var position = Helper.tiled2screen(this.position);
         this.hovered = (engine.mouse.x > position.x &&
             engine.mouse.x < position.x + game.tileSize * this.size * game.zoom - 1 &&
             engine.mouse.y > position.y &&
@@ -2197,7 +2241,7 @@ function Building(pX, pY, pImage) {
     };
     this.drawBox = function () {
         if (this.hovered || this.selected) {
-            var position = Helper.tiled2screen(new Vector(this.x, this.y));
+            var position = Helper.tiled2screen(this.position);
             engine.canvas["buffer"].context.lineWidth = 2 * game.zoom;
             engine.canvas["buffer"].context.strokeStyle = "#000";
             engine.canvas["buffer"].context.strokeRect(position.x, position.y, game.tileSize * this.size * game.zoom, game.tileSize * this.size * game.zoom);
@@ -2205,22 +2249,22 @@ function Building(pX, pY, pImage) {
     };
     this.move = function () {
         if (this.moving) {
-            this.x += this.speed.x;
-            this.y += this.speed.y;
-            if (this.x * game.tileSize > this.moveTargetPosition.x * game.tileSize - 3 &&
-                this.x * game.tileSize < this.moveTargetPosition.x * game.tileSize + 3 &&
-                this.y * game.tileSize > this.moveTargetPosition.y * game.tileSize - 3 &&
-                this.y * game.tileSize < this.moveTargetPosition.y * game.tileSize + 3) {
+            this.position.x += this.speed.x;
+            this.position.y += this.speed.y;
+            if (this.position.x * game.tileSize > this.moveTargetPosition.x * game.tileSize - 3 &&
+                this.position.x * game.tileSize < this.moveTargetPosition.x * game.tileSize + 3 &&
+                this.position.y * game.tileSize > this.moveTargetPosition.y * game.tileSize - 3 &&
+                this.position.y * game.tileSize < this.moveTargetPosition.y * game.tileSize + 3) {
                 this.moving = false;
-                this.x = this.moveTargetPosition.x;
-                this.y = this.moveTargetPosition.y;
+                this.position.x = this.moveTargetPosition.x;
+                this.position.y = this.moveTargetPosition.y;
             }
         }
     };
     this.calculateVector = function () {
-        if (this.moveTargetPosition.x != this.x || this.moveTargetPosition.y != this.y) {
+        if (this.moveTargetPosition.x != this.position.x || this.moveTargetPosition.y != this.position.y) {
             var targetPosition = new Vector(this.moveTargetPosition.x * game.tileSize, this.moveTargetPosition.y * game.tileSize);
-            var ownPosition = new Vector(this.x * game.tileSize, this.y * game.tileSize);
+            var ownPosition = new Vector(this.position.x * game.tileSize, this.position.y * game.tileSize);
             var delta = new Vector(targetPosition.x - ownPosition.x, targetPosition.y - ownPosition.y);
             var distance = Helper.distance(targetPosition, ownPosition);
 
@@ -2230,8 +2274,8 @@ function Building(pX, pY, pImage) {
     };
     this.getCenter = function () {
         return new Vector(
-            this.x * game.tileSize + (game.tileSize / 2) * this.size,
-            this.y * game.tileSize + (game.tileSize / 2) * this.size);
+            this.position.x * game.tileSize + (game.tileSize / 2) * this.size,
+            this.position.y * game.tileSize + (game.tileSize / 2) * this.size);
     };
     this.takeDamage = function () {
         // buildings can only be damaged while not moving
@@ -2239,8 +2283,8 @@ function Building(pX, pY, pImage) {
 
             for (var i = 0; i < this.size; i++) {
                 for (var j = 0; j < this.size; j++) {
-                    if (game.world.tiles[this.x + i][this.y + j][0].creep > 0) {
-                        this.health -= game.world.tiles[this.x + i][this.y + j][0].creep;
+                    if (game.world.tiles[this.position.x + i][this.position.y + j][0].creep > 0) {
+                        this.health -= game.world.tiles[this.position.x + i][this.position.y + j][0].creep;
                     }
                 }
             }
@@ -2297,8 +2341,8 @@ function Building(pX, pY, pImage) {
         if (this.built && this.imageID == "shield" && !this.moving) {
             var center = this.getCenter();
 
-            for (var i = this.x - 9; i < this.x + 10; i++) {
-                for (var j = this.y - 9; j < this.y + 10; j++) {
+            for (var i = this.position.x - 9; i < this.position.x + 10; i++) {
+                for (var j = this.position.y - 9; j < this.position.y + 10; j++) {
                     if (game.withinWorld(i, j)) {
                         var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
                         if (distance < Math.pow(game.tileSize * 10, 2)) {
@@ -2316,7 +2360,7 @@ function Building(pX, pY, pImage) {
         }
     };
     this.draw = function () {
-        var position = Helper.tiled2screen(new Vector(this.x, this.y));
+        var position = Helper.tiled2screen(this.position);
         var center = Helper.real2screen(this.getCenter());
 
         if (engine.isVisible(position, new Vector(engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom))) {
@@ -2450,14 +2494,14 @@ function Packet(pPosition, pImage, pType) {
                             this.target.built = true;
                             if (this.target.imageID == "collector") {
                                 game.updateCollection(this.target, "add");
-                                engine.playSound("energy", new Vector(this.target.x, this.target.y));
+                                engine.playSound("energy", this.target);
                             }
                             if (this.target.imageID == "storage")
                                 game.maxEnergy += 20;
                             if (this.target.imageID == "speed")
                                 game.packetSpeed *= 1.01;
                             if (this.target.imageID == "bomber") {
-                                var ship = new Ship(this.target.x * game.tileSize, this.target.y * game.tileSize, "bombership", "Bomber", this.target);
+                                var ship = new Ship(new Vector(this.target.x * game.tileSize, this.target.y * game.tileSize), "bombership", "Bomber", this.target);
                                 this.target.ship = ship;
                                 game.ships.push(ship);
                             }
@@ -2502,27 +2546,23 @@ function Packet(pPosition, pImage, pType) {
 /**
  * Shells (fired by Mortars)
  */
-function Shell(pX, pY, pImage, pTX, pTY) {
-    this.x = pX;
-    this.y = pY;
+function Shell(pPosition, pImage, pTargetPosition) {
+    this.position = pPosition;
     this.imageID = pImage;
     this.speed = new Vector(0, 0);
-    this.tx = pTX;
-    this.ty = pTY;
+    this.targetPosition = pTargetPosition;
     this.remove = false;
     this.rotation = 0;
     this.trailTimer = 0;
     this.init = function () {
-        var targetPosition = new Vector(this.tx, this.ty);
-        var ownPosition = new Vector(this.x, this.y);
-        var delta = new Vector(targetPosition.x - ownPosition.x, targetPosition.y - ownPosition.y);
-        var distance = Helper.distance(targetPosition, ownPosition);
+        var delta = new Vector(this.targetPosition.x - this.position.x, this.targetPosition.y - this.position.y);
+        var distance = Helper.distance(this.targetPosition, this.position);
 
         this.speed.x = (delta.x / distance) * game.shellSpeed * game.speed;
         this.speed.y = (delta.y / distance) * game.shellSpeed * game.speed;
     };
     this.getCenter = function () {
-        return new Vector(this.x - 8, this.y - 8);
+        return new Vector(this.position.x - 8, this.position.y - 8);
     };
     this.move = function () {
         this.trailTimer++;
@@ -2535,20 +2575,20 @@ function Shell(pX, pY, pImage, pTX, pTY) {
         if (this.rotation > 359)
             this.rotation -= 359;
 
-        this.x += this.speed.x;
-        this.y += this.speed.y;
+        this.position.x += this.speed.x;
+        this.position.y += this.speed.y;
 
-        if (this.x > this.tx - 2 && this.x < this.tx + 2 && this.y > this.ty - 2 && this.y < this.ty + 2) {
+        if (this.position.x > this.targetPosition.x - 2 && this.position.x < this.targetPosition.x + 2 && this.position.y > this.targetPosition.y - 2 && this.position.y < this.targetPosition.y + 2) {
             // if the target is reached explode and remove
             this.remove = true;
 
-            game.explosions.push(new Explosion(new Vector(this.tx, this.ty)));
-            engine.playSound("explosion", new Vector(this.tx / game.tileSize, this.ty / game.tileSize));
+            game.explosions.push(new Explosion(this.targetPosition));
+            engine.playSound("explosion", Helper.real2tiled(this.targetPosition));
 
-            for (var i = Math.floor(this.tx / game.tileSize) - 4; i < Math.floor(this.tx / game.tileSize) + 5; i++) {
-                for (var j = Math.floor(this.ty / game.tileSize) - 4; j < Math.floor(this.ty / game.tileSize) + 5; j++) {
+            for (var i = Math.floor(this.targetPosition.x / game.tileSize) - 4; i < Math.floor(this.targetPosition.x / game.tileSize) + 5; i++) {
+                for (var j = Math.floor(this.targetPosition.y / game.tileSize) - 4; j < Math.floor(this.targetPosition.y / game.tileSize) + 5; j++) {
                     if (game.withinWorld(i, j)) {
-                        var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - this.tx, 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - this.ty, 2);
+                        var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - this.targetPosition.x, 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - this.targetPosition.y, 2);
                         if (distance < Math.pow(game.tileSize * 4, 2)) {
                             game.world.tiles[i][j][0].creep -= 10;
                             if (game.world.tiles[i][j][0].creep < 0) {
@@ -2562,7 +2602,7 @@ function Shell(pX, pY, pImage, pTX, pTY) {
         }
     };
     this.draw = function () {
-        var position = Helper.real2screen(new Vector(this.x, this.y));
+        var position = Helper.real2screen(this.position);
 
         if (engine.isVisible(position, new Vector(16 * game.zoom, 16 * game.zoom))) {
             engine.canvas["buffer"].context.save();
@@ -2577,28 +2617,24 @@ function Shell(pX, pY, pImage, pTX, pTY) {
 /**
  * Spore (fired by Sporetower)
  */
-function Spore(pX, pY, pImage, pTX, pTY) {
-    this.x = pX;
-    this.y = pY;
+function Spore(pPosition, pImage, pTargetPosition) {
+    this.position = pPosition;
     this.imageID = pImage;
     this.speed = new Vector(0, 0);
-    this.tx = pTX;
-    this.ty = pTY;
+    this.targetPosition = pTargetPosition;
     this.remove = false;
     this.rotation = 0;
     this.health = 100;
     this.trailTimer = 0;
     this.init = function () {
-        var targetPosition = new Vector(this.tx, this.ty);
-        var ownPosition = new Vector(this.x, this.y);
-        var delta = new Vector(targetPosition.x - ownPosition.x, targetPosition.y - ownPosition.y);
-        var distance = Helper.distance(targetPosition, ownPosition);
+        var delta = new Vector(this.targetPosition.x - this.position.x, this.targetPosition.y - this.position.y);
+        var distance = Helper.distance(this.targetPosition, this.position);
 
         this.speed.x = (delta.x / distance) * game.sporeSpeed * game.speed;
         this.speed.y = (delta.y / distance) * game.sporeSpeed * game.speed;
     };
     this.getCenter = function () {
-        return new Vector(this.x - 16, this.y - 16);
+        return new Vector(this.position.x - 16, this.position.y - 16);
     };
     this.move = function () {
         this.trailTimer++;
@@ -2610,18 +2646,18 @@ function Spore(pX, pY, pImage, pTX, pTY) {
         if (this.rotation > 359)
             this.rotation -= 359;
 
-        this.x += this.speed.x;
-        this.y += this.speed.y;
+        this.position.x += this.speed.x;
+        this.position.y += this.speed.y;
 
-        if (this.x > this.tx - 2 && this.x < this.tx + 2 && this.y > this.ty - 2 && this.y < this.ty + 2) {
+        if (this.position.x > this.targetPosition.x - 2 && this.position.x < this.targetPosition.x + 2 && this.position.y > this.targetPosition.y - 2 && this.position.y < this.targetPosition.y + 2) {
             // if the target is reached explode and remove
             this.remove = true;
-            engine.playSound("explosion", new Vector(this.tx / game.tileSize, this.ty / game.tileSize));
+            engine.playSound("explosion", Helper.real2tiled(this.targetPosition));
 
-            for (var i = Math.floor(this.tx / game.tileSize) - 2; i < Math.floor(this.tx / game.tileSize) + 2; i++) {
-                for (var j = Math.floor(this.ty / game.tileSize) - 2; j < Math.floor(this.ty / game.tileSize) + 2; j++) {
+            for (var i = Math.floor(this.targetPosition.x / game.tileSize) - 2; i < Math.floor(this.targetPosition.x / game.tileSize) + 2; i++) {
+                for (var j = Math.floor(this.targetPosition.y / game.tileSize) - 2; j < Math.floor(this.targetPosition.y / game.tileSize) + 2; j++) {
                     if (game.withinWorld(i, j)) {
-                        var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.tx + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.ty + game.tileSize), 2);
+                        var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.targetPosition.x + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.targetPosition.y + game.tileSize), 2);
                         if (distance < Math.pow(game.tileSize, 2)) {
                             game.world.tiles[i][j][0].creep += .05;
                         }
@@ -2631,7 +2667,7 @@ function Spore(pX, pY, pImage, pTX, pTY) {
         }
     };
     this.draw = function () {
-        var position = Helper.real2screen(new Vector(this.x, this.y));
+        var position = Helper.real2screen(this.position);
 
         if (engine.isVisible(position, new Vector(32 * game.zoom, 32 * game.zoom))) {
             engine.canvas["buffer"].context.save();
@@ -2646,13 +2682,11 @@ function Spore(pX, pY, pImage, pTX, pTY) {
 /**
  * Ships (Bomber)
  */
-function Ship(pX, pY, pImage, pType, pHome) {
-    this.x = pX;
-    this.y = pY;
+function Ship(pPosition, pImage, pType, pHome) {
+    this.position = pPosition;
     this.imageID = pImage;
     this.speed = new Vector(0, 0);
-    this.tx = 0;
-    this.ty = 0;
+    this.targetPosition = new Vector(0, 0);
     this.remove = false;
     this.angle = 0;
     this.maxEnergy = 15;
@@ -2663,10 +2697,10 @@ function Ship(pX, pY, pImage, pType, pHome) {
     this.trailTimer = 0;
     this.weaponTimer = 0;
     this.getCenter = function () {
-        return new Vector(this.x + 24, this.y + 24);
+        return new Vector(this.position.x + 24, this.position.y + 24);
     };
     this.updateHoverState = function () {
-        var position = Helper.real2screen(new Vector(this.x, this.y));
+        var position = Helper.real2screen(this.position);
         this.hovered = (engine.mouse.x > position.x &&
             engine.mouse.x < position.x + 47 &&
             engine.mouse.y > position.y &&
@@ -2675,7 +2709,7 @@ function Ship(pX, pY, pImage, pType, pHome) {
         return this.hovered;
     };
     this.turnToTarget = function () {
-        var delta = new Vector(this.tx - this.x, this.ty - this.y);
+        var delta = new Vector(this.targetPosition.x - this.position.x, this.targetPosition.y - this.position.y);
         var angleToTarget = Helper.rad2deg(Math.atan2(delta.y, delta.x));
 
         var turnRate = 1.5;
@@ -2721,20 +2755,20 @@ function Ship(pX, pY, pImage, pType, pHome) {
             this.turnToTarget();
             this.calculateVector();
 
-            this.x += this.speed.x;
-            this.y += this.speed.y;
+            this.position.x += this.speed.x;
+            this.position.y += this.speed.y;
 
-            if (this.x > this.tx - 2 && this.x < this.tx + 2 && this.y > this.ty - 2 && this.y < this.ty + 2) {
+            if (this.position.x > this.targetPosition.x - 2 && this.position.x < this.targetPosition.x + 2 && this.position.y > this.targetPosition.y - 2 && this.position.y < this.targetPosition.y + 2) {
                 if (this.status == 1) { // attacking
                     if (this.weaponTimer >= 10) {
                         this.weaponTimer = 0;
-                        game.explosions.push(new Explosion(new Vector(this.tx, this.ty)));
+                        game.explosions.push(new Explosion(this.targetPosition));
                         this.energy -= 1;
 
-                        for (var i = Math.floor(this.tx / game.tileSize) - 3; i < Math.floor(this.tx / game.tileSize) + 5; i++) {
-                            for (var j = Math.floor(this.ty / game.tileSize) - 3; j < Math.floor(this.ty / game.tileSize) + 5; j++)
+                        for (var i = Math.floor(this.targetPosition.x / game.tileSize) - 3; i < Math.floor(this.targetPosition.x / game.tileSize) + 5; i++) {
+                            for (var j = Math.floor(this.targetPosition.y / game.tileSize) - 3; j < Math.floor(this.targetPosition.y / game.tileSize) + 5; j++)
                                 if (game.withinWorld(i, j)) {{
-                                    var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.tx + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.ty + game.tileSize), 2);
+                                    var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.targetPosition.x + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.targetPosition.y + game.tileSize), 2);
                                     if (distance < Math.pow(game.tileSize * 3, 2)) {
                                         game.world.tiles[i][j][0].creep -= 5;
                                         if (game.world.tiles[i][j][0].creep < 0) {
@@ -2747,24 +2781,24 @@ function Ship(pX, pY, pImage, pType, pHome) {
 
                         if (this.energy == 0) { // return to base
                             this.status = 2;
-                            this.tx = this.home.x * game.tileSize;
-                            this.ty = this.home.y * game.tileSize;
+                            this.targetPosition.x = this.home.x * game.tileSize;
+                            this.targetPosition.y = this.home.y * game.tileSize;
                         }
                     }
                 }
                 else if (this.status == 2) { // if returning set to idle
                     this.status = 0;
-                    this.x = this.home.x * game.tileSize;
-                    this.y = this.home.y * game.tileSize;
-                    this.tx = 0;
-                    this.ty = 0;
+                    this.position.x = this.home.x * game.tileSize;
+                    this.position.y = this.home.y * game.tileSize;
+                    this.targetPosition.x = 0;
+                    this.targetPosition.y = 0;
                     this.energy = 5;
                 }
             }
         }
     };
     this.draw = function () {
-        var position = Helper.real2screen(new Vector(this.x, this.y));
+        var position = Helper.real2screen(this.position);
 
         if (this.hovered) {
             engine.canvas["buffer"].context.strokeStyle = "#f00";
@@ -2851,7 +2885,7 @@ function Sporetower(pPosition) {
         do {
             var target = game.buildings[Helper.randomInt(0, game.buildings.length)];
         } while (!target.built);
-        var spore = new Spore(this.getCenter().x, this.getCenter().y, "spore", target.getCenter().x, target.getCenter().y);
+        var spore = new Spore(this.getCenter(), "spore", target.getCenter());
         spore.init();
         game.spores.push(spore);
     };
@@ -3236,7 +3270,7 @@ function onMouseUp(evt) {
             for (var i = 0; i < game.ghosts.length; i++) {
                 if (game.canBePlaced(game.ghosts[i].position, game.symbols[game.activeSymbol].size)) {
                     soundSuccess = true;
-                    game.addBuilding(game.ghosts[i].position.x, game.ghosts[i].position.y, game.symbols[game.activeSymbol].imageID);
+                    game.addBuilding(game.ghosts[i].position, game.symbols[game.activeSymbol].imageID);
                 }
             }
             if (soundSuccess)
