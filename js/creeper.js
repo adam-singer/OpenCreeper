@@ -84,7 +84,7 @@ var engine = {
         this.addSound("laser", "wav");
 
         // load images
-        this.imageSrcs = ["numbers", "level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon", "cannongun", "base", "collector", "reactor", "storage", "terp", "packet_energy", "packet_health", "relay", "emitter", "creep",
+        this.imageSrcs = ["numbers", "level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon", "cannongun", "base", "collector", "reactor", "storage", "terp", "packet_collection", "packet_energy", "packet_health", "relay", "emitter", "creep",
             "mortar", "shell", "beam", "spore", "bomber", "bombership", "smoke", "explosion", "targetcursor", "sporetower", "forcefield", "shield"];
 
         $('#time').stopwatch().stopwatch('start');
@@ -1192,7 +1192,7 @@ var game = {
                     if (action == "add") {
                         if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
                             if (tileHeight == height) {
-                                this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collection = 1;
+                                this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = building;
                             }
                         }
                     }
@@ -1200,7 +1200,7 @@ var game = {
 
                         if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
                             if (tileHeight == height) {
-                                this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collection = 0;
+                                this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = null;
                             }
                         }
 
@@ -1210,7 +1210,7 @@ var game = {
                                 var centerBuildingK = this.buildings[k].getCenter();
                                 if (Math.pow(positionCurrentCenter.x - centerBuildingK.x, 2) + Math.pow(positionCurrentCenter.y - centerBuildingK.y, 2) < Math.pow(this.tileSize * 6, 2)) {
                                     if (tileHeight == heightK) {
-                                        this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collection = 1;
+                                        this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = this.buildings[k];
                                     }
                                 }
                             }
@@ -1232,7 +1232,7 @@ var game = {
         for (var i = 0; i < this.world.size.x; i++) {
             for (var j = 0; j < this.world.size.y; j++) {
                 for (var k = 0; k < 10; k++) {
-                    if (this.world.tiles[i][j][k].collection == 1)
+                    if (this.world.tiles[i][j][k].collector)
                         this.collection += 1;
                 }
             }
@@ -1355,7 +1355,7 @@ var game = {
             } else {
                 // if the node is not the target AND built it is a valid neighbour
                 // also the neighbour must not be moving
-                if (!this.buildings[i].moving && this.buildings[i].imageID != "base") {
+                if (!this.buildings[i].moving) { // && this.buildings[i].imageID != "base") {
                      if (this.buildings[i] != target) {
                           if (this.buildings[i].built) {
                               centerI = this.buildings[i].getCenter();
@@ -1531,14 +1531,16 @@ var game = {
         }
         else {
             packet.currentTarget = null;
-            if (packet.type == "energy")
+            if (packet.type == "energy") {
                 packet.target.energyRequests -= 4;
-            if (packet.target.energyRequests < 0)
-                packet.target.energyRequests = 0;
-            if (packet.type == "health")
+                if (packet.target.energyRequests < 0)
+                    packet.target.energyRequests = 0;
+            }
+            else if (packet.type == "health") {
                 packet.target.healthRequests--;
-            if (packet.target.healthRequests < 0)
-                packet.target.healthRequests = 0;
+                if (packet.target.healthRequests < 0)
+                    packet.target.healthRequests = 0;
+            }
             packet.remove = true;
         }
     },
@@ -1683,10 +1685,47 @@ var game = {
         this.energyTimer++;
         if (this.energyTimer > (250 / this.speed)) {
             this.energyTimer -= (250 / this.speed);
-            this.currentEnergy += this.collection;
-            if (this.currentEnergy > this.maxEnergy)
-                this.currentEnergy = this.maxEnergy;
-            this.updateEnergyElement();
+            for (var k = 0; k < this.buildings.length; k++) {
+                if (this.buildings[k].imageID == "collector" && this.buildings[k].built) {
+                    var height = this.getHighestTerrain(this.buildings[k].position);
+                    var centerBuilding = this.buildings[k].getCenter();
+
+                    for (var i = -5; i < 7; i++) {
+                        for (var j = -5; j < 7; j++) {
+                            var positionCurrent = new Vector(
+                                this.buildings[k].position.x + i,
+                                this.buildings[k].position.y + j);
+                            var positionCurrentCenter = new Vector(
+                                positionCurrent.x * this.tileSize + (this.tileSize / 2),
+                                positionCurrent.y * this.tileSize + (this.tileSize / 2));
+                            var tileHeight = this.getHighestTerrain(positionCurrent);
+
+                            if (this.withinWorld(positionCurrent.x, positionCurrent.y)) {
+                                if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
+                                    if (tileHeight == height) {
+                                        if (this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector == this.buildings[k])
+                                            this.buildings[k].collectedEnergy += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (var i = 0; i < this.buildings.length; i++) {
+            if (this.buildings[i].collectedEnergy >= 100) {
+                this.buildings[i].collectedEnergy -= 100;
+                var img = "packet_collection";
+                var center = this.buildings[i].getCenter();
+                var packet = new Packet(center, img, "collection");
+                packet.target = game.base;
+                packet.currentTarget = this.buildings[i];
+                this.findRoute(packet);
+                if (packet.currentTarget)
+                    this.packets.push(packet);
+            }
         }
     },
     updatePackets: function () {
@@ -1872,24 +1911,24 @@ var game = {
                 if (this.withinWorld(iS, jS)) {
 
                     for (var k = 0 ; k < 10; k++) {
-                        if (this.world.tiles[iS][jS][k].collection == 1) {
+                        if (this.world.tiles[iS][jS][k].collector) {
                             var up = 0, down = 0, left = 0, right = 0;
                             if (jS - 1 < 0)
                                 up = 0;
                             else
-                                up = this.world.tiles[iS][jS - 1][k].collection;
+                                up = this.world.tiles[iS][jS - 1][k].collector ? 1 : 0;
                             if (jS + 1 > this.world.size.y - 1)
                                 down = 0;
                             else
-                                down = this.world.tiles[iS][jS + 1][k].collection;
+                                down = this.world.tiles[iS][jS + 1][k].collector ? 1 : 0;
                             if (iS - 1 < 0)
                                 left = 0;
                             else
-                                left = this.world.tiles[iS - 1][jS][k].collection;
+                                left = this.world.tiles[iS - 1][jS][k].collector ? 1 : 0;
                             if (iS + 1 > this.world.size.x - 1)
                                 right = 0;
                             else
-                                right = this.world.tiles[iS + 1][jS][k].collection;
+                                right = this.world.tiles[iS + 1][jS][k].collector ? 1 : 0;
 
                             var index = (8 * down) + (4 * left) + (2 * up) + right;
                             engine.canvas["collection"].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, engine.halfWidth + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
@@ -2217,6 +2256,7 @@ function Building(pPosition, pImage) {
     this.moveTargetPosition = new Vector(0, 0);
     this.canMove = false;
     this.needsEnergy = false;
+    this.collectedEnergy = 0;
     this.ship = null;
     this.updateHoverState = function () {
         var position = Helper.tiled2screen(this.position);
@@ -2496,18 +2536,21 @@ function Packet(pPosition, pImage, pType) {
                         }
                     }
                 }
-                if (this.type == "energy") {
+                else if (this.type == "energy") {
                     this.target.energy += 4;
                     this.target.energyRequests -= 4;
                     if (this.target.energy > this.target.maxEnergy)
                         this.target.energy = this.target.maxEnergy;
                 }
+                else if (this.type == "collection") {
+                    game.currentEnergy += 1;
+                    if (game.currentEnergy > game.maxEnergy)
+                        game.currentEnergy = game.maxEnergy;
+                    game.updateEnergyElement();
+                }
             }
             else {
                 game.findRoute(this);
-                //this.currentTarget = game.findRoute(this);
-                //if (this.currentTarget == null)
-                //    this.remove = true;
             }
         }
     };
@@ -2516,8 +2559,13 @@ function Packet(pPosition, pImage, pType) {
         var delta = new Vector(targetPosition.x - this.position.x, targetPosition.y - this.position.y);
         var distance = Helper.distance(targetPosition, this.position);
 
-        this.speed.x = (delta.x / distance) * game.packetSpeed * game.speed * this.speedMultiplier;
-        this.speed.y = (delta.y / distance) * game.packetSpeed * game.speed * this.speedMultiplier;
+        var packetSpeed = game.packetSpeed;
+        // reduce speed for collection
+        if (this.type == "collection")
+            packetSpeed /= 4;
+
+        this.speed.x = (delta.x / distance) * packetSpeed * game.speed * this.speedMultiplier;
+        this.speed.y = (delta.y / distance) * packetSpeed * game.speed * this.speedMultiplier;
 
         if (Math.abs(this.speed.x) > Math.abs(delta.x))
             this.speed.x = delta.x;
@@ -2911,7 +2959,7 @@ function Tile() {
     this.full = false;
     this.creep = 0;
     this.newcreep = 0;
-    this.collection = 0;
+    this.collector = null;
 }
 
 function Vector(pX, pY) {
@@ -3232,7 +3280,7 @@ function onMouseUp(evt) {
             for (var i = 0; i < game.buildings.length; i++) {
                 game.buildings[i].selected = game.buildings[i].hovered;
                 if (game.buildings[i].selected) {
-                    $('#selection').show().html("Type: " + game.buildings[i].type + "<br/>" +
+                    $('#selection').show().html("Type: " + game.buildings[i].imageID + "<br/>" +
                         "Health/HR/MaxHealth: " + game.buildings[i].health + "/" + game.buildings[i].healthRequests + "/" + game.buildings[i].maxHealth);
                     buildingSelected = game.buildings[i];
                 }
