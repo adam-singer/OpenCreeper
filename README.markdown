@@ -51,3 +51,12 @@ http://www.vorbis.com/music/ - Epoq - Lepidoptera
 
 Background image:
 http://webtreatsetc.deviantart.com/art/Classic-Nebula-Space-Patterns-141741066
+
+Failure sound:
+http://freesound.org/people/fins/sounds/173958/
+
+Energy sound:
+http://freesound.org/people/fins/sounds/146727/
+
+Laser sound:
+http://freesound.org/people/fins/sounds/146725/

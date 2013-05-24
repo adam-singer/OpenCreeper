@@ -81,6 +81,9 @@ var engine = {
         this.addSound("click", "wav");
         this.addSound("music", "ogg");
         this.addSound("explosion", "wav");
+        this.addSound("failure", "wav");
+        this.addSound("energy", "wav");
+        this.addSound("laser", "wav");
 
         // load images
         this.imageSrcs = ["numbers", "level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon", "cannongun", "base", "collector", "reactor", "storage", "terp", "packet_energy", "packet_health", "relay", "emitter", "creep",
@@ -130,11 +133,24 @@ var engine = {
             this.sounds[name][i] = new Audio("sounds/" + name + "." + type);
         }
     },
-    playSound: function(name) {
+    playSound: function(name, position) {
+        // adjust sound volume based on the current zoom as well as the position
+
+        var volume = 1;
+        if (position) {
+            var screenCenter = new Vector(
+                Math.floor(engine.halfWidth / (game.tileSize * game.zoom)) + game.scroll.x,
+                Math.floor(engine.halfHeight / (game.tileSize * game.zoom)) + game.scroll.y);
+            var distance = Helper.distance(screenCenter, position);
+            console.log(distance);
+            volume = Helper.clamp(game.zoom / (1.6 * distance / 40), 0, 1);
+        }
+
         for(var i = 0; i < 5; i++)
         {
             if(this.sounds[name][i].ended == true || this.sounds[name][i].currentTime == 0)
             {
+                this.sounds[name][i].volume = volume;
                 this.sounds[name][i].play();
                 return;
             }
@@ -1074,6 +1090,7 @@ var game = {
                             this.buildings[t].energy -= 1;
                             this.buildings[t].operating = true;
                             this.smokes.push(new Smoke(new Vector(targets[0].x * this.tileSize + this.tileSize / 2, targets[0].y * this.tileSize + this.tileSize / 2)));
+                            engine.playSound("laser");
                             break;
                         }
                     }
@@ -2463,8 +2480,10 @@ function Packet(pPosition, pImage, pType) {
                         this.target.health = this.target.maxHealth;
                         if (!this.target.built) {
                             this.target.built = true;
-                            if (this.target.imageID == "collector")
+                            if (this.target.imageID == "collector") {
                                 game.updateCollection(this.target, "add");
+                                engine.playSound("energy", new Vector(this.target.x, this.target.y));
+                            }
                             if (this.target.imageID == "storage")
                                 game.maxEnergy += 20;
                             if (this.target.imageID == "speed")
@@ -3298,12 +3317,17 @@ function onMouseUp(evt) {
         // when there is an active symbol place building
         if (game.activeSymbol != -1) {
             var type = game.symbols[game.activeSymbol].imageID.substring(0, 1).toUpperCase() + game.symbols[game.activeSymbol].imageID.substring(1);
+            var soundSuccess = false;
             for (var i = 0; i < game.ghosts.length; i++) {
                 if (game.canBePlaced(game.ghosts[i].position, game.symbols[game.activeSymbol].size)) {
-                    game.addBuilding(game.ghosts[i].position.x, game.ghosts[i].position.y, game.symbols[game.activeSymbol].imageID, type);
+                    soundSuccess = true;
+                    game.addBuilding(game.ghosts[i].position.x, game.ghosts[i].position.y, game.symbols[game.activeSymbol].imageID);
                 }
             }
-            engine.playSound("click");
+            if (soundSuccess)
+                engine.playSound("click");
+            else
+                engine.playSound("failure");
         }
     }
 }
@@ -3381,6 +3405,10 @@ Helper.clone = function(pObject) {
 
 Helper.randomInt = function(from, to) {
     return Math.floor(Math.random() * (to - from + 1) + from);
+};
+
+Helper.clamp = function(number, min, max) {
+    return number < min ? min : (number > max ? max : number);
 };
 
 // Thanks to http://www.hardcode.nl/subcategory_1/article_317-array-shuffle-function
