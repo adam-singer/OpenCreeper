@@ -1418,7 +1418,7 @@ var game = {
         // this holds all routes
         var routes = [];
 
-        // create a new route and add the command node as first element
+        // create a new route and add the current node as first element
         var route = new Route();
         route.nodes.push(packet.currentTarget);
         routes.push(route);
@@ -1519,8 +1519,6 @@ var game = {
 
         // if a route is left set the second element as the next node for the packet
         if (routes.length > 0) {
-            //packet.currentTarget = routes[0].nodes[1];
-
             // adjust speed if packet is travelling between relays
             if (routes[0].nodes[1].imageID == "relay") {
                 packet.speedMultiplier = 2;
@@ -1529,9 +1527,10 @@ var game = {
                 packet.speedMultiplier = 1;
             }
 
-            return routes[0].nodes[1];
+            packet.currentTarget = routes[0].nodes[1];
         }
         else {
+            packet.currentTarget = null;
             if (packet.type == "energy")
                 packet.target.energyRequests -= 4;
             if (packet.target.energyRequests < 0)
@@ -1541,7 +1540,6 @@ var game = {
             if (packet.target.healthRequests < 0)
                 packet.target.healthRequests = 0;
             packet.remove = true;
-            return null;
         }
     },
     /**
@@ -1554,24 +1552,13 @@ var game = {
         var packet = new Packet(center, img, type);
         packet.target = building;
         packet.currentTarget = game.base;
-        if (this.findRoute(packet) != null) {
+        this.findRoute(packet);
+        if (packet.currentTarget) {
             if (packet.type == "health")
                 packet.target.healthRequests++;
             if (packet.type == "energy")
                 packet.target.energyRequests += 4;
             this.packetQueue.push(packet);
-        }
-    },
-    /**
-     * @param {Packet} packet The packet to send
-     */
-    sendPacket: function (packet) {
-        packet.currentTarget = this.findRoute(packet);
-        if (packet.currentTarget != null) {
-            this.packets.push(packet);
-            this.updateEnergyElement();
-        } else {
-            packet.remove = true; // IDEA: don't remove but put to end of queue
         }
     },
     /**
@@ -1640,8 +1627,9 @@ var game = {
         for (var i = 0; i < this.packetQueue.length; i++) {
             if (this.currentEnergy > 0) {
                 this.currentEnergy--;
+                this.updateEnergyElement();
                 var packet = this.packetQueue.shift();
-                this.sendPacket(packet);
+                this.packets.push(packet);
             }
         }
     },
@@ -2516,9 +2504,10 @@ function Packet(pPosition, pImage, pType) {
                 }
             }
             else {
-                this.currentTarget = game.findRoute(this);
-                if (this.currentTarget == null)
-                    this.remove = true;
+                game.findRoute(this);
+                //this.currentTarget = game.findRoute(this);
+                //if (this.currentTarget == null)
+                //    this.remove = true;
             }
         }
     };
@@ -3313,25 +3302,6 @@ function onMouseScroll(evt) {
     //prevent page fom scrolling
     return false;
 }
-
-/*function request() {
-    var building = null;
-    for (var i = 0; i < game.buildings.length; i++)
-        if (game.buildings[i].selected)
-            building = game.buildings[i];
-
-    var center = game.base.getCenter();
-    var packet = new Packet(center, "packet_health", "health");
-    packet.target = building;
-    packet.currentTarget = game.base;
-    //packet.currentTarget = game.findRoute(packet);
-    //game.packets.push(packet);
-    console.log("--> start finding initial route");
-    if (game.findRoute(packet) != null) {
-        game.packetQueue.push(packet);
-    }
-    console.log("--> end finding initial route");
-}*/
 
 /**
  * Some helper functions below
