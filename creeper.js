@@ -143,7 +143,7 @@ var engine = {
                 Math.floor(engine.halfHeight / (game.tileSize * game.zoom)) + game.scroll.y);
             var distance = Helper.distance(screenCenter, position);
             console.log(distance);
-            volume = Helper.clamp(game.zoom / (1.6 * distance / 40), 0, 1);
+            volume = Helper.clamp(game.zoom / Math.pow(distance / 20, 2), 0, 1);
         }
 
         for(var i = 0; i < 5; i++)
@@ -665,7 +665,7 @@ var game = {
         // only explode building when it has been built
         if (building.built) {
             this.explosions.push(new Explosion(building.getCenter()));
-            engine.playSound("explosion");
+            engine.playSound("explosion", new Vector(building.x, building.y));
         }
 
         if (building.imageID == "base") {
@@ -1090,7 +1090,7 @@ var game = {
                             this.buildings[t].energy -= 1;
                             this.buildings[t].operating = true;
                             this.smokes.push(new Smoke(new Vector(targets[0].x * this.tileSize + this.tileSize / 2, targets[0].y * this.tileSize + this.tileSize / 2)));
-                            engine.playSound("laser");
+                            engine.playSound("laser", new Vector(x, y));
                             break;
                         }
                     }
@@ -1117,7 +1117,7 @@ var game = {
                         }
                     }
                     if (target) {
-                        engine.playSound("shot");
+                        engine.playSound("shot", new Vector(x, y));
                         var shell = new Shell(center.x, center.y, "shell", target.x * this.tileSize + this.tileSize / 2, target.y * this.tileSize + this.tileSize / 2);
                         shell.init();
                         this.shells.push(shell);
@@ -1140,8 +1140,7 @@ var game = {
                             this.spores[i].health -= 2;
                             if (this.spores[i].health <= 0) {
                                 this.spores[i].remove = true;
-                                engine.playSound("explosion");
-                                this.explosions.push(new Explosion(sporeCenter));
+                                engine.playSound("explosion", new Vector(this.spores[i].x / this.tileSize, this.spores[i].y / this.tileSize));                                this.explosions.push(new Explosion(sporeCenter));
                             }
                         }
                     }
@@ -2577,7 +2576,7 @@ function Shell(pX, pY, pImage, pTX, pTY) {
             this.remove = true;
 
             game.explosions.push(new Explosion(new Vector(this.tx, this.ty)));
-            engine.playSound("explosion");
+            engine.playSound("explosion", new Vector(this.tx / game.tileSize, this.ty / game.tileSize));
 
             for (var i = Math.floor(this.tx / game.tileSize) - 4; i < Math.floor(this.tx / game.tileSize) + 5; i++) {
                 for (var j = Math.floor(this.ty / game.tileSize) - 4; j < Math.floor(this.ty / game.tileSize) + 5; j++) {
@@ -2652,7 +2651,7 @@ function Spore(pX, pY, pImage, pTX, pTY) {
         if (this.x > this.tx - 2 && this.x < this.tx + 2 && this.y > this.ty - 2 && this.y < this.ty + 2) {
             // if the target is reached explode and remove
             this.remove = true;
-            engine.playSound("explosion");
+            engine.playSound("explosion", new Vector(this.tx / game.tileSize, this.ty / game.tileSize));
 
             for (var i = Math.floor(this.tx / game.tileSize) - 2; i < Math.floor(this.tx / game.tileSize) + 2; i++) {
                 for (var j = Math.floor(this.ty / game.tileSize) - 2; j < Math.floor(this.ty / game.tileSize) + 2; j++) {
