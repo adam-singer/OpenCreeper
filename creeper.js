@@ -1835,8 +1835,8 @@ var game = {
         engine.canvas["collection"].context.save();
         engine.canvas["collection"].context.globalAlpha = .5;
 
-        var timesX = Math.floor(engine.halfWidth / this.tileSize / this.zoom);
-        var timesY = Math.floor(engine.halfHeight / this.tileSize / this.zoom);
+        var timesX = Math.ceil(engine.halfWidth / this.tileSize / this.zoom);
+        var timesY = Math.ceil(engine.halfHeight / this.tileSize / this.zoom);
 
         for (var i = -timesX; i <= timesX; i++) {
             for (var j = -timesY; j <= timesY; j++) {
@@ -1883,8 +1883,8 @@ var game = {
     drawCreeper: function() {
         engine.canvas["creeper"].clear();
 
-        var timesX = Math.floor(engine.halfWidth / this.tileSize / this.zoom);
-        var timesY = Math.floor(engine.halfHeight / this.tileSize / this.zoom);
+        var timesX = Math.ceil(engine.halfWidth / this.tileSize / this.zoom);
+        var timesY = Math.ceil(engine.halfHeight / this.tileSize / this.zoom);
 
         for (var i = -timesX; i <= timesX; i++) {
             for (var j = -timesY; j <= timesY; j++) {
