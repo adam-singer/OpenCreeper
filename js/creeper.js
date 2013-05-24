@@ -1350,7 +1350,7 @@ var game = {
         var neighbours = [], centerI, centerNode;
         //if (node.built) {
         for (var i = 0; i < this.buildings.length; i++) {
-            if (this.buildings[i].position.x == node.x && this.buildings[i].position.y == node.y) {
+            if (this.buildings[i].position.x == node.position.x && this.buildings[i].position.y == node.position.y) {
                 // console.log("is me");
             } else {
                 // if the node is not the target AND built it is a valid neighbour
@@ -1571,7 +1571,7 @@ var game = {
             this.packets.push(packet);
             this.updateEnergyElement();
         } else {
-            packet.remove = true;
+            packet.remove = true; // IDEA: don't remove but put to end of queue
         }
     },
     /**
@@ -1813,7 +1813,7 @@ var game = {
             position.y * this.tileSize + (this.tileSize / 2) * size);
         var positionHeight = this.getHighestTerrain(position);
 
-        if (this.canBePlaced(position, size) && (type == "collector" || type == "cannon" || type == "mortar" || type == "shield" || type == "beam" || type == "terp")) {
+        if (this.canBePlaced(position, size, null) && (type == "collector" || type == "cannon" || type == "mortar" || type == "shield" || type == "beam" || type == "terp")) {
 
             engine.canvas["buffer"].context.save();
             engine.canvas["buffer"].context.globalAlpha = .25;
@@ -2026,7 +2026,7 @@ var game = {
 
                 // draw green or red box
                 // make sure there isn't a building on this tile yet
-                if (this.canBePlaced(positionScrolled, this.symbols[this.activeSymbol].size)) {
+                if (this.canBePlaced(positionScrolled, this.symbols[this.activeSymbol].size, null)) {
                     engine.canvas["buffer"].context.strokeStyle = "#0f0";
                 }
                 else {
@@ -2617,9 +2617,9 @@ function Shell(pPosition, pImage, pTargetPosition) {
 /**
  * Spore (fired by Sporetower)
  */
-function Spore(pPosition, pImage, pTargetPosition) {
+function Spore(pPosition, pTargetPosition) {
     this.position = pPosition;
-    this.imageID = pImage;
+    this.imageID = "spore";
     this.speed = new Vector(0, 0);
     this.targetPosition = pTargetPosition;
     this.remove = false;
@@ -2842,10 +2842,11 @@ function Ship(pPosition, pImage, pType, pHome) {
 function Emitter(pPosition, pStrength) {
     this.position = pPosition;
     this.strength = pStrength;
+    this.imageID = "emitter";
     this.draw = function () {
         var position = Helper.tiled2screen(this.position);
         if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
-            engine.canvas["buffer"].context.drawImage(engine.images["emitter"], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
+            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
         }
     };
     this.spawn = function () {
@@ -2858,6 +2859,7 @@ function Emitter(pPosition, pStrength) {
  */
 function Sporetower(pPosition) {
     this.position = pPosition;
+    this.imageID = "sporetower";
     this.health = 100;
     this.sporeTimer = 0;
     this.reset = function() {
@@ -2871,7 +2873,7 @@ function Sporetower(pPosition) {
     this.draw = function () {
         var position = Helper.tiled2screen(this.position);
         if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
-            engine.canvas["buffer"].context.drawImage(engine.images["sporetower"], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
+            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
         }
     };
     this.update = function() {
@@ -2885,7 +2887,7 @@ function Sporetower(pPosition) {
         do {
             var target = game.buildings[Helper.randomInt(0, game.buildings.length)];
         } while (!target.built);
-        var spore = new Spore(this.getCenter(), "spore", target.getCenter());
+        var spore = new Spore(this.getCenter(), target.getCenter());
         spore.init();
         game.spores.push(spore);
     };
@@ -2894,10 +2896,11 @@ function Sporetower(pPosition) {
 function Smoke(pPosition) {
     this.position = new Vector(pPosition.x, pPosition.y);
     this.frame = 0;
+    this.imageID = "smoke";
     this.draw = function () {
         var position = Helper.real2screen(this.position);
         if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
-            engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, position.x - 24 * game.zoom, position.y - 24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
+            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, position.x - 24 * game.zoom, position.y - 24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
         }
     };
 }
@@ -2905,10 +2908,11 @@ function Smoke(pPosition) {
 function Explosion(pPosition) {
     this.position = new Vector(pPosition.x, pPosition.y);
     this.frame = 0;
+    this.imageID = "explosion";
     this.draw = function () {
         var position = Helper.real2screen(this.position);
         if (engine.isVisible(position, new Vector(64 * game.zoom, 64 * game.zoom))) {
-            engine.canvas["buffer"].context.drawImage(engine.images["explosion"], (this.frame % 8) * 64, Math.floor(this.frame / 8) * 64, 64, 64, position.x - 32 * game.zoom, position.y - 32 * game.zoom, 64 * game.zoom, 64 * game.zoom);
+            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], (this.frame % 8) * 64, Math.floor(this.frame / 8) * 64, 64, 64, position.x - 32 * game.zoom, position.y - 32 * game.zoom, 64 * game.zoom, 64 * game.zoom);
         }
     };
 }
@@ -2947,7 +2951,7 @@ function Canvas(pElement) {
     this.right = this.left + this.element[0].width;
     this.context.webkitImageSmoothingEnabled = false;
     this.clear = function() {
-        this.context.clearRect(0,0, this.element[0].width, this.element[0].height);
+        this.context.clearRect(0, 0, this.element[0].width, this.element[0].height);
     }
 }
 
@@ -3206,7 +3210,6 @@ function onMouseUp(evt) {
                     // take energy from base
                     game.ships[i].energy = game.ships[i].home.energy;
                     game.ships[i].home.energy = 0;
-
                     game.ships[i].tx = position.x * game.tileSize;
                     game.ships[i].ty = position.y * game.tileSize;
                     game.ships[i].status = 1;
@@ -3240,8 +3243,7 @@ function onMouseUp(evt) {
             for (var i = 0; i < game.buildings.length; i++) {
                 game.buildings[i].selected = game.buildings[i].hovered;
                 if (game.buildings[i].selected) {
-                    $('#selection').show();
-                    $('#selection').html("Type: " + game.buildings[i].type + "<br/>" +
+                    $('#selection').show().html("Type: " + game.buildings[i].type + "<br/>" +
                         "Health/HR/MaxHealth: " + game.buildings[i].health + "/" + game.buildings[i].healthRequests + "/" + game.buildings[i].maxHealth);
                     buildingSelected = game.buildings[i];
                 }
@@ -3268,7 +3270,7 @@ function onMouseUp(evt) {
             var type = game.symbols[game.activeSymbol].imageID.substring(0, 1).toUpperCase() + game.symbols[game.activeSymbol].imageID.substring(1);
             var soundSuccess = false;
             for (var i = 0; i < game.ghosts.length; i++) {
-                if (game.canBePlaced(game.ghosts[i].position, game.symbols[game.activeSymbol].size)) {
+                if (game.canBePlaced(game.ghosts[i].position, game.symbols[game.activeSymbol].size, null)) {
                     soundSuccess = true;
                     game.addBuilding(game.ghosts[i].position, game.symbols[game.activeSymbol].imageID);
                 }
