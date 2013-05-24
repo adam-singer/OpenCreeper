@@ -351,10 +351,15 @@ var game = {
         TERRAFORM: 4
     },
     /**
-     * @author Alexander Zeillinger
-     *
-     * Returns the position of the tile the mouse is hovering above.
+     * Checks if the given position is within the world
+     * @param   x
+     * @param   y
+     * @return  boolean
      */
+    withinWorld: function(x, y) {
+        return (x > -1 && x < this.world.size.x && y > -1 && y < this.world.size.y)
+    },
+    // Returns the position of the tile the mouse is hovering above
     getHoveredTilePosition: function () {
         return new Vector(
             Math.floor((engine.mouse.x - engine.halfWidth) / (this.tileSize * this.zoom)) + this.scroll.x,
@@ -977,7 +982,7 @@ var game = {
                         for (var i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
                             for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
 
-                                if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y) {
+                                if (this.withinWorld(i, j)) {
                                     var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
                                     var tileHeight = this.getHighestTerrain(new Vector(i, j));
 
@@ -1064,7 +1069,7 @@ var game = {
                             for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
 
                                 // cannons can only shoot at tiles not higher than themselves
-                                if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y) {
+                                if (this.withinWorld(i, j)) {
                                     var tileHeight = this.getHighestTerrain(new Vector(i, j));
                                     if (tileHeight <= height) {
                                         var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
@@ -1163,7 +1168,7 @@ var game = {
                     positionCurrent.y * this.tileSize + (this.tileSize / 2));
                 var tileHeight = this.getHighestTerrain(positionCurrent);
 
-                if (positionCurrent.x > -1 && positionCurrent.x < this.world.size.x && positionCurrent.y > -1 && positionCurrent.y < this.world.size.y) {
+                if (this.withinWorld(positionCurrent.x, positionCurrent.y)) {
 
                     if (action == "add") {
                         if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
@@ -1549,8 +1554,6 @@ var game = {
     canBePlaced: function (position, size, building) {
         var collision = false;
 
-        //var position = this.getHoveredTilePosition();
-
         if (position.x > -1 && position.x < this.world.size.x - size + 1 && position.y > -1 && position.y < this.world.size.y - size + 1) {
             var height = this.getHighestTerrain(position);
 
@@ -1578,7 +1581,7 @@ var game = {
             if (!collision) {
                 for (var i = position.x; i < position.x + size; i++) {
                     for (var j = position.y; j < position.y + size; j++) {
-                        if (i > -1 && i < this.world.size.x && j > -1 && j < this.world.size.y) {
+                        if (this.withinWorld(i, j)) {
                             var tileHeight = this.getHighestTerrain(new Vector(i, j));
                             if (tileHeight < 0) {
                                 collision = true;
@@ -1793,7 +1796,7 @@ var game = {
 
                     var drawPositionCurrent = Helper.tiled2screen(positionCurrent);
 
-                    if (positionCurrent.x > -1 && positionCurrent.x < this.world.size.x && positionCurrent.y > -1 && positionCurrent.y < this.world.size.y) {
+                    if (this.withinWorld(positionCurrent.x, positionCurrent.y)) {
                         var positionCurrentHeight = this.getHighestTerrain(positionCurrent);
 
                         if (Math.pow(positionCurrentCenter.x - positionCenter.x, 2) + Math.pow(positionCurrentCenter.y - positionCenter.y, 2) < Math.pow(radius, 2)) {
@@ -1844,7 +1847,7 @@ var game = {
                 var iS = i + this.scroll.x;
                 var jS = j + this.scroll.y;
 
-                if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
+                if (this.withinWorld(iS, jS)) {
 
                     for (var k = 0 ; k < 10; k++) {
                         if (this.world.tiles[iS][jS][k].collection == 1) {
@@ -1892,7 +1895,7 @@ var game = {
                 var iS = i + this.scroll.x;
                 var jS = j + this.scroll.y;
 
-                if (iS > -1 && iS < this.world.size.x && jS > -1 && jS < this.world.size.y) {
+                if (this.withinWorld(iS, jS)) {
 
                     if (this.world.tiles[iS][jS][0].creep > 0) {
                         var creep = Math.ceil(this.world.tiles[iS][jS][0].creep);
@@ -1956,19 +1959,19 @@ var game = {
                 var newX = Math.floor(start.x + (delta.x / distance) * i * 10);
                 var newY = Math.floor(start.y + (delta.y / distance) * i * 10);
 
-                if (newX > -1 && newX < this.world.size.x && newY > -1 && newY < this.world.size.y) {
+                if (this.withinWorld(newX, newY)) {
                     var ghost = {position: new Vector(newX, newY)};
                     game.ghosts.push(ghost);
                 }
             }
-            if (end.x > -1 && end.x < this.world.size.x && end.y > -1 && end.y < this.world.size.y) {
+            if (this.withinWorld(end.x, end.y)) {
                 game.ghosts.push({position: end});
             }
         }
         else {
             if (engine.mouse.active) {
                 var position = this.getHoveredTilePosition();
-                if (position.x > -1 && position.x < this.world.size.x && position.y > -1 && position.y < this.world.size.y) {
+                if (this.withinWorld(position.x, position.y)) {
                     game.ghosts.push({position: position})
                 }
             }
@@ -1985,7 +1988,7 @@ var game = {
                 this.symbols[this.activeSymbol].radius,
                 this.symbols[this.activeSymbol].size);
 
-            if (positionScrolled.x > -1 && positionScrolled.x < this.world.size.x && positionScrolled.y > -1 && positionScrolled.y < this.world.size.y) {
+            if (this.withinWorld(positionScrolled.x, positionScrolled.y)) {
                 engine.canvas["buffer"].context.save();
                 engine.canvas["buffer"].context.globalAlpha = .5;
 
@@ -2093,7 +2096,7 @@ var game = {
             this.symbols[i].draw(engine.canvas["gui"].context);
         }
 
-        if (position.x > -1 && position.x < this.world.size.x && position.y > -1 && position.y < this.world.size.y) {
+        if (this.withinWorld(position.x, position.y)) {
 
             var total = this.world.tiles[position.x][position.y][0].creep;
 
@@ -2325,7 +2328,7 @@ function Building(pX, pY, pImage) {
 
             for (var i = this.x - 9; i < this.x + 10; i++) {
                 for (var j = this.y - 9; j < this.y + 10; j++) {
-                    if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
+                    if (game.withinWorld(i, j)) {
                         var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
                         if (distance < Math.pow(game.tileSize * 10, 2)) {
                             if (game.world.tiles[i][j][0].creep > 0) {
@@ -2580,7 +2583,7 @@ function Shell(pX, pY, pImage, pTX, pTY) {
 
             for (var i = Math.floor(this.tx / game.tileSize) - 4; i < Math.floor(this.tx / game.tileSize) + 5; i++) {
                 for (var j = Math.floor(this.ty / game.tileSize) - 4; j < Math.floor(this.ty / game.tileSize) + 5; j++) {
-                    if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
+                    if (game.withinWorld(i, j)) {
                         var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - this.tx, 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - this.ty, 2);
                         if (distance < Math.pow(game.tileSize * 4, 2)) {
                             game.world.tiles[i][j][0].creep -= 10;
@@ -2655,7 +2658,7 @@ function Spore(pX, pY, pImage, pTX, pTY) {
 
             for (var i = Math.floor(this.tx / game.tileSize) - 2; i < Math.floor(this.tx / game.tileSize) + 2; i++) {
                 for (var j = Math.floor(this.ty / game.tileSize) - 2; j < Math.floor(this.ty / game.tileSize) + 2; j++) {
-                    if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
+                    if (game.withinWorld(i, j)) {
                         var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.tx + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.ty + game.tileSize), 2);
                         if (distance < Math.pow(game.tileSize, 2)) {
                             game.world.tiles[i][j][0].creep += .05;
@@ -2769,8 +2772,8 @@ function Ship(pX, pY, pImage, pType, pHome) {
                         this.energy -= 1;
 
                         for (var i = Math.floor(this.tx / game.tileSize) - 3; i < Math.floor(this.tx / game.tileSize) + 5; i++) {
-                            for (var j = Math.floor(this.ty / game.tileSize) - 3; j < Math.floor(this.ty / game.tileSize) + 5; j++) {
-                                if (i > -1 && i < game.world.size.x && j > -1 && j < game.world.size.y) {
+                            for (var j = Math.floor(this.ty / game.tileSize) - 3; j < Math.floor(this.ty / game.tileSize) + 5; j++)
+                                if (game.withinWorld(i, j)) {{
                                     var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.tx + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.ty + game.tileSize), 2);
                                     if (distance < Math.pow(game.tileSize * 3, 2)) {
                                         game.world.tiles[i][j][0].creep -= 5;
@@ -3445,7 +3448,7 @@ function draw() {
             var iS = i + game.scroll.x;
             var jS = j + game.scroll.y;
 
-            if (iS > -1 && iS < game.world.size.x && jS > -1 && jS < game.world.size.y) {
+            if (game.withinWorld(iS, jS)) {
                 if (game.world.terraform[iS][jS].target > -1) {
                     engine.canvas["buffer"].context.drawImage(engine.images["numbers"], game.world.terraform[iS][jS].target * 16, 0, game.tileSize, game.tileSize, engine.halfWidth + i * game.tileSize * game.zoom, engine.halfHeight + j * game.tileSize * game.zoom, game.tileSize * game.zoom, game.tileSize * game.zoom);
                 }
