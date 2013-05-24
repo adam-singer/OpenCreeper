@@ -106,7 +106,7 @@
         render: function() {
             var $this = $(this),
                 data = $this.data('stopwatch');
-            $this.html(data.formatter(data.elapsed, data));
+            $this.html("Time: " + data.formatter(data.elapsed, data));
         },
 
         getTime: function() {

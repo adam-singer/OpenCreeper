@@ -6,8 +6,6 @@
  * Dual licensed under the MIT or GPL licenses.
  */
 
-// TODO: hide cursor when placing building
-
 var engine = {
     FPS: 60,
     delta: 1000 / 60,
@@ -738,7 +736,7 @@ var game = {
         this.activeSymbol = -1;
         for (var i = 0; i < this.symbols.length; i++)
             this.symbols[i].active = false;
-        $("#mainCanvas").css('cursor', 'default');
+        engine.canvas["main"].element.css('cursor', 'default');
     },
     setupUI: function () {
         this.symbols.push(new UISymbol(new Vector(     0, 0), "cannon", "Q", 3, 25, 8));
@@ -2646,7 +2644,7 @@ function Spore(pX, pY, pImage, pTX, pTY) {
 }
 
 /**
- * Ships (Bomber) // TODO: rename to aircraft
+ * Ships (Bomber)
  */
 function Ship(pX, pY, pImage, pType, pHome) {
     this.x = pX;
@@ -2970,7 +2968,7 @@ function onKeyDown(evt) {
     }
 
     if (game.activeSymbol != -1) {
-        $("#mainCanvas").css('cursor', 'none');
+        engine.canvas["main"].element.css('cursor', 'none');
     }
 
     // delete building
@@ -3121,7 +3119,7 @@ function onClickGUI(evt) {
     }
 
     if (game.activeSymbol != -1) {
-        $("#mainCanvas").css('cursor', 'none');
+        engine.canvas["main"].element.css('cursor', 'none');
     }
 }
 
@@ -3331,7 +3329,12 @@ Helper.real2screen = function(pVector) {
         engine.halfHeight + (pVector.y - game.scroll.y * game.tileSize) * game.zoom);
 };
 
-// TODO: real2tiled
+// converts full coordinates to tile coordinates
+Helper.real2tiled = function(pVector) {
+    return new Vector(
+        Math.floor(pVector.x / game.tileSize),
+        Math.floor(pVector.y / game.tileSize));
+};
 
 Helper.clone = function(pObject) {
     var newObject = [];
