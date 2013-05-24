@@ -6,6 +6,8 @@
  * Dual licensed under the MIT or GPL licenses.
  */
 
+// TODO: hide cursor when placing building
+
 var engine = {
     FPS: 60,
     delta: 1000 / 60,
@@ -90,18 +92,19 @@ var engine = {
         $('#time').stopwatch().stopwatch('start');
         var mainCanvas = engine.canvas["main"].element;
         var guiCanvas = engine.canvas["gui"].element;
-        mainCanvas.mousemove(onMouseMove);
-        guiCanvas.mousemove(onMouseMoveGUI);
-        mainCanvas.mouseup(onMouseUp).mousedown(onMouseDown);
-        mainCanvas.click(onClick);
-        mainCanvas.dblclick(onDoubleClick);
-        guiCanvas.click(onClickGUI);
-        guiCanvas.mouseleave(onLeaveGUI);
-        mainCanvas.mouseenter(onEnter).mouseleave(onLeave);
-        $(document).rightClick(onRightClick);
-        $(document).keydown(onKeyDown);
-        $(document).keyup(onKeyUp);
+        mainCanvas.on('mousemove', onMouseMove);
+        mainCanvas.on('dblclick', onDoubleClick);
+        mainCanvas.on('mouseup', onMouseUp).on('mousedown', onMouseDown);
+        mainCanvas.on('mouseenter', onEnter).on('mouseleave', onLeave);
         mainCanvas.on('DOMMouseScroll mousewheel', onMouseScroll);
+
+        guiCanvas.on('mousemove', onMouseMoveGUI);
+        guiCanvas.on('click', onClickGUI);
+        guiCanvas.on('mouseleave', onLeaveGUI);
+
+        $(document).on('keydown', onKeyDown);
+        $(document).on('keyup', onKeyUp);
+        $(document).on('contextmenu', function(){ return false; });
     },
     /**
      * Loads all images.
@@ -3122,84 +3125,6 @@ function onClickGUI(evt) {
     }
 }
 
-function onClick(evt) {
-    var position = game.getHoveredTilePosition();
-
-    // set terraforming target
-    if (game.mode == game.modes.TERRAFORM) {
-        game.world.terraform[position.x][position.y].target = game.terraformingHeight;
-        game.world.terraform[position.x][position.y].progress = 0;
-    }
-
-    // control ships
-    for (var i = 0; i < game.ships.length; i++) {
-        if (game.ships[i].selected) {
-            if (position.x - 1 == game.ships[i].home.x &&
-                position.y - 1 == game.ships[i].home.y) {
-                game.ships[i].tx = (position.x - 1) * game.tileSize;
-                game.ships[i].ty = (position.y - 1) * game.tileSize;
-                game.ships[i].status = 2;
-            }
-            else {
-                // take energy from base
-                game.ships[i].energy = game.ships[i].home.energy;
-                game.ships[i].home.energy = 0;
-
-                game.ships[i].tx = position.x * game.tileSize;
-                game.ships[i].ty = position.y * game.tileSize;
-                game.ships[i].status = 1;
-            }
-
-        }
-    }
-
-    // select a ship if hovered
-    for (var i = 0; i < game.ships.length; i++) {
-        game.ships[i].selected = game.ships[i].hovered;
-        if (game.ships[i].selected)
-            game.mode = game.modes.SHIP_SELECTED;
-    }
-
-    // reposition building
-    for (var i = 0; i < game.buildings.length; i++) {
-      if (game.buildings[i].built && game.buildings[i].selected && game.buildings[i].canMove) {
-        // check if it can be placed
-        if (game.canBePlaced(position, game.buildings[i].size, game.buildings[i])) {
-          game.buildings[i].moving = true;
-          game.buildings[i].moveTargetPosition = position;
-          game.buildings[i].calculateVector();
-        }
-      }
-    }
-
-    // select a building if hovered
-    if (game.mode == game.modes.DEFAULT) {
-        var buildingSelected = null;
-        for (var i = 0; i < game.buildings.length; i++) {
-            game.buildings[i].selected = game.buildings[i].hovered;
-            if (game.buildings[i].selected) {
-                $('#selection').show();
-                $('#selection').html("Type: " + game.buildings[i].type + "<br/>" +
-                    "Health/HR/MaxHealth: " + game.buildings[i].health + "/" + game.buildings[i].healthRequests + "/" + game.buildings[i].maxHealth);
-                buildingSelected = game.buildings[i];
-            }
-        }
-        if (buildingSelected) {
-            if (buildingSelected.active) {
-                $('#deactivate').show();
-                $('#activate').hide();
-            } else {
-                $('#deactivate').hide();
-                $('#activate').show();
-            }
-        } else {
-            $('#selection').hide();
-            $('#deactivate').hide();
-            $('#activate').hide();
-        }
-    }
-}
-
 function onDoubleClick(evt) {
     var selectShips = false;
     // select a ship if hovered
@@ -3215,26 +3140,6 @@ function onDoubleClick(evt) {
         }
 }
 
-function onRightClick() {
-    game.mode = game.modes.DEFAULT;
-
-    // unselect all currently selected buildings
-    for (var i = 0; i < game.buildings.length; i++) {
-        game.buildings[i].selected = false;
-        $('#deactivate').hide();
-        $('#activate').hide();
-    }
-
-    // unselect all currently selected ships
-    for (var i = 0; i < game.ships.length; i++) {
-        game.ships[i].selected = false;
-    }
-
-    $('#selection').html("");
-    $("#terraform").val("Terraform Off");
-    game.clearSymbols();
-}
-
 function onMouseDown(evt) {
     if (evt.which == 1) { // left mouse button
         var position = game.getHoveredTilePosition();
@@ -3247,6 +3152,83 @@ function onMouseDown(evt) {
 
 function onMouseUp(evt) {
     if (evt.which == 1) {
+
+        var position = game.getHoveredTilePosition();
+
+        // set terraforming target
+        if (game.mode == game.modes.TERRAFORM) {
+            game.world.terraform[position.x][position.y].target = game.terraformingHeight;
+            game.world.terraform[position.x][position.y].progress = 0;
+        }
+
+        // control ships
+        for (var i = 0; i < game.ships.length; i++) {
+            if (game.ships[i].selected) {
+                if (position.x - 1 == game.ships[i].home.x &&
+                    position.y - 1 == game.ships[i].home.y) {
+                    game.ships[i].tx = (position.x - 1) * game.tileSize;
+                    game.ships[i].ty = (position.y - 1) * game.tileSize;
+                    game.ships[i].status = 2;
+                }
+                else {
+                    // take energy from base
+                    game.ships[i].energy = game.ships[i].home.energy;
+                    game.ships[i].home.energy = 0;
+
+                    game.ships[i].tx = position.x * game.tileSize;
+                    game.ships[i].ty = position.y * game.tileSize;
+                    game.ships[i].status = 1;
+                }
+
+            }
+        }
+
+        // select a ship if hovered
+        for (var i = 0; i < game.ships.length; i++) {
+            game.ships[i].selected = game.ships[i].hovered;
+            if (game.ships[i].selected)
+                game.mode = game.modes.SHIP_SELECTED;
+        }
+
+        // reposition building
+        for (var i = 0; i < game.buildings.length; i++) {
+            if (game.buildings[i].built && game.buildings[i].selected && game.buildings[i].canMove) {
+                // check if it can be placed
+                if (game.canBePlaced(position, game.buildings[i].size, game.buildings[i])) {
+                    game.buildings[i].moving = true;
+                    game.buildings[i].moveTargetPosition = position;
+                    game.buildings[i].calculateVector();
+                }
+            }
+        }
+
+        // select a building if hovered
+        if (game.mode == game.modes.DEFAULT) {
+            var buildingSelected = null;
+            for (var i = 0; i < game.buildings.length; i++) {
+                game.buildings[i].selected = game.buildings[i].hovered;
+                if (game.buildings[i].selected) {
+                    $('#selection').show();
+                    $('#selection').html("Type: " + game.buildings[i].type + "<br/>" +
+                        "Health/HR/MaxHealth: " + game.buildings[i].health + "/" + game.buildings[i].healthRequests + "/" + game.buildings[i].maxHealth);
+                    buildingSelected = game.buildings[i];
+                }
+            }
+            if (buildingSelected) {
+                if (buildingSelected.active) {
+                    $('#deactivate').show();
+                    $('#activate').hide();
+                } else {
+                    $('#deactivate').hide();
+                    $('#activate').show();
+                }
+            } else {
+                $('#selection').hide();
+                $('#deactivate').hide();
+                $('#activate').hide();
+            }
+        }
+
         engine.mouse.dragStart = null;
 
         // when there is an active symbol place building
@@ -3264,6 +3246,25 @@ function onMouseUp(evt) {
             else
                 engine.playSound("failure");
         }
+    }
+    else if (evt.which == 3) {
+        game.mode = game.modes.DEFAULT;
+
+        // unselect all currently selected buildings
+        for (var i = 0; i < game.buildings.length; i++) {
+            game.buildings[i].selected = false;
+            $('#deactivate').hide();
+            $('#activate').hide();
+        }
+
+        // unselect all currently selected ships
+        for (var i = 0; i < game.ships.length; i++) {
+            game.ships[i].selected = false;
+        }
+
+        $('#selection').html("");
+        $("#terraform").val("Terraform Off");
+        game.clearSymbols();
     }
 }
 
