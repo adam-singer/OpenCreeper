@@ -181,6 +181,16 @@ var engine = {
             this.fps_updateTime -= 1000;
             this.fps_updateFrames = 0;
         }
+    },
+    // checks if an object is visible on the screen and therefore should be drawn
+    isVisible: function(position, size) {
+        var r1 = {left: position.x, top: position.y, right: position.x + size.x, bottom: position.y + size.y};
+        var r2 = {left: this.canvas["main"].left, top: this.canvas["main"].top, right: this.canvas["main"].right, bottom: this.canvas["main"].bottom};
+
+        return !(r2.left > r1.right ||
+            r2.right < r1.left ||
+            r2.top > r1.bottom ||
+            r2.bottom < r1.top);
     }
 };
 
@@ -2319,36 +2329,54 @@ function Building(pX, pY, pImage) {
         var position = Helper.tiled2screen(new Vector(this.x, this.y));
         var center = Helper.real2screen(this.getCenter());
 
-        if (!this.built) {
-            engine.canvas["buffer"].context.save();
-            engine.canvas["buffer"].context.globalAlpha = .5;
-            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
-            if (this.imageID == "cannon") {
-                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
-            }
-            engine.canvas["buffer"].context.restore();
-        }
-        else {
-            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
-            if (this.imageID == "cannon") {
+        if (engine.isVisible(position, new Vector(engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom))) {
+            if (!this.built) {
                 engine.canvas["buffer"].context.save();
-                engine.canvas["buffer"].context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);
-                engine.canvas["buffer"].context.rotate(this.targetAngle);
-                engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
+                engine.canvas["buffer"].context.globalAlpha = .5;
+                engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
+                if (this.imageID == "cannon") {
+                    engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
+                }
                 engine.canvas["buffer"].context.restore();
             }
-        }
+            else {
+                engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
+                if (this.imageID == "cannon") {
+                    engine.canvas["buffer"].context.save();
+                    engine.canvas["buffer"].context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);
+                    engine.canvas["buffer"].context.rotate(this.targetAngle);
+                    engine.canvas["buffer"].context.drawImage(engine.images["cannongun"], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
+                    engine.canvas["buffer"].context.restore();
+                }
+            }
 
-        // draw energy bar
-        if (this.needsEnergy) {
-            engine.canvas["buffer"].context.fillStyle = '#f00';
-            engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + 1, (44 * game.zoom / this.maxEnergy) * this.energy, 3);
-        }
+            // draw energy bar
+            if (this.needsEnergy) {
+                engine.canvas["buffer"].context.fillStyle = '#f00';
+                engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + 1, (44 * game.zoom / this.maxEnergy) * this.energy, 3);
+            }
 
-        // draw health bar (only if health is below maxHealth)
-        if (this.health < this.maxHealth) {
-            engine.canvas["buffer"].context.fillStyle = '#0f0';
-            engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + game.tileSize * game.zoom * this.size - 3, ((game.tileSize * game.zoom * this.size - 8) / this.maxHealth) * this.health, 3);
+            // draw health bar (only if health is below maxHealth)
+            if (this.health < this.maxHealth) {
+                engine.canvas["buffer"].context.fillStyle = '#0f0';
+                engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + game.tileSize * game.zoom * this.size - 3, ((game.tileSize * game.zoom * this.size - 8) / this.maxHealth) * this.health, 3);
+            }
+
+            // draw inactive sign
+            if (!this.active) {
+                engine.canvas["buffer"].context.strokeStyle = "#F00";
+                engine.canvas["buffer"].context.lineWidth = 2;
+
+                engine.canvas["buffer"].context.beginPath();
+                engine.canvas["buffer"].context.arc(center.x, center.y, (game.tileSize / 2) * this.size, 0, Math.PI * 2, true);
+                engine.canvas["buffer"].context.closePath();
+                engine.canvas["buffer"].context.stroke();
+
+                engine.canvas["buffer"].context.beginPath();
+                engine.canvas["buffer"].context.moveTo(position.x, position.y + game.tileSize * this.size);
+                engine.canvas["buffer"].context.lineTo(position.x + game.tileSize * this.size, position.y);
+                engine.canvas["buffer"].context.stroke();
+            }
         }
 
         // draw shots
@@ -2398,21 +2426,6 @@ function Building(pX, pY, pImage) {
             }
         }
 
-        // draw inactive sign
-        if (!this.active) {
-            engine.canvas["buffer"].context.strokeStyle = "#F00";
-            engine.canvas["buffer"].context.lineWidth = 2;
-
-            engine.canvas["buffer"].context.beginPath();
-            engine.canvas["buffer"].context.arc(center.x, center.y, (game.tileSize / 2) * this.size, 0, Math.PI * 2, true);
-            engine.canvas["buffer"].context.closePath();
-            engine.canvas["buffer"].context.stroke();
-
-            engine.canvas["buffer"].context.beginPath();
-            engine.canvas["buffer"].context.moveTo(position.x, position.y + game.tileSize * this.size);
-            engine.canvas["buffer"].context.lineTo(position.x + game.tileSize * this.size, position.y);
-            engine.canvas["buffer"].context.stroke();
-        }
     };
 }
 
@@ -2493,7 +2506,9 @@ function Packet(pPosition, pImage, pType) {
     };
     this.draw = function () {
         var position = Helper.real2screen(this.position);
-        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x - 8 * game.zoom, position.y - 8 * game.zoom, 16 * game.zoom, 16 * game.zoom);
+        if (engine.isVisible(new Vector(position.x - 8, position.y - 8), new Vector(16 * game.zoom, 16 * game.zoom))) {
+            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x - 8 * game.zoom, position.y - 8 * game.zoom, 16 * game.zoom, 16 * game.zoom);
+        }
     }
 }
 
@@ -2563,11 +2578,14 @@ function Shell(pX, pY, pImage, pTX, pTY) {
     };
     this.draw = function () {
         var position = Helper.real2screen(new Vector(this.x, this.y));
-        engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.translate(position.x + 8 * game.zoom, position.y + 8 * game.zoom);
-        engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.rotation));
-        engine.canvas["buffer"].context.drawImage(engine.images["shell"], -8 * game.zoom, -8 * game.zoom, 16 * game.zoom, 16 * game.zoom);
-        engine.canvas["buffer"].context.restore();
+
+        if (engine.isVisible(position, new Vector(16 * game.zoom, 16 * game.zoom))) {
+            engine.canvas["buffer"].context.save();
+            engine.canvas["buffer"].context.translate(position.x + 8 * game.zoom, position.y + 8 * game.zoom);
+            engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.rotation));
+            engine.canvas["buffer"].context.drawImage(engine.images["shell"], -8 * game.zoom, -8 * game.zoom, 16 * game.zoom, 16 * game.zoom);
+            engine.canvas["buffer"].context.restore();
+        }
     };
 }
 
@@ -2631,11 +2649,14 @@ function Spore(pX, pY, pImage, pTX, pTY) {
     };
     this.draw = function () {
         var position = Helper.real2screen(new Vector(this.x, this.y));
-        engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.translate(position.x, position.y);
-        engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.rotation));
-        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -16 * game.zoom, -16 * game.zoom, 32 * game.zoom, 32 * game.zoom);
-        engine.canvas["buffer"].context.restore();
+
+        if (engine.isVisible(position, new Vector(32 * game.zoom, 32 * game.zoom))) {
+            engine.canvas["buffer"].context.save();
+            engine.canvas["buffer"].context.translate(position.x, position.y);
+            engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.rotation));
+            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -16 * game.zoom, -16 * game.zoom, 32 * game.zoom, 32 * game.zoom);
+            engine.canvas["buffer"].context.restore();
+        }
     };
 }
 
@@ -2788,16 +2809,18 @@ function Ship(pX, pY, pImage, pType, pHome) {
             }
         }
 
-        // draw ship
-        engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);
-        engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.angle + 90));
-        engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
-        engine.canvas["buffer"].context.restore();
+        if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
+            // draw ship
+            engine.canvas["buffer"].context.save();
+            engine.canvas["buffer"].context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);
+            engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.angle + 90));
+            engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
+            engine.canvas["buffer"].context.restore();
 
-        // draw energy bar
-        engine.canvas["buffer"].context.fillStyle = '#f00';
-        engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + 1, (44 * game.zoom / this.maxEnergy) * this.energy, 3);
+            // draw energy bar
+            engine.canvas["buffer"].context.fillStyle = '#f00';
+            engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + 1, (44 * game.zoom / this.maxEnergy) * this.energy, 3);
+        }
     };
 }
 
@@ -2811,7 +2834,9 @@ function Emitter(pPosition, pStrength) {
     this.strength = pStrength;
     this.draw = function () {
         var position = Helper.tiled2screen(this.position);
-        engine.canvas["buffer"].context.drawImage(engine.images["emitter"], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
+        if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
+            engine.canvas["buffer"].context.drawImage(engine.images["emitter"], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
+        }
     };
     this.spawn = function () {
         game.world.tiles[this.position.x + 1][this.position.y + 1][0].creep += this.strength;
@@ -2837,7 +2862,9 @@ function Sporetower(pPosition) {
     };
     this.draw = function () {
         var position = Helper.tiled2screen(this.position);
-        engine.canvas["buffer"].context.drawImage(engine.images["sporetower"], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
+        if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
+            engine.canvas["buffer"].context.drawImage(engine.images["sporetower"], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
+        }
     };
     this.update = function() {
         this.sporeTimer -= this.speed;
@@ -2868,7 +2895,9 @@ function Smoke(pPosition) {
     this.frame = 0;
     this.draw = function () {
         var position = Helper.real2screen(this.position);
-        engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, position.x - 24 * game.zoom, position.y - 24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
+        if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
+            engine.canvas["buffer"].context.drawImage(engine.images["smoke"], (this.frame % 8) * 128, Math.floor(this.frame / 8) * 128, 128, 128, position.x - 24 * game.zoom, position.y - 24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
+        }
     };
 }
 
@@ -2884,7 +2913,9 @@ function Explosion(pPosition) {
     this.frame = 0;
     this.draw = function () {
         var position = Helper.real2screen(this.position);
-        engine.canvas["buffer"].context.drawImage(engine.images["explosion"], (this.frame % 8) * 64, Math.floor(this.frame / 8) * 64, 64, 64, position.x - 32 * game.zoom, position.y - 32 * game.zoom, 64 * game.zoom, 64 * game.zoom);
+        if (engine.isVisible(position, new Vector(64 * game.zoom, 64 * game.zoom))) {
+            engine.canvas["buffer"].context.drawImage(engine.images["explosion"], (this.frame % 8) * 64, Math.floor(this.frame / 8) * 64, 64, 64, position.x - 32 * game.zoom, position.y - 32 * game.zoom, 64 * game.zoom, 64 * game.zoom);
+        }
     };
 }
 
