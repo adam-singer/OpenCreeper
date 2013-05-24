@@ -2919,7 +2919,11 @@ function Canvas(pElement) {
 // Functions
 
 // Entry Point
-function init() {
+$(function() {
+    main();
+});
+
+function main() {
     engine.init();
     engine.loadImages(function() {
         game.init();
