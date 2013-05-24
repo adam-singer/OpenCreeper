@@ -1,5 +1,5 @@
 ﻿/*!
- * Open Creeper v1.2.0
+ * Open Creeper v1.2.1
  * http://alexanderzeillinger.github.com/OpenCreeper/
  *
  * Copyright 2012, Alexander Zeillinger
@@ -36,8 +36,6 @@ var engine = {
     halfWidth: 0,
     halfHeight: 0,
     /**
-     * @author Alexander Zeillinger
-     *
      * Initializes the canvases and mouse, loads sounds and images.
      */
     init: function () {
@@ -106,8 +104,6 @@ var engine = {
         mainCanvas.on('DOMMouseScroll mousewheel', onMouseScroll);
     },
     /**
-     * @author Alexander Zeillinger
-     *
      * Loads all images.
      *
      * A callback is used to make sure the game starts after all images have been loaded.
@@ -198,7 +194,13 @@ var engine = {
             this.fps_updateFrames = 0;
         }
     },
-    // checks if an object is visible on the screen and therefore should be drawn
+    /**
+     * Checks if an object is visible on the screen
+     *
+     * @param   position
+     * @param   size
+     * @return  boolean
+     */
     isVisible: function(position, size) {
         var r1 = {left: position.x, top: position.y, right: position.x + size.x, bottom: position.y + size.y};
         var r2 = {left: this.canvas["main"].left, top: this.canvas["main"].top, right: this.canvas["main"].right, bottom: this.canvas["main"].bottom};
@@ -352,6 +354,7 @@ var game = {
     },
     /**
      * Checks if the given position is within the world
+     *
      * @param   x
      * @param   y
      * @return  boolean
@@ -747,11 +750,6 @@ var game = {
         this.symbols.push(new UISymbol(new Vector(3 * 81, 56), "bomber", "F", 3, 75, 0));
         this.symbols.push(new UISymbol(new Vector(4 * 81, 56), "terp", "G", 3, 60, 12));
     },
-    /**
-     * @author Alexander Zeillinger
-     *
-     * Draws the terrain using a simple auto-tiling mechanism
-     */
     drawTerrain: function () {
         for (var i = 0; i < 10; i++) {
             engine.canvas["level" + i].clear();
@@ -1322,8 +1320,6 @@ var game = {
         }
     },
     /**
-     * @author Alexander Zeillinger
-     *
      * Used for A*, finds all neighbouring nodes of a given node.
      */
     getNeighbours: function (node, target) {
@@ -1372,8 +1368,6 @@ var game = {
         return neighbours;
     },
     /**
-     * @author Alexander Zeillinger
-     *
      * Used for A*, checks if a node is already in a given route.
      */
     inRoute: function (neighbour, route) {
@@ -1387,8 +1381,6 @@ var game = {
         return found;
     },
     /**
-     * @author Alexander Zeillinger
-     *
      * Main function of A*, finds a path to the target node.
      */
     findRoute: function (packet) {
@@ -1547,8 +1539,6 @@ var game = {
         }
     },
     /**
-     * @author Alexander Zeillinger
-     *
      * Checks if a building can be placed on the current tile.
      */
     canBePlaced: function (position, size, building) {
@@ -1829,9 +1819,7 @@ var game = {
         }
     },
     /**
-     * @author Alexander Zeillinger
-     *
-     * Draws the green collection areas of Collectors.
+     * Draws the green collection areas of collectors.
      */
     drawCollection: function() {
         engine.canvas["collection"].clear();
@@ -1878,11 +1866,6 @@ var game = {
         }
         engine.canvas["collection"].context.restore();
     },
-    /**
-     * @author Alexander Zeillinger
-     *
-     * Draws the creeper.
-     */
     drawCreeper: function() {
         engine.canvas["creeper"].clear();
 
@@ -1938,8 +1921,6 @@ var game = {
         }
     },
     /**
-     * @author Alexander Zeillinger
-     *
      * When a building from the GUI is selected this draws some info whether it can be build on the current tile,
      * the range as white boxes and connections to other buildings
      */
@@ -2073,8 +2054,6 @@ var game = {
 
     },
     /**
-     * @author Alexander Zeillinger
-     *
      * Draws the attack symbols of ships.
      */
     drawAttackSymbol: function () {
@@ -2084,8 +2063,6 @@ var game = {
         }
     },
     /**
-     * @author Alexander Zeillinger
-     *
      * Draws the GUI with symbols, height and creep meter.
      */
     drawGUI: function () {
@@ -2127,8 +2104,6 @@ var game = {
 // Objects
 
 /**
- * @author Alexander Zeillinger
- *
  * Building symbols in the GUI
  */
 function UISymbol(pPosition, pImage, pKey, pSize, pPackets, pRadius) {
@@ -2183,11 +2158,6 @@ function UISymbol(pPosition, pImage, pKey, pSize, pPackets, pRadius) {
     };
 }
 
-/**
- * @author Alexander Zeillinger
- *
- * Buildings
- */
 function Building(pX, pY, pImage) {
     this.x = pX;
     this.y = pY;
@@ -2448,11 +2418,6 @@ function Building(pX, pY, pImage) {
     };
 }
 
-/**
- * @author Alexander Zeillinger
- *
- * Packets
- */
 function Packet(pPosition, pImage, pType) {
     this.position = pPosition;
     this.imageID = pImage;
@@ -2534,8 +2499,6 @@ function Packet(pPosition, pImage, pType) {
 }
 
 /**
- * @author Alexander Zeillinger
- *
  * Shells (fired by Mortars)
  */
 function Shell(pX, pY, pImage, pTX, pTY) {
@@ -2611,8 +2574,6 @@ function Shell(pX, pY, pImage, pTX, pTY) {
 }
 
 /**
- * @author Alexander Zeillinger
- *
  * Spore (fired by Sporetower)
  */
 function Spore(pX, pY, pImage, pTX, pTY) {
@@ -2682,9 +2643,7 @@ function Spore(pX, pY, pImage, pTX, pTY) {
 }
 
 /**
- * @author Alexander Zeillinger
- *
- * Ships (Bomber)
+ * Ships (Bomber) // TODO: rename to aircraft
  */
 function Ship(pX, pY, pImage, pType, pHome) {
     this.x = pX;
@@ -2845,11 +2804,6 @@ function Ship(pX, pY, pImage, pType, pHome) {
     };
 }
 
-/**
- * @author Alexander Zeillinger
- *
- * Emitter
- */
 function Emitter(pPosition, pStrength) {
     this.position = pPosition;
     this.strength = pStrength;
@@ -2865,8 +2819,6 @@ function Emitter(pPosition, pStrength) {
 }
 
 /**
- * @author Alexander Zeillinger
- *
  * Sporetower
  */
 function Sporetower(pPosition) {
@@ -2904,13 +2856,6 @@ function Sporetower(pPosition) {
     };
 }
 
-/**
- * @author Alexander Zeillinger
- *
- * Smoke
- *
- * Smoke is created by weapon fire of Cannons, or exhaust trail of ships and spores.
- */
 function Smoke(pPosition) {
     this.position = new Vector(pPosition.x, pPosition.y);
     this.frame = 0;
@@ -2922,13 +2867,6 @@ function Smoke(pPosition) {
     };
 }
 
-/**
- * @author Alexander Zeillinger
- *
- * Explosion
- *
- * Created on explosion of buildings, spores and shells
- */
 function Explosion(pPosition) {
     this.position = new Vector(pPosition.x, pPosition.y);
     this.frame = 0;
@@ -2940,11 +2878,6 @@ function Explosion(pPosition) {
     };
 }
 
-/**
- * @author Alexander Zeillinger
- *
- * A tile of the world
- */
 function Tile() {
     this.index = -1;
     this.full = false;
@@ -2959,8 +2892,6 @@ function Vector(pX, pY) {
 }
 
 /**
- * @author Alexander Zeillinger
- *
  * Route object used in A*
  */
 function Route() {
@@ -2970,9 +2901,7 @@ function Route() {
 }
 
 /**
- * @author Alexander Zeillinger
- *
- * Object to handle canvas
+ * Object to store canvas information
  */
 function Canvas(pElement) {
     this.element = pElement;
@@ -3397,6 +3326,8 @@ Helper.real2screen = function(pVector) {
         engine.halfHeight + (pVector.y - game.scroll.y * game.tileSize) * game.zoom);
 };
 
+// TODO: real2tiled
+
 Helper.clone = function(pObject) {
     var newObject = [];
     for (var attr in pObject) {
@@ -3426,10 +3357,8 @@ Array.prototype.shuffle = function () {
 };
 
 /**
- * @author Alexander Zeillinger
- *
  * Main drawing function
- * May not be a member function of "game" in order to be called by requestAnimationFrame
+ * For some reason this may not be a member function of "game" in order to be called by requestAnimationFrame
  */
 function draw() {
     game.drawGUI();
