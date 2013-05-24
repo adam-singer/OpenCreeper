@@ -204,7 +204,6 @@ var game = {
     energyTimer: 0,
     spawnTimer: 0,
     damageTimer: 0,
-    sporeTimer: 0,
     smokeTimer: 0,
     explosionTimer: 0,
     shieldTimer: 0,
@@ -263,7 +262,6 @@ var game = {
         this.energyTimer = 0;
         this.spawnTimer = 0;
         this.damageTimer = 0;
-        this.sporeTimer = 0;
         this.smokeTimer = 0;
         this.explosionTimer = 0;
         this.shieldTimer = 0;
@@ -497,8 +495,8 @@ var game = {
         }*/
 
         var randomPosition = new Vector(
-            Math.floor(Math.random() * (this.world.size.x - 9)),
-            Math.floor(Math.random() * (this.world.size.y - 9)));
+            Helper.randomInt(0, this.world.size.x - 9),
+            Helper.randomInt(0, this.world.size.y - 9));
 
         this.scroll.x = randomPosition.x + 4;
         this.scroll.y = randomPosition.y + 4;
@@ -525,8 +523,8 @@ var game = {
         this.calculateCollection();
 
         randomPosition = new Vector(
-            Math.floor(Math.random() * (this.world.size.x - 3)),
-            Math.floor(Math.random() * (this.world.size.y - 3)));
+            Helper.randomInt(0, this.world.size.x - 3),
+            Helper.randomInt(0, this.world.size.x - 3));
 
         var emitter = new Emitter(randomPosition, 5);
         this.emitters.push(emitter);
@@ -543,10 +541,11 @@ var game = {
         }
 
         randomPosition = new Vector(
-            Math.floor(Math.random() * (this.world.size.x - 3)),
-            Math.floor(Math.random() * (this.world.size.y - 3)));
+            Helper.randomInt(0, this.world.size.x - 3),
+            Helper.randomInt(0, this.world.size.x - 3));
 
         var sporetower = new Sporetower(randomPosition);
+        sporetower.reset();
         this.sporetowers.push(sporetower);
 
         height = this.getHighestTerrain(new Vector(sporetower.position.x + 1, sporetower.position.y + 1));
@@ -1201,13 +1200,8 @@ var game = {
         this.updateCollectionElement();
     },
     updateCreeper: function () {
-        this.sporeTimer++;
-        // generate a new spore with random target
-        if (this.sporeTimer >= (10000 / this.speed)) {
-            for (var i = 0; i < this.sporetowers.length; i++)
-                this.sporetowers[i].spawn();
-            this.sporeTimer = 0;
-        }
+        for (var i = 0; i < this.sporetowers.length; i++)
+            this.sporetowers[i].update();
 
         this.spawnTimer++;
         if (this.spawnTimer >= (25 / this.speed)) { // 125
@@ -2832,6 +2826,10 @@ function Emitter(pPosition, pStrength) {
 function Sporetower(pPosition) {
     this.position = pPosition;
     this.health = 100;
+    this.sporeTimer = 0;
+    this.reset = function() {
+        this.sporeTimer = Helper.randomInt(7500, 12500);
+    };
     this.getCenter = function () {
         return new Vector(
             this.position.x * game.tileSize + 24,
@@ -2841,9 +2839,16 @@ function Sporetower(pPosition) {
         var position = Helper.tiled2screen(this.position);
         engine.canvas["buffer"].context.drawImage(engine.images["sporetower"], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
     };
+    this.update = function() {
+        this.sporeTimer -= this.speed;
+        if (this.sporeTimer <= 0) {
+            this.reset();
+            this.spawn();
+        }
+    };
     this.spawn = function () {
         do {
-            var target = game.buildings[Math.floor(Math.random() * game.buildings.length)];
+            var target = game.buildings[Helper.randomInt(0, game.buildings.length)];
         } while (!target.built);
         var spore = new Spore(this.getCenter().x, this.getCenter().y, "spore", target.getCenter().x, target.getCenter().y);
         spore.init();
@@ -3341,6 +3346,10 @@ Helper.clone = function(pObject) {
         newObject[attr] = pObject[attr];
     }
     return newObject;
+};
+
+Helper.randomInt = function(from, to) {
+    return Math.floor(Math.random() * (to - from + 1) + from);
 };
 
 // Thanks to http://www.hardcode.nl/subcategory_1/article_317-array-shuffle-function
