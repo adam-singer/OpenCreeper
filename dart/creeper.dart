@@ -1143,10 +1143,10 @@ class Game {
       for (int j = -5; j < 7; j++) {
 
         Vector positionCurrent = new Vector(building.position.x + i, building.position.y + j);
-        Vector positionCurrentCenter = new Vector(positionCurrent.x * this.tileSize + (this.tileSize / 2), positionCurrent.y * this.tileSize + (this.tileSize / 2));
-        int tileHeight = this.getHighestTerrain(positionCurrent);
 
         if (this.withinWorld(positionCurrent.x, positionCurrent.y)) {
+          Vector positionCurrentCenter = new Vector(positionCurrent.x * this.tileSize + (this.tileSize / 2), positionCurrent.y * this.tileSize + (this.tileSize / 2));
+          int tileHeight = this.getHighestTerrain(positionCurrent);
 
           if (action == "add") {
             if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
@@ -1657,10 +1657,11 @@ class Game {
           for (int i = -5; i < 7; i++) {
             for (int j = -5; j < 7; j++) {
               Vector positionCurrent = new Vector(this.buildings[k].position.x + i, this.buildings[k].position.y + j);
-              Vector positionCurrentCenter = new Vector(positionCurrent.x * this.tileSize + (this.tileSize / 2), positionCurrent.y * this.tileSize + (this.tileSize / 2));
-              int tileHeight = this.getHighestTerrain(positionCurrent);
 
               if (this.withinWorld(positionCurrent.x, positionCurrent.y)) {
+                Vector positionCurrentCenter = new Vector(positionCurrent.x * this.tileSize + (this.tileSize / 2), positionCurrent.y * this.tileSize + (this.tileSize / 2));
+                int tileHeight = this.getHighestTerrain(positionCurrent);
+                
                 if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
                   if (tileHeight == height) {
                     if (this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector == this.buildings[k])this.buildings[k].collectedEnergy += 1;

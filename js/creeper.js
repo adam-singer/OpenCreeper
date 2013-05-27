@@ -58,6 +58,8 @@ var engine = {
         // gui
         engine.canvas["gui"] = new Canvas($("<canvas width='780' height='110'>"));
         document.getElementById('gui').appendChild(engine.canvas["gui"].element[0]);
+        engine.canvas["gui"].top = engine.canvas["gui"].element.offset().top;
+        engine.canvas["gui"].left = engine.canvas["gui"].element.offset().left;
 
         for (var i = 0; i < 10; i++) {
             engine.canvas["level" + i] = new Canvas($("<canvas width='" + (128 * 16 + width * 2) + "' height='" + (128 * 16 + height * 2) + "' style='position: absolute'>"));
@@ -185,7 +187,7 @@ var engine = {
         }
     },
     updateMouse: function (evt) {
-        if (evt.pageX > this.canvas["main"].left && evt.pageX < this.canvas["main"].right && evt.pageY > this.canvas["main"].top && evt.pageY < this.canvas["main"].bottom) {
+        //if (evt.pageX > this.canvas["main"].left && evt.pageX < this.canvas["main"].right && evt.pageY > this.canvas["main"].top && evt.pageY < this.canvas["main"].bottom) {
             this.mouse.x = evt.pageX - this.canvas["main"].left;
             this.mouse.y = evt.pageY - this.canvas["main"].top;
             var position = game.getHoveredTilePosition();
@@ -193,13 +195,13 @@ var engine = {
             engine.mouse.dragEnd = new Vector(position.x, position.y);
 
             //$("#mouse").html("Mouse: " + this.mouse.x + "/" + this.mouse.y + " - " + position.x + "/" + position.y);
-        }
+        //}
     },
     updateMouseGUI: function (evt) {
-        if (evt.pageX > this.canvas["gui"].left && evt.pageX < this.canvas["gui"].right && evt.pageY > this.canvas["gui"].top && evt.pageY < this.canvas["gui"].bottom) {
+        //if (evt.pageX > this.canvas["gui"].left && evt.pageX < this.canvas["gui"].right && evt.pageY > this.canvas["gui"].top && evt.pageY < this.canvas["gui"].bottom) {
             this.mouseGUI.x = evt.pageX - this.canvas["gui"].left;
             this.mouseGUI.y = evt.pageY - this.canvas["gui"].top;
-        }
+        //}
     },
     reset: function () {
         // reset FPS variables
@@ -1214,12 +1216,12 @@ var game = {
                 var positionCurrent = new Vector(
                     building.position.x + i,
                     building.position.y + j);
-                var positionCurrentCenter = new Vector(
-                    positionCurrent.x * this.tileSize + (this.tileSize / 2),
-                    positionCurrent.y * this.tileSize + (this.tileSize / 2));
-                var tileHeight = this.getHighestTerrain(positionCurrent);
 
                 if (this.withinWorld(positionCurrent.x, positionCurrent.y)) {
+                    var positionCurrentCenter = new Vector(
+                        positionCurrent.x * this.tileSize + (this.tileSize / 2),
+                        positionCurrent.y * this.tileSize + (this.tileSize / 2));
+                    var tileHeight = this.getHighestTerrain(positionCurrent);
 
                     if (action == "add") {
                         if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
@@ -1729,12 +1731,13 @@ var game = {
                             var positionCurrent = new Vector(
                                 this.buildings[k].position.x + i,
                                 this.buildings[k].position.y + j);
-                            var positionCurrentCenter = new Vector(
-                                positionCurrent.x * this.tileSize + (this.tileSize / 2),
-                                positionCurrent.y * this.tileSize + (this.tileSize / 2));
-                            var tileHeight = this.getHighestTerrain(positionCurrent);
 
                             if (this.withinWorld(positionCurrent.x, positionCurrent.y)) {
+                                var positionCurrentCenter = new Vector(
+                                    positionCurrent.x * this.tileSize + (this.tileSize / 2),
+                                    positionCurrent.y * this.tileSize + (this.tileSize / 2));
+                                var tileHeight = this.getHighestTerrain(positionCurrent);
+
                                 if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
                                     if (tileHeight == height) {
                                         if (this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector == this.buildings[k])
@@ -3107,6 +3110,7 @@ function onKeyDown(evt) {
         for (var i = 0; i < game.buildings.length; i++) {
             game.buildings[i].selected = false;
         }
+        engine.canvas["main"].element.css('cursor', 'default');
     }
 
     if (evt.keyCode == 37)
