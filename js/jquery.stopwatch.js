@@ -1,11 +1,14 @@
-(function( $ ){
+(function ($) {
 
     function incrementer(ct, increment) {
-        return function() { ct+=increment; return ct; };
+        return function () {
+            ct += increment;
+            return ct;
+        };
     }
-    
+
     function pad2(number) {
-         return (number < 10 ? '0' : '') + number;
+        return (number < 10 ? '0' : '') + number;
     }
 
     function defaultFormatMilliseconds(millis) {
@@ -26,33 +29,35 @@
         // Use jintervals if available, else default formatter
         var formatter;
         if (typeof jintervals == 'function') {
-            formatter = function(millis, data){return jintervals(millis/1000, data.format);};
+            formatter = function (millis, data) {
+                return jintervals(millis / 1000, data.format);
+            };
         } else {
             formatter = defaultFormatMilliseconds;
         }
-        formatMilliseconds = function(millis, data) {
+        formatMilliseconds = function (millis, data) {
             return formatter(millis, data);
         };
         return formatMilliseconds(millis, data);
     }
 
     var methods = {
-        
-        init: function(options) {
+
+        init: function (options) {
             var defaults = {
                 updateInterval: 1000,
                 startTime: 0,
                 format: '{HH}:{MM}:{SS}',
                 formatter: formatMilliseconds
             };
-            
+
             // if (options) { $.extend(settings, options); }
             var settings = $.extend({}, defaults, options);
-            
-            return this.each(function() {
+
+            return this.each(function () {
                 var $this = $(this),
                     data = $this.data('stopwatch');
-                
+
                 // If the plugin hasn't been initialized yet
                 if (!data) {
                     // Setup the stopwatch data
@@ -62,7 +67,7 @@
                     data.elapsed = settings.startTime;
                     // create counter
                     data.incrementer = incrementer(data.startTime, data.updateInterval);
-                    data.tick_function = function() {
+                    data.tick_function = function () {
                         var millis = data.incrementer();
                         data.elapsed = millis;
                         data.target.trigger('tick.stopwatch', [millis]);
@@ -70,12 +75,12 @@
                     };
                     $this.data('stopwatch', data);
                 }
-                
+
             });
         },
-        
-        start: function() {
-            return this.each(function() {
+
+        start: function () {
+            return this.each(function () {
                 var $this = $(this),
                     data = $this.data('stopwatch');
                 // Mark as active
@@ -84,9 +89,9 @@
                 $this.data('stopwatch', data);
             });
         },
-        
-        stop: function() {
-            return this.each(function() {
+
+        stop: function () {
+            return this.each(function () {
                 var $this = $(this),
                     data = $this.data('stopwatch');
                 clearInterval(data.timerID);
@@ -94,29 +99,29 @@
                 $this.data('stopwatch', data);
             });
         },
-        
-        destroy: function() {
-            return this.each(function(){
+
+        destroy: function () {
+            return this.each(function () {
                 var $this = $(this),
                     data = $this.data('stopwatch');
                 $this.stopwatch('stop').unbind('.stopwatch').removeData('stopwatch');
             });
         },
-        
-        render: function() {
+
+        render: function () {
             var $this = $(this),
                 data = $this.data('stopwatch');
             $this.html("Time: " + data.formatter(data.elapsed, data));
         },
 
-        getTime: function() {
+        getTime: function () {
             var $this = $(this),
                 data = $this.data('stopwatch');
             return data.elapsed;
         },
-        
-        toggle: function() {
-            return this.each(function() {
+
+        toggle: function () {
+            return this.each(function () {
                 var $this = $(this);
                 var data = $this.data('stopwatch');
                 if (data.active) {
@@ -126,28 +131,28 @@
                 }
             });
         },
-        
-        reset: function() {
-            return this.each(function() {
+
+        reset: function () {
+            return this.each(function () {
                 var $this = $(this);
-                    data = $this.data('stopwatch');
+                data = $this.data('stopwatch');
                 data.incrementer = incrementer(data.startTime, data.updateInterval);
                 data.elapsed = data.startTime;
                 $this.data('stopwatch', data);
             });
         }
     };
-    
-    
+
+
     // Define the function
-    $.fn.stopwatch = function( method ) {
+    $.fn.stopwatch = function (method) {
         if (methods[method]) {
-            return methods[method].apply( this, Array.prototype.slice.call( arguments, 1 ));
+            return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
         } else if (typeof method === 'object' || !method) {
             return methods.init.apply(this, arguments);
         } else {
-            $.error( 'Method ' +  method + ' does not exist on jQuery.stopwatch' );
+            $.error('Method ' + method + ' does not exist on jQuery.stopwatch');
         }
     };
 
-})( jQuery );
+})(jQuery);

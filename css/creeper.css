@@ -1,16 +1,19 @@
 body {
     font-family: Georgia, "Times New Roman", serif;
-    background : url('/images/1.jpg') #333;
+    background: url('../images/1.jpg') #333;
     color: #fff;
     margin: 0;
     padding: 0;
 }
+
 input, select {
     font-family: Georgia, "Times New Roman", serif;
 }
+
 #gui, #buttons {
     z-index: 2;
 }
+
 #info {
     padding: 10px;
     background-color: rgba(0, 0, 255, 0.5);
@@ -22,6 +25,7 @@ input, select {
     height: 110px;
     font-size: 12px;
 }
+
 #debug {
     display: none;
     padding: 10px;
@@ -34,6 +38,7 @@ input, select {
     height: 30px;
     font-size: 12px;
 }
+
 #buttons {
     padding: 10px;
     background-color: rgba(0, 255, 0, 0.5);
@@ -44,6 +49,7 @@ input, select {
     width: 200px;
     height: 110px;
 }
+
 #gui {
     padding: 10px;
     background: #444;
@@ -54,6 +60,7 @@ input, select {
     width: 800px;
     height: 110px;
 }
+
 #lose {
     padding: 50px;
     background: #400;
@@ -66,6 +73,7 @@ input, select {
     left: 50%;
     display: none;
 }
+
 #win {
     padding: 50px;
     background: #040;
@@ -78,6 +86,7 @@ input, select {
     left: 50%;
     display: none;
 }
+
 #loading {
     padding: 50px;
     color: #fff;
@@ -88,6 +97,7 @@ input, select {
     top: 100px;
     left: 50%;
 }
+
 #paused {
     color: #fff;
     font-size: 36px;

@@ -1,5 +1,5 @@
 ﻿/*!
- * Open Creeper v1.2.1
+ * Open Creeper v1.2.2
  * http://alexanderzeillinger.github.com/OpenCreeper/
  *
  * Copyright 2012, Alexander Zeillinger
@@ -56,7 +56,8 @@ var engine = {
         engine.canvas["buffer"] = new Canvas($("<canvas width='" + width + "' height='" + height + "'>"));
 
         // gui
-        engine.canvas["gui"] = new Canvas($("#guiCanvas"));
+        engine.canvas["gui"] = new Canvas($("<canvas width='780' height='110'>"));
+        document.getElementById('gui').appendChild(engine.canvas["gui"].element[0]);
 
         for (var i = 0; i < 10; i++) {
             engine.canvas["level" + i] = new Canvas($("<canvas width='" + (128 * 16 + width * 2) + "' height='" + (128 * 16 + height * 2) + "' style='position: absolute'>"));
@@ -87,6 +88,37 @@ var engine = {
         this.imageSrcs = ["numbers", "level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon", "cannongun", "base", "collector", "reactor", "storage", "terp", "packet_collection", "packet_energy", "packet_health", "relay", "emitter", "creep",
             "mortar", "shell", "beam", "spore", "bomber", "bombership", "smoke", "explosion", "targetcursor", "sporetower", "forcefield", "shield"];
 
+        document.getElementById('terraform').onclick = function () {
+            game.toggleTerraform()
+        };
+        document.getElementById('slower').onclick = function () {
+            game.slower()
+        };
+        document.getElementById('faster').onclick = function () {
+            game.faster()
+        };
+        document.getElementById('pause').onclick = function () {
+            game.pause()
+        };
+        document.getElementById('resume').onclick = function () {
+            game.resume()
+        };
+        document.getElementById('restart').onclick = function () {
+            game.restart()
+        };
+        document.getElementById('deactivate').onclick = function () {
+            game.deactivateBuilding()
+        };
+        document.getElementById('activate').onclick = function () {
+            game.activateBuilding()
+        };
+        document.getElementById('zoomin').onclick = function () {
+            game.zoomIn()
+        };
+        document.getElementById('zoomout').onclick = function () {
+            game.zoomOut()
+        };
+
         $('#time').stopwatch().stopwatch('start');
         var mainCanvas = engine.canvas["main"].element;
         var guiCanvas = engine.canvas["gui"].element;
@@ -102,7 +134,9 @@ var engine = {
 
         $(document).on('keydown', onKeyDown);
         $(document).on('keyup', onKeyUp);
-        $(document).on('contextmenu', function(){ return false; });
+        $(document).on('contextmenu', function () {
+            return false;
+        });
     },
     /**
      * Loads all images.
@@ -116,21 +150,21 @@ var engine = {
 
         for (var i = 0; i < this.imageSrcs.length; i++) {
             this.images[this.imageSrcs[i]] = new Image();
-            this.images[this.imageSrcs[i]].onload = function() {
-                if(++loadedImages >= numImages) {
+            this.images[this.imageSrcs[i]].onload = function () {
+                if (++loadedImages >= numImages) {
                     callback();
                 }
             };
             this.images[this.imageSrcs[i]].src = "images/" + this.imageSrcs[i] + ".png";
         }
     },
-    addSound: function(name, type) {
+    addSound: function (name, type) {
         this.sounds[name] = [];
         for (var i = 0; i < 5; i++) {
             this.sounds[name][i] = new Audio("sounds/" + name + "." + type);
         }
     },
-    playSound: function(name, position) {
+    playSound: function (name, position) {
         // adjust sound volume based on the current zoom as well as the position
 
         var volume = 1;
@@ -142,10 +176,8 @@ var engine = {
             volume = Helper.clamp(game.zoom / Math.pow(distance / 20, 2), 0, 1);
         }
 
-        for(var i = 0; i < 5; i++)
-        {
-            if(this.sounds[name][i].ended == true || this.sounds[name][i].currentTime == 0)
-            {
+        for (var i = 0; i < 5; i++) {
+            if (this.sounds[name][i].ended == true || this.sounds[name][i].currentTime == 0) {
                 this.sounds[name][i].volume = volume;
                 this.sounds[name][i].play();
                 return;
@@ -201,7 +233,7 @@ var engine = {
      * @param   size
      * @return  boolean
      */
-    isVisible: function(position, size) {
+    isVisible: function (position, size) {
         var r1 = {left: position.x, top: position.y, right: position.x + size.x, bottom: position.y + size.y};
         var r2 = {left: this.canvas["main"].left, top: this.canvas["main"].top, right: this.canvas["main"].right, bottom: this.canvas["main"].bottom};
 
@@ -246,7 +278,7 @@ var game = {
     emitters: null,
     sporetowers: null,
     packetQueue: null,
-    terraformingHeight : 0,
+    terraformingHeight: 0,
     mode: null,
     ghosts: null,
     init: function () {
@@ -359,7 +391,7 @@ var game = {
      * @param   {int}   y
      * @return  {Boolean}   boolean
      */
-    withinWorld: function(x, y) {
+    withinWorld: function (x, y) {
         return (x > -1 && x < this.world.size.x && y > -1 && y < this.world.size.y)
     },
     // Returns the position of the tile the mouse is hovering above
@@ -381,31 +413,31 @@ var game = {
         }
         return height;
     },
-    pause: function() {
+    pause: function () {
         $('#pause').hide();
         $('#resume').show();
         $('#paused').show();
         this.paused = true;
     },
-    resume: function() {
+    resume: function () {
         $('#pause').show();
         $('#resume').hide();
         $('#paused').hide();
         this.paused = false;
     },
-    stop: function() {
+    stop: function () {
         clearInterval(this.running);
     },
-    run: function() {
+    run: function () {
         this.running = setInterval(update, 1000 / this.speed / engine.FPS);
         engine.animationRequest = requestAnimationFrame(draw);
     },
-    restart: function() {
+    restart: function () {
         this.stop();
         this.reset();
         this.run();
     },
-    toggleTerraform: function() {
+    toggleTerraform: function () {
         if (this.mode == this.modes.TERRAFORM) {
             this.mode = this.modes.DEFAULT;
             $("#terraform").val("Terraform Off");
@@ -415,9 +447,9 @@ var game = {
             $("#terraform").val("Terraform On");
         }
     },
-    faster: function() {
-        $('#buttonslower').show();
-        $('#buttonfaster').hide();
+    faster: function () {
+        $('#slower').show();
+        $('#faster').hide();
         if (this.speed < 2) {
             this.speed *= 2;
             this.stop();
@@ -425,9 +457,9 @@ var game = {
             this.updateSpeedElement();
         }
     },
-    slower: function() {
-        $('#buttonslower').hide();
-        $('#buttonfaster').show();
+    slower: function () {
+        $('#slower').hide();
+        $('#faster').show();
         if (this.speed > 1) {
             this.speed /= 2;
             this.stop();
@@ -435,7 +467,7 @@ var game = {
             this.updateSpeedElement();
         }
     },
-    zoomIn: function() {
+    zoomIn: function () {
         if (this.zoom < 1.6) {
             this.zoom += .2;
             this.zoom = parseFloat(this.zoom.toFixed(2));
@@ -445,7 +477,7 @@ var game = {
             this.updateZoomElement();
         }
     },
-    zoomOut: function() {
+    zoomOut: function () {
         if (this.zoom > .4) {
             this.zoom -= .2;
             this.zoom = parseFloat(this.zoom.toFixed(2));
@@ -485,51 +517,51 @@ var game = {
         }
 
         /*for (var i = 0; i < this.world.size.x; i++) {
-            for (var j = 0; j < this.world.size.y; j++) {
-                for (var k = 0; k < 10; k++) {
+         for (var j = 0; j < this.world.size.y; j++) {
+         for (var k = 0; k < 10; k++) {
 
-                    if (this.world.tiles[i][j][k].full) {
-                        var up = 0, down = 0, left = 0, right = 0;
-                        if (j - 1 < 0)
-                            up = 0;
-                        else if (this.world.tiles[i][j - 1][k].full)
-                            up = 1;
-                        if (j + 1 > this.world.size.y - 1)
-                            down = 0;
-                        else if (this.world.tiles[i][j + 1][k].full)
-                            down = 1;
-                        if (i - 1 < 0)
-                            left = 0;
-                        else if (this.world.tiles[i - 1][j][k].full)
-                            left = 1;
-                        if (i + 1 > this.world.size.x - 1)
-                            right = 0;
-                        else if (this.world.tiles[i + 1][j][k].full)
-                            right = 1;
+         if (this.world.tiles[i][j][k].full) {
+         var up = 0, down = 0, left = 0, right = 0;
+         if (j - 1 < 0)
+         up = 0;
+         else if (this.world.tiles[i][j - 1][k].full)
+         up = 1;
+         if (j + 1 > this.world.size.y - 1)
+         down = 0;
+         else if (this.world.tiles[i][j + 1][k].full)
+         down = 1;
+         if (i - 1 < 0)
+         left = 0;
+         else if (this.world.tiles[i - 1][j][k].full)
+         left = 1;
+         if (i + 1 > this.world.size.x - 1)
+         right = 0;
+         else if (this.world.tiles[i + 1][j][k].full)
+         right = 1;
 
-                        // save index for later use
-                        this.world.tiles[i][j][k].index = (8 * down) + (4 * left) + (2 * up) + right;;
-                    }
-                }
+         // save index for later use
+         this.world.tiles[i][j][k].index = (8 * down) + (4 * left) + (2 * up) + right;;
+         }
+         }
 
-            }
-        }
+         }
+         }
 
-        for (var i = 0; i < this.world.size.x; i++) {
-            for (var j = 0; j < this.world.size.y; j++) {
-                var removeBelow = false;
-                for (var k = 9; k > -1; k--) {
-                    if (removeBelow) {
-                        this.world.tiles[i][j][k].full = false;
-                    }
-                    else {
-                        var index = this.world.tiles[i][j][k].index;
-                        if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
-                        removeBelow = true;
-                    }
-                 }
-            }
-        }*/
+         for (var i = 0; i < this.world.size.x; i++) {
+         for (var j = 0; j < this.world.size.y; j++) {
+         var removeBelow = false;
+         for (var k = 9; k > -1; k--) {
+         if (removeBelow) {
+         this.world.tiles[i][j][k].full = false;
+         }
+         else {
+         var index = this.world.tiles[i][j][k].index;
+         if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
+         removeBelow = true;
+         }
+         }
+         }
+         }*/
 
         // create base
         var randomPosition = new Vector(
@@ -720,13 +752,13 @@ var game = {
         var index = this.buildings.indexOf(building);
         this.buildings.splice(index, 1);
     },
-    activateBuilding: function() {
+    activateBuilding: function () {
         for (var i = 0; i < this.buildings.length; i++) {
             if (this.buildings[i].selected)
                 this.buildings[i].active = true;
         }
     },
-    deactivateBuilding: function() {
+    deactivateBuilding: function () {
         for (var i = 0; i < this.buildings.length; i++) {
             if (this.buildings[i].selected)
                 this.buildings[i].active = false;
@@ -751,14 +783,14 @@ var game = {
         engine.canvas["main"].element.css('cursor', 'default');
     },
     setupUI: function () {
-        this.symbols.push(new UISymbol(new Vector(     0, 0), "cannon", "Q", 3, 25, 8));
-        this.symbols.push(new UISymbol(new Vector(    81, 0), "collector", "W", 3, 5, 6));
+        this.symbols.push(new UISymbol(new Vector(0, 0), "cannon", "Q", 3, 25, 8));
+        this.symbols.push(new UISymbol(new Vector(81, 0), "collector", "W", 3, 5, 6));
         this.symbols.push(new UISymbol(new Vector(2 * 81, 0), "reactor", "E", 3, 50, 0));
         this.symbols.push(new UISymbol(new Vector(3 * 81, 0), "storage", "R", 3, 8, 0));
         this.symbols.push(new UISymbol(new Vector(4 * 81, 0), "shield", "T", 3, 50, 10));
 
-        this.symbols.push(new UISymbol(new Vector(     0, 56), "relay", "A", 3, 10, 8));
-        this.symbols.push(new UISymbol(new Vector(    81, 56), "mortar", "S", 3, 40, 12));
+        this.symbols.push(new UISymbol(new Vector(0, 56), "relay", "A", 3, 10, 8));
+        this.symbols.push(new UISymbol(new Vector(81, 56), "mortar", "S", 3, 40, 12));
         this.symbols.push(new UISymbol(new Vector(2 * 81, 56), "beam", "D", 3, 20, 12));
         this.symbols.push(new UISymbol(new Vector(3 * 81, 56), "bomber", "F", 3, 75, 0));
         this.symbols.push(new UISymbol(new Vector(4 * 81, 56), "terp", "G", 3, 60, 12));
@@ -849,7 +881,7 @@ var game = {
         }
         $('#loading').hide();
     },
-    copyTerrain: function() {
+    copyTerrain: function () {
         engine.canvas["levelfinal"].clear();
         var left = engine.width + this.scroll.x * this.tileSize - (engine.width / this.tileSize / 2) * this.tileSize * (1 / this.zoom);
         var top = engine.height + this.scroll.y * this.tileSize - (engine.height / this.tileSize / 2) * this.tileSize * (1 / this.zoom);
@@ -860,7 +892,7 @@ var game = {
     /**
      * @param {Array} tilesToRedraw An array of tiles to redraw
      */
-    redrawTile: function(tilesToRedraw) {
+    redrawTile: function (tilesToRedraw) {
         var tempCanvas = [];
         var tempContext = [];
         for (var t = 0; t < 10; t++) {
@@ -901,7 +933,7 @@ var game = {
                 this.world.tiles[iS][jS][k].index = (8 * down) + (4 * left) + (2 * up) + right;
             }
             else
-             this.world.tiles[iS][jS][k].index = -1;
+                this.world.tiles[iS][jS][k].index = -1;
 
             // redraw mask
             for (var t = 9; t > -1; t--) {
@@ -925,12 +957,12 @@ var game = {
             // redraw pattern
             for (var t = 9; t > -1; t--) {
                 /*var tCanvas = document.createElement('canvas');
-                tCanvas.width = 256;
-                tCanvas.height = 256;
-                var ctx = tCanvas.getContext('2d');
+                 tCanvas.width = 256;
+                 tCanvas.height = 256;
+                 var ctx = tCanvas.getContext('2d');
 
-                ctx.drawImage(engine.images["level" + t], 0, 0);
-                var pattern = tempContext[t].createPattern(tCanvas, 'repeat');*/
+                 ctx.drawImage(engine.images["level" + t], 0, 0);
+                 var pattern = tempContext[t].createPattern(tCanvas, 'repeat');*/
 
                 if (this.world.tiles[iS][jS][t].full) {
                     var pattern = tempContext[t].createPattern(engine.images["level" + t], 'repeat');
@@ -940,8 +972,8 @@ var game = {
 
                     tempContext[t].save();
                     var translation = new Vector(
-                         engine.width + Math.floor(iS * this.tileSize),
-                         engine.height + Math.floor(jS * this.tileSize));
+                        engine.width + Math.floor(iS * this.tileSize),
+                        engine.height + Math.floor(jS * this.tileSize));
                     tempContext[t].translate(-translation.x, -translation.y);
 
                     //tempContext[t].fill();
@@ -1278,18 +1310,18 @@ var game = {
                     var height = this.getHighestTerrain(new Vector(i, j));
                     if (i - 1 > -1 && i + 1 < this.world.size.x && j - 1 > -1 && j + 1 < this.world.size.y) {
                         //if (height >= 0) {
-                            // right neighbour
-                            var height2 = this.getHighestTerrain(new Vector(i + 1, j));
-                            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i + 1][j][0]);
-                            // bottom right neighbour
-                            height2 = this.getHighestTerrain(new Vector(i - 1, j));
-                            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i - 1][j][0]);
-                            // bottom neighbour
-                            height2 = this.getHighestTerrain(new Vector(i, j + 1));
-                            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j + 1][0]);
-                            // bottom left neighbour
-                            height2 = this.getHighestTerrain(new Vector(i, j - 1));
-                            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j - 1][0]);
+                        // right neighbour
+                        var height2 = this.getHighestTerrain(new Vector(i + 1, j));
+                        this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i + 1][j][0]);
+                        // bottom right neighbour
+                        height2 = this.getHighestTerrain(new Vector(i - 1, j));
+                        this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i - 1][j][0]);
+                        // bottom neighbour
+                        height2 = this.getHighestTerrain(new Vector(i, j + 1));
+                        this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j + 1][0]);
+                        // bottom left neighbour
+                        height2 = this.getHighestTerrain(new Vector(i, j - 1));
+                        this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j - 1][0]);
                         //}
                     }
 
@@ -1330,13 +1362,13 @@ var game = {
                     target.newcreep += adjustedDelta;
                 }
                 /*else {
-                    delta = targetTotal - sourceTotal;
-                    if (delta > targetAmount)
-                        delta = targetAmount;
-                    var adjustedDelta = delta * transferRate;
-                    source.newcreep += adjustedDelta;
-                    target.newcreep -= adjustedDelta;
-                }*/
+                 delta = targetTotal - sourceTotal;
+                 if (delta > targetAmount)
+                 delta = targetAmount;
+                 var adjustedDelta = delta * transferRate;
+                 source.newcreep += adjustedDelta;
+                 target.newcreep -= adjustedDelta;
+                 }*/
             }
         }
     },
@@ -1356,35 +1388,35 @@ var game = {
                 // if the node is not the target AND built it is a valid neighbour
                 // also the neighbour must not be moving
                 if (!this.buildings[i].moving) { // && this.buildings[i].imageID != "base") {
-                     if (this.buildings[i] != target) {
-                          if (this.buildings[i].built) {
-                              centerI = this.buildings[i].getCenter();
-                              centerNode = node.getCenter();
-                              var distance = Helper.distance(centerI, centerNode);
+                    if (this.buildings[i] != target) {
+                        if (this.buildings[i].built) {
+                            centerI = this.buildings[i].getCenter();
+                            centerNode = node.getCenter();
+                            var distance = Helper.distance(centerI, centerNode);
 
-                              var allowedDistance = 10 * this.tileSize;
-                              if (node.imageID == "relay" && this.buildings[i].imageID == "relay") {
-                                  allowedDistance = 20 * this.tileSize;
-                              }
-                              if (distance <= allowedDistance) {
-                                  neighbours.push(this.buildings[i]);
-                              }
-                          }
-                     }
-                     // if it is the target it is a valid neighbour
-                     else {
-                         centerI = this.buildings[i].getCenter();
-                         centerNode = node.getCenter();
-                         var distance = Helper.distance(centerI, centerNode);
+                            var allowedDistance = 10 * this.tileSize;
+                            if (node.imageID == "relay" && this.buildings[i].imageID == "relay") {
+                                allowedDistance = 20 * this.tileSize;
+                            }
+                            if (distance <= allowedDistance) {
+                                neighbours.push(this.buildings[i]);
+                            }
+                        }
+                    }
+                    // if it is the target it is a valid neighbour
+                    else {
+                        centerI = this.buildings[i].getCenter();
+                        centerNode = node.getCenter();
+                        var distance = Helper.distance(centerI, centerNode);
 
-                         var allowedDistance = 10 * this.tileSize;
-                         if (node.imageID == "relay" && this.buildings[i].imageID == "relay") {
-                             allowedDistance = 20 * this.tileSize;
-                         }
-                         if (distance <= allowedDistance) {
-                             neighbours.push(this.buildings[i]);
-                         }
-                     }
+                        var allowedDistance = 10 * this.tileSize;
+                        if (node.imageID == "relay" && this.buildings[i].imageID == "relay") {
+                            allowedDistance = 20 * this.tileSize;
+                        }
+                        if (distance <= allowedDistance) {
+                            neighbours.push(this.buildings[i]);
+                        }
+                    }
                 }
             }
         }
@@ -1424,10 +1456,10 @@ var game = {
         routes.push(route);
 
         /*
-            As long as there is any route AND
-            the last node of the route is not the end node try to get to the end node
+         As long as there is any route AND
+         the last node of the route is not the end node try to get to the end node
 
-            If there is no route the packet will be removed
+         If there is no route the packet will be removed
          */
         while (routes.length > 0) {
 
@@ -1505,16 +1537,18 @@ var game = {
             }
 
             /*$('#other').append("-- to be removed: " + remove.length);
-            for (var i = 0; i < remove.length; i++) {
-                for (var j = 0; j < routes.length; j++) {
-                    if (remove[i].x == routes[i].x && remove[i].y == routes[i].y)
-                    routes.splice(j);
-                }
-            }
-            $('#other').append(", new total routes: " + routes.length + "<br/>");*/
+             for (var i = 0; i < remove.length; i++) {
+             for (var j = 0; j < routes.length; j++) {
+             if (remove[i].x == routes[i].x && remove[i].y == routes[i].y)
+             routes.splice(j);
+             }
+             }
+             $('#other').append(", new total routes: " + routes.length + "<br/>");*/
 
             // sort routes by total underestimate so that the possibly shortest route gets checked first
-            routes.sort(function(a,b){return (a.distanceTravelled + a.distanceRemaining) - (b.distanceTravelled + b.distanceRemaining)});
+            routes.sort(function (a, b) {
+                return (a.distanceTravelled + a.distanceRemaining) - (b.distanceTravelled + b.distanceRemaining)
+            });
         }
 
         // if a route is left set the second element as the next node for the packet
@@ -1625,7 +1659,7 @@ var game = {
 
         return (!collision);
     },
-    updatePacketQueue: function() {
+    updatePacketQueue: function () {
         for (var i = 0; i < this.packetQueue.length; i++) {
             if (this.currentEnergy > 0) {
                 this.currentEnergy--;
@@ -1834,7 +1868,7 @@ var game = {
      * @param {int} radius The radius of the building
      * @param {int} size The size of the building
      */
-    drawRangeBoxes: function(position, type, radius, size) {
+    drawRangeBoxes: function (position, type, radius, size) {
         var positionCenter = new Vector(
             position.x * this.tileSize + (this.tileSize / 2) * size,
             position.y * this.tileSize + (this.tileSize / 2) * size);
@@ -1894,7 +1928,7 @@ var game = {
     /**
      * Draws the green collection areas of collectors.
      */
-    drawCollection: function() {
+    drawCollection: function () {
         engine.canvas["collection"].clear();
         engine.canvas["collection"].context.save();
         engine.canvas["collection"].context.globalAlpha = .5;
@@ -1910,7 +1944,7 @@ var game = {
 
                 if (this.withinWorld(iS, jS)) {
 
-                    for (var k = 0 ; k < 10; k++) {
+                    for (var k = 0; k < 10; k++) {
                         if (this.world.tiles[iS][jS][k].collector) {
                             var up = 0, down = 0, left = 0, right = 0;
                             if (jS - 1 < 0)
@@ -1939,7 +1973,7 @@ var game = {
         }
         engine.canvas["collection"].context.restore();
     },
-    drawCreeper: function() {
+    drawCreeper: function () {
         engine.canvas["creeper"].clear();
 
         var timesX = Math.ceil(engine.halfWidth / this.tileSize / this.zoom);
@@ -2094,32 +2128,32 @@ var game = {
                 // draw lines to other ghosts
                 for (var k = 0; k < game.ghosts.length; k++) {
                     if (k != j) {
-                    var center = new Vector(
-                        game.ghosts[k].position.x * game.tileSize + (game.tileSize / 2) * 3,
-                        game.ghosts[k].position.y * game.tileSize + (game.tileSize / 2) * 3);
-                    var drawCenter = Helper.real2screen(center);
+                        var center = new Vector(
+                            game.ghosts[k].position.x * game.tileSize + (game.tileSize / 2) * 3,
+                            game.ghosts[k].position.y * game.tileSize + (game.tileSize / 2) * 3);
+                        var drawCenter = Helper.real2screen(center);
 
-                    var allowedDistance = 10 * this.tileSize;
-                    if (this.symbols[this.activeSymbol].imageID == "relay") {
-                        allowedDistance = 20 * this.tileSize;
-                    }
+                        var allowedDistance = 10 * this.tileSize;
+                        if (this.symbols[this.activeSymbol].imageID == "relay") {
+                            allowedDistance = 20 * this.tileSize;
+                        }
 
-                    if (Math.pow(center.x - positionScrolledCenter.x, 2) + Math.pow(center.y - positionScrolledCenter.y, 2) <= Math.pow(allowedDistance, 2)) {
-                        var lineToTarget = Helper.real2screen(positionScrolledCenter);
-                        engine.canvas["buffer"].context.strokeStyle = '#000';
-                        engine.canvas["buffer"].context.lineWidth = 2;
-                        engine.canvas["buffer"].context.beginPath();
-                        engine.canvas["buffer"].context.moveTo(drawCenter.x, drawCenter.y);
-                        engine.canvas["buffer"].context.lineTo(lineToTarget.x, lineToTarget.y);
-                        engine.canvas["buffer"].context.stroke();
+                        if (Math.pow(center.x - positionScrolledCenter.x, 2) + Math.pow(center.y - positionScrolledCenter.y, 2) <= Math.pow(allowedDistance, 2)) {
+                            var lineToTarget = Helper.real2screen(positionScrolledCenter);
+                            engine.canvas["buffer"].context.strokeStyle = '#000';
+                            engine.canvas["buffer"].context.lineWidth = 2;
+                            engine.canvas["buffer"].context.beginPath();
+                            engine.canvas["buffer"].context.moveTo(drawCenter.x, drawCenter.y);
+                            engine.canvas["buffer"].context.lineTo(lineToTarget.x, lineToTarget.y);
+                            engine.canvas["buffer"].context.stroke();
 
-                        engine.canvas["buffer"].context.strokeStyle = '#fff';
-                        engine.canvas["buffer"].context.lineWidth = 1;
-                        engine.canvas["buffer"].context.beginPath();
-                        engine.canvas["buffer"].context.moveTo(drawCenter.x, drawCenter.y);
-                        engine.canvas["buffer"].context.lineTo(lineToTarget.x, lineToTarget.y);
-                        engine.canvas["buffer"].context.stroke();
-                    }
+                            engine.canvas["buffer"].context.strokeStyle = '#fff';
+                            engine.canvas["buffer"].context.lineWidth = 1;
+                            engine.canvas["buffer"].context.beginPath();
+                            engine.canvas["buffer"].context.moveTo(drawCenter.x, drawCenter.y);
+                            engine.canvas["buffer"].context.lineTo(lineToTarget.x, lineToTarget.y);
+                            engine.canvas["buffer"].context.stroke();
+                        }
                     }
                 }
             }
@@ -2522,14 +2556,14 @@ function Packet(pPosition, pImage, pType) {
                             this.target.built = true;
                             if (this.target.imageID == "collector") {
                                 game.updateCollection(this.target, "add");
-                                engine.playSound("energy", this.target);
+                                engine.playSound("energy", this.target.position);
                             }
                             if (this.target.imageID == "storage")
                                 game.maxEnergy += 20;
                             if (this.target.imageID == "speed")
                                 game.packetSpeed *= 1.01;
                             if (this.target.imageID == "bomber") {
-                                var ship = new Ship(new Vector(this.target.x * game.tileSize, this.target.y * game.tileSize), "bombership", "Bomber", this.target);
+                                var ship = new Ship(new Vector(this.target.position.x * game.tileSize, this.target.position.y * game.tileSize), "bombership", "Bomber", this.target);
                                 this.target.ship = ship;
                                 game.ships.push(ship);
                             }
@@ -2760,11 +2794,10 @@ function Ship(pPosition, pImage, pType, pHome) {
                 this.angle -= turnRate;
             else
                 this.angle += turnRate;
+        else if (angleToTarget < this.angle)
+            this.angle += turnRate;
         else
-            if (angleToTarget < this.angle)
-                this.angle += turnRate;
-            else
-                this.angle -= turnRate;
+            this.angle -= turnRate;
 
         if (this.angle > 180)
             this.angle -= 360;
@@ -2804,29 +2837,30 @@ function Ship(pPosition, pImage, pType, pHome) {
 
                         for (var i = Math.floor(this.targetPosition.x / game.tileSize) - 3; i < Math.floor(this.targetPosition.x / game.tileSize) + 5; i++) {
                             for (var j = Math.floor(this.targetPosition.y / game.tileSize) - 3; j < Math.floor(this.targetPosition.y / game.tileSize) + 5; j++)
-                                if (game.withinWorld(i, j)) {{
-                                    var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.targetPosition.x + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.targetPosition.y + game.tileSize), 2);
-                                    if (distance < Math.pow(game.tileSize * 3, 2)) {
-                                        game.world.tiles[i][j][0].creep -= 5;
-                                        if (game.world.tiles[i][j][0].creep < 0) {
-                                            game.world.tiles[i][j][0].creep = 0;
+                                if (game.withinWorld(i, j)) {
+                                    {
+                                        var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.targetPosition.x + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.targetPosition.y + game.tileSize), 2);
+                                        if (distance < Math.pow(game.tileSize * 3, 2)) {
+                                            game.world.tiles[i][j][0].creep -= 5;
+                                            if (game.world.tiles[i][j][0].creep < 0) {
+                                                game.world.tiles[i][j][0].creep = 0;
+                                            }
                                         }
                                     }
                                 }
-                            }
                         }
 
                         if (this.energy == 0) { // return to base
                             this.status = 2;
-                            this.targetPosition.x = this.home.x * game.tileSize;
-                            this.targetPosition.y = this.home.y * game.tileSize;
+                            this.targetPosition.x = this.home.position.x * game.tileSize;
+                            this.targetPosition.y = this.home.position.y * game.tileSize;
                         }
                     }
                 }
                 else if (this.status == 2) { // if returning set to idle
                     this.status = 0;
-                    this.position.x = this.home.x * game.tileSize;
-                    this.position.y = this.home.y * game.tileSize;
+                    this.position.x = this.home.position.x * game.tileSize;
+                    this.position.y = this.home.position.y * game.tileSize;
                     this.targetPosition.x = 0;
                     this.targetPosition.y = 0;
                     this.energy = 5;
@@ -2853,7 +2887,7 @@ function Ship(pPosition, pImage, pType, pHome) {
             engine.canvas["buffer"].context.stroke();
 
             if (this.status == 1) {
-                var cursorPosition = Helper.real2screen(new Vector(this.tx, this.ty));
+                var cursorPosition = Helper.real2screen(this.targetPosition);
                 engine.canvas["buffer"].context.save();
                 engine.canvas["buffer"].context.globalAlpha = .5;
                 engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], cursorPosition.x - game.tileSize * game.zoom, cursorPosition.y - game.tileSize * game.zoom, 48 * game.zoom, 48 * game.zoom);
@@ -2899,7 +2933,7 @@ function Sporetower(pPosition) {
     this.imageID = "sporetower";
     this.health = 100;
     this.sporeTimer = 0;
-    this.reset = function() {
+    this.reset = function () {
         this.sporeTimer = Helper.randomInt(7500, 12500);
     };
     this.getCenter = function () {
@@ -2913,8 +2947,8 @@ function Sporetower(pPosition) {
             engine.canvas["buffer"].context.drawImage(engine.images[this.imageID], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
         }
     };
-    this.update = function() {
-        this.sporeTimer -= this.speed;
+    this.update = function () {
+        this.sporeTimer -= 1;
         if (this.sporeTimer <= 0) {
             this.reset();
             this.spawn();
@@ -2987,7 +3021,7 @@ function Canvas(pElement) {
     this.bottom = this.top + this.element[0].height;
     this.right = this.left + this.element[0].width;
     this.context.webkitImageSmoothingEnabled = false;
-    this.clear = function() {
+    this.clear = function () {
         this.context.clearRect(0, 0, this.element[0].width, this.element[0].height);
     }
 }
@@ -2995,13 +3029,13 @@ function Canvas(pElement) {
 // Functions
 
 // Entry Point
-$(function() {
+$(function () {
     main();
 });
 
 function main() {
     engine.init();
-    engine.loadImages(function() {
+    engine.loadImages(function () {
         game.init();
         game.drawTerrain();
         game.copyTerrain();
@@ -3075,13 +3109,13 @@ function onKeyDown(evt) {
         }
     }
 
-    if(evt.keyCode == 37)
+    if (evt.keyCode == 37)
         game.scrolling.left = true;
-    if(evt.keyCode == 38)
+    if (evt.keyCode == 38)
         game.scrolling.up = true;
-    if(evt.keyCode == 39)
+    if (evt.keyCode == 39)
         game.scrolling.right = true;
-    if(evt.keyCode == 40)
+    if (evt.keyCode == 40)
         game.scrolling.down = true;
 
     var position = game.getHoveredTilePosition();
@@ -3122,9 +3156,9 @@ function onKeyDown(evt) {
 
     // clear terrain ("B")
     if (evt.keyCode == 66) {
+        var tilesToRedraw = [];
         for (var k = 0; k < 10; k++) {
             game.world.tiles[position.x][position.y][k].full = false;
-            var tilesToRedraw = [];
             // reset index around tile
             for (var i = -1; i <= 1; i++) {
                 for (var j = -1; j <= 1; j++) {
@@ -3157,14 +3191,14 @@ function onKeyDown(evt) {
 }
 
 function onKeyUp(evt) {
-    if(evt.keyCode == 37)
-      game.scrolling.left = false;
-    if(evt.keyCode == 38)
-      game.scrolling.up = false;
-    if(evt.keyCode == 39)
-      game.scrolling.right = false;
-    if(evt.keyCode == 40)
-      game.scrolling.down = false;
+    if (evt.keyCode == 37)
+        game.scrolling.left = false;
+    if (evt.keyCode == 38)
+        game.scrolling.up = false;
+    if (evt.keyCode == 39)
+        game.scrolling.right = false;
+    if (evt.keyCode == 40)
+        game.scrolling.down = false;
 }
 
 function onEnter(evt) {
@@ -3340,7 +3374,7 @@ function onMouseUp(evt) {
 }
 
 function onMouseScroll(evt) {
-    if(evt.originalEvent.detail > 0 || evt.originalEvent.wheelDelta < 0) {
+    if (evt.originalEvent.detail > 0 || evt.originalEvent.wheelDelta < 0) {
         //scroll down
         game.zoomOut();
     } else {
@@ -3357,40 +3391,40 @@ function onMouseScroll(evt) {
 
 var Helper = {};
 
-Helper.rad2deg = function(angle) {
+Helper.rad2deg = function (angle) {
     return angle * 57.29577951308232;
 };
 
-Helper.deg2rad = function(angle) {
+Helper.deg2rad = function (angle) {
     return angle * .017453292519943295;
 };
 
-Helper.distance = function(a, b) {
+Helper.distance = function (a, b) {
     return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
 };
 
 // converts tile coordinates to canvas coordinates
-Helper.tiled2screen = function(pVector) {
+Helper.tiled2screen = function (pVector) {
     return new Vector(
         engine.halfWidth + (pVector.x - game.scroll.x) * game.tileSize * game.zoom,
         engine.halfHeight + (pVector.y - game.scroll.y) * game.tileSize * game.zoom);
 };
 
 // converts full coordinates to canvas coordinates
-Helper.real2screen = function(pVector) {
+Helper.real2screen = function (pVector) {
     return new Vector(
         engine.halfWidth + (pVector.x - game.scroll.x * game.tileSize) * game.zoom,
         engine.halfHeight + (pVector.y - game.scroll.y * game.tileSize) * game.zoom);
 };
 
 // converts full coordinates to tile coordinates
-Helper.real2tiled = function(pVector) {
+Helper.real2tiled = function (pVector) {
     return new Vector(
         Math.floor(pVector.x / game.tileSize),
         Math.floor(pVector.y / game.tileSize));
 };
 
-Helper.clone = function(pObject) {
+Helper.clone = function (pObject) {
     var newObject = [];
     for (var attr in pObject) {
         newObject[attr] = pObject[attr];
@@ -3398,11 +3432,11 @@ Helper.clone = function(pObject) {
     return newObject;
 };
 
-Helper.randomInt = function(from, to) {
+Helper.randomInt = function (from, to) {
     return Math.floor(Math.random() * (to - from + 1) + from);
 };
 
-Helper.clamp = function(number, min, max) {
+Helper.clamp = function (number, min, max) {
     return number < min ? min : (number > max ? max : number);
 };
 
@@ -3430,8 +3464,8 @@ function draw() {
     engine.canvas["main"].clear();
 
     // draw terraform numbers
-    var timesX = Math.floor(engine.halfWidth / this.tileSize / this.zoom);
-    var timesY = Math.floor(engine.halfHeight / this.tileSize / this.zoom);
+    var timesX = Math.floor(engine.halfWidth / game.tileSize / game.zoom);
+    var timesY = Math.floor(engine.halfHeight / game.tileSize / game.zoom);
 
     for (var i = -timesX; i <= timesX; i++) {
         for (var j = -timesY; j <= timesY; j++) {

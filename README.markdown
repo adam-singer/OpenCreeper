@@ -6,8 +6,10 @@ Open Creeper can be played on GitHub Pages which is here: http://alexanderzeilli
 
 ## About
 
-Open Creeper is an open source JavaScript game heavily inspired by Creeper World 3 by Knuckle Cracker.
+Open Creeper is an open source game heavily inspired by Creeper World 3 by Knuckle Cracker.
 I wrote this to improve my skills with JavaScript and it may also serve as an educational resource for others.
+Update: I ported the game to Dart where it runs about twice as fast, yay! You can try the Dart version by uncommenting
+the appropriate lines in index.htm, oh and you also need Dartium: http://www.dartlang.org/tools/dartium/
 That being said it is not a full game and can not be won as no winning conditions are implemented.
 
 If you like this kind of games I suggest you buy and play the original Creeper World games.
