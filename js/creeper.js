@@ -1,5 +1,5 @@
 ﻿/*!
- * Open Creeper v1.2.2
+ * Open Creeper v1.2.3
  * http://alexanderzeillinger.github.com/OpenCreeper/
  *
  * Copyright 2012, Alexander Zeillinger
@@ -2807,6 +2807,29 @@ function Ship(pPosition, pImage, pType, pHome) {
         this.speed.x = x * game.shipSpeed * game.speed;
         this.speed.y = y * game.shipSpeed * game.speed;
     };
+    this.control = function (position) {
+        // select ship
+        this.selected = this.hovered;
+
+        // control if selected
+        if (this.selected) {
+            game.mode = game.modes.SHIP_SELECTED;
+            if (position.x - 1 == this.home.position.x && position.y - 1 == this.home.position.y) {
+                this.targetPosition.x = (position.x - 1) * game.tileSize;
+                this.targetPosition.y = (position.y - 1) * game.tileSize;
+                this.status = 2;
+            }
+            else {
+                // take energy from base
+                this.energy = this.home.energy;
+                this.home.energy = 0;
+                this.targetPosition.x = position.x * game.tileSize;
+                this.targetPosition.y = position.y * game.tileSize;
+                this.status = 1;
+            }
+
+        }
+    },
     this.move = function () {
 
         if (this.status != 0) {
@@ -3268,30 +3291,7 @@ function onMouseUp(evt) {
 
         // control ships
         for (var i = 0; i < game.ships.length; i++) {
-            if (game.ships[i].selected) {
-                if (position.x - 1 == game.ships[i].home.position.x &&
-                    position.y - 1 == game.ships[i].home.position.y) {
-                    game.ships[i].targetPosition.x = (position.x - 1) * game.tileSize;
-                    game.ships[i].targetPosition.y = (position.y - 1) * game.tileSize;
-                    game.ships[i].status = 2;
-                }
-                else {
-                    // take energy from base
-                    game.ships[i].energy = game.ships[i].home.energy;
-                    game.ships[i].home.energy = 0;
-                    game.ships[i].targetPosition.x = position.x * game.tileSize;
-                    game.ships[i].targetPosition.y = position.y * game.tileSize;
-                    game.ships[i].status = 1;
-                }
-
-            }
-        }
-
-        // select a ship if hovered
-        for (var i = 0; i < game.ships.length; i++) {
-            game.ships[i].selected = game.ships[i].hovered;
-            if (game.ships[i].selected)
-                game.mode = game.modes.SHIP_SELECTED;
+            game.ships[i].control(position);
         }
 
         // reposition building
