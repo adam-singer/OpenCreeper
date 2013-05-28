@@ -4,6 +4,8 @@ import 'dart:html';
 import 'dart:math' as Math;
 import 'dart:async';
 
+part 'heightmap.dart';
+
 class Mouse {
   int x = 0, y = 0;
   bool active = true;
@@ -461,12 +463,12 @@ class Game {
       }
     }
 
-    //var heightmap = new HeightMap(129, 0, 90);
-    //heightmap.run();
+    var heightmap = new HeightMap(129, 0, 90);
+    heightmap.run();
 
     for (int i = 0; i < this.world.size.x; i++) {
       for (int j = 0; j < this.world.size.y; j++) {
-        int height = 7; //(heightmap.map[i][j] / 10).round();
+        int height = (heightmap.map[i][j] / 10).round();
         if (height > 10)
           height = 10;
         for (int k = 0; k < height; k++) {
