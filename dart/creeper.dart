@@ -43,6 +43,8 @@ class Engine {
     query('#canvasContainer').children.add(engine.canvas["main"].element);
     engine.canvas["main"].top = engine.canvas["main"].element.offsetTop;
     engine.canvas["main"].left = engine.canvas["main"].element.offsetLeft;
+    engine.canvas["main"].right = engine.canvas["main"].element.offset.right;
+    engine.canvas["main"].bottom = engine.canvas["main"].element.offset.bottom;
     engine.canvas["main"].element.style.zIndex = "1";
 
     // buffer
@@ -234,12 +236,10 @@ class Engine {
     num r2_right = this.canvas["main"].right;
     num r2_bottom = this.canvas["main"].bottom;
 
-    // FIXME
-    /*return !(r2_left > r1_right ||
+    return !(r2_left > r1_right ||
         r2_right < r1_left ||
         r2_top > r1_bottom ||
-        r2_bottom < r1_top);*/
-    return true;
+        r2_bottom < r1_top);
   }
 }
 
@@ -254,7 +254,11 @@ class Game {
   var running;
   String mode;
   bool paused = false, scrollingUp = false, scrollingDown = false, scrollingLeft = false, scrollingRight = false;
-  List buildings = [], packets = [], shells = [], spores = [], ships = [], smokes = [], explosions = [], symbols = [], emitters = [], sporetowers = [], packetQueue = [], ghosts = [];
+  List spores = [], smokes = [], explosions = [], symbols = [], emitters = [], sporetowers = [], packetQueue = [], ghosts = [];
+  List<Building> buildings = new List<Building>();
+  List<Packet> packets = new List<Packet>();
+  List<Shell> shells = new List<Shell>();
+  List<Ship> ships = new List<Ship>();
   World world = new World();
   Vector scroll = new Vector(0, 0);
   Building base;
@@ -678,7 +682,7 @@ class Game {
     }
 
     if (building.imageID == "base") {
-      //query('#lose').toggle(); // TODO
+      query('#lose').style.display = "block";
       this.stop();
     }
     if (building.imageID == "collector") {
@@ -943,21 +947,18 @@ class Game {
       if (this.buildings[t].needsEnergy && this.buildings[t].active && !this.buildings[t].moving) {
 
         this.buildings[t].energyTimer++;
+        Vector position = this.buildings[t].position;
         Vector center = this.buildings[t].getCenter();
 
         if (this.buildings[t].imageID == "terp" && this.buildings[t].energy > 0) {
           // find lowest target
           if (this.buildings[t].weaponTargetPosition == null) {
 
-            // get building x and building y
-            int x = this.buildings[t].position.x;
-            int y = this.buildings[t].position.y;
-
             // find lowest tile
             Vector target = null;
             int lowestTile = 10;
-            for (int i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
-              for (int j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
+            for (int i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
+              for (int j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
 
                 if (this.withinWorld(i, j)) {
                   var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
@@ -1032,16 +1033,14 @@ class Game {
         else if (this.buildings[t].imageID == "cannon" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 10) {
             this.buildings[t].energyTimer = 0;
 
-            int x = this.buildings[t].position.x;
-            int y = this.buildings[t].position.y;
             int height = this.getHighestTerrain(this.buildings[t].position);
 
             // find closest random target
             for (int r = 0; r < this.buildings[t].weaponRadius + 1; r++) {
               List targets = new List();
               int radius = r * this.tileSize;
-              for (int i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
-                for (int j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
+              for (int i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
+                for (int j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
 
                   // cannons can only shoot at tiles not higher than themselves
                   if (this.withinWorld(i, j)) {
@@ -1057,10 +1056,11 @@ class Game {
                 }
               }
               if (targets.length > 0) {
-                //targets.shuffle(); // FIXME
+                HelperShuffle(targets);
 
                 this.world.tiles[targets[0].x][targets[0].y][0].creep -= 10;
-                if (this.world.tiles[targets[0].x][targets[0].y][0].creep < 0)this.world.tiles[targets[0].x][targets[0].y][0].creep = 0;
+                if (this.world.tiles[targets[0].x][targets[0].y][0].creep < 0)
+                  this.world.tiles[targets[0].x][targets[0].y][0].creep = 0;
 
                 var dx = targets[0].x * this.tileSize + this.tileSize / 2 - center.x;
                 var dy = targets[0].y * this.tileSize + this.tileSize / 2 - center.y;
@@ -1069,7 +1069,7 @@ class Game {
                 this.buildings[t].energy -= 1;
                 this.buildings[t].operating = true;
                 this.smokes.add(new Smoke(new Vector(targets[0].x * this.tileSize + this.tileSize / 2, targets[0].y * this.tileSize + this.tileSize / 2)));
-                engine.playSound("laser", new Vector(x, y));
+                engine.playSound("laser", position);
                 break;
               }
             }
@@ -1078,25 +1078,23 @@ class Game {
           else if (this.buildings[t].imageID == "mortar" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 200) {
               this.buildings[t].energyTimer = 0;
 
-              // get building x and building y
-              int x = this.buildings[t].position.x;
-              int y = this.buildings[t].position.y;
-
               // find most creep in range
               Vector target = null;
               var highestCreep = 0;
-              for (int i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
-                for (int j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
-                  var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
-
-                  if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][0].creep > 0 && this.world.tiles[i][j][0].creep >= highestCreep) {
-                    highestCreep = this.world.tiles[i][j][0].creep;
-                    target = new Vector(i, j);
+              for (int i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
+                for (int j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
+                  if (game.withinWorld(i, j)) {
+                    var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
+  
+                    if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][0].creep > 0 && this.world.tiles[i][j][0].creep >= highestCreep) {
+                      highestCreep = this.world.tiles[i][j][0].creep;
+                      target = new Vector(i, j);
+                    }
                   }
                 }
               }
               if (target != null) {
-                engine.playSound("shot", new Vector(x, y));
+                engine.playSound("shot", position);
                 Shell shell = new Shell(center, "shell", new Vector(target.x * this.tileSize + this.tileSize / 2, target.y * this.tileSize + this.tileSize / 2));
                 shell.init();
                 this.shells.add(shell);
@@ -1472,8 +1470,9 @@ class Game {
       }
 
       // sort routes by total underestimate so that the possibly shortest route gets checked first
-      // FIXME
-      //routes.sort(function(a,b){return (a.distanceTravelled + a.distanceRemaining) - (b.distanceTravelled + b.distanceRemaining)});
+      routes.sort((Route a, Route b) {
+        return (a.distanceTravelled + a.distanceRemaining) - (b.distanceTravelled + b.distanceRemaining);
+      });
     }
 
     // if a route is left set the second element as the next node for the packet
@@ -2427,6 +2426,8 @@ class Packet {
 
     Vector centerTarget = this.currentTarget.getCenter();
     if (this.position.x > centerTarget.x - 1 && this.position.x < centerTarget.x + 1 && this.position.y > centerTarget.y - 1 && this.position.y < centerTarget.y + 1) {
+      this.position.x = centerTarget.x;
+      this.position.y = centerTarget.y;
       // if the final node was reached deliver and remove
       if (this.currentTarget == this.target) {
       //console.log("target node reached!");
@@ -2961,8 +2962,8 @@ class Canvas {
     this.context = this.element.getContext('2d');
     this.top = this.element.offset.top;
     this.left = this.element.offset.left;
-    this.bottom = this.element.offset.bottom;
-    this.right = this.element.offset.right;
+    this.bottom = this.element.offset.top + this.element.offset.height;
+    this.right = this.element.offset.left + this.element.offset.width;
     this.context.imageSmoothingEnabled = false;
   }
 
@@ -3225,16 +3226,16 @@ void onMouseUp(MouseEvent evt) {
     // control ships
     for (int i = 0; i < game.ships.length; i++) {
       if (game.ships[i].selected) {
-        if (position.x - 1 == game.ships[i].home.x && position.y - 1 == game.ships[i].home.y) {
-          game.ships[i].tx = (position.x - 1) * game.tileSize;
-          game.ships[i].ty = (position.y - 1) * game.tileSize;
+        if (position.x - 1 == game.ships[i].home.position.x && position.y - 1 == game.ships[i].home.position.y) {
+          game.ships[i].targetPosition.x = (position.x - 1) * game.tileSize;
+          game.ships[i].targetPosition.y = (position.y - 1) * game.tileSize;
           game.ships[i].status = 2;
         } else {
           // take energy from base
           game.ships[i].energy = game.ships[i].home.energy;
           game.ships[i].home.energy = 0;
-          game.ships[i].tx = position.x * game.tileSize;
-          game.ships[i].ty = position.y * game.tileSize;
+          game.ships[i].targetPosition.x = position.x * game.tileSize;
+          game.ships[i].targetPosition.y = position.y * game.tileSize;
           game.ships[i].status = 1;
         }
 
@@ -3244,7 +3245,8 @@ void onMouseUp(MouseEvent evt) {
     // select a ship if hovered
     for (int i = 0; i < game.ships.length; i++) {
       game.ships[i].selected = game.ships[i].hovered;
-      if (game.ships[i].selected)game.mode = "SHIP_SELECTED";
+      if (game.ships[i].selected)
+        game.mode = "SHIP_SELECTED";
     }
 
     // reposition building
@@ -3374,20 +3376,16 @@ int HelperRandomInt(num from, num to) {
   return (random.nextInt(to - from + 1) + from);
 }
 
-// TODO
-
-// Thanks to http://www.hardcode.nl/subcategory_1/article_317-array-shuffle-function
-
-/*Array.prototype.shuffle = function () {
-var len = this.length;
-int i = len;
-while (i--) {
-var p = parseInt(Math.random() * len);
-var t = this[i];
-this[i] = this[p];
-this[p] = t;
+void HelperShuffle(List list) {
+  int len = list.length;
+  int i = len;
+  while (i-- > 0) {
+    int p = HelperRandomInt(0, len);
+    var t = list[i];
+    list[i] = list[p];
+    list[p] = t;
+  }
 }
-};*/
 
 /**
  * Main drawing function

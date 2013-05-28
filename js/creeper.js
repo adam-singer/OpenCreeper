@@ -1013,21 +1013,18 @@ var game = {
             if (this.buildings[t].needsEnergy && this.buildings[t].active && !this.buildings[t].moving) {
 
                 this.buildings[t].energyTimer++;
+                var position = this.buildings[t].position;
                 var center = this.buildings[t].getCenter();
 
                 if (this.buildings[t].imageID == "terp" && this.buildings[t].energy > 0) {
                     // find lowest target
                     if (this.buildings[t].weaponTargetPosition == null) {
 
-                        // get building x and building y
-                        var x = this.buildings[t].position.x;
-                        var y = this.buildings[t].position.y;
-
                         // find lowest tile
                         var target = null;
                         var lowestTile = 10;
-                        for (var i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
-                            for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
+                        for (var i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
+                            for (var j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
 
                                 if (this.withinWorld(i, j)) {
                                     var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
@@ -1104,16 +1101,14 @@ var game = {
                 else if (this.buildings[t].imageID == "cannon" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 10) {
                     this.buildings[t].energyTimer = 0;
 
-                    var x = this.buildings[t].position.x;
-                    var y = this.buildings[t].position.y;
-                    var height = this.getHighestTerrain(this.buildings[t].position);
+                    var height = this.getHighestTerrain(position);
 
                     // find closest random target
                     for (var r = 0; r < this.buildings[t].weaponRadius + 1; r++) {
                         var targets = [];
                         var radius = r * this.tileSize;
-                        for (var i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
-                            for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
+                        for (var i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
+                            for (var j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
 
                                 // cannons can only shoot at tiles not higher than themselves
                                 if (this.withinWorld(i, j)) {
@@ -1142,7 +1137,7 @@ var game = {
                             this.buildings[t].energy -= 1;
                             this.buildings[t].operating = true;
                             this.smokes.push(new Smoke(new Vector(targets[0].x * this.tileSize + this.tileSize / 2, targets[0].y * this.tileSize + this.tileSize / 2)));
-                            engine.playSound("laser", new Vector(x, y));
+                            engine.playSound("laser", position);
                             break;
                         }
                     }
@@ -1151,25 +1146,23 @@ var game = {
                 else if (this.buildings[t].imageID == "mortar" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 200) {
                     this.buildings[t].energyTimer = 0;
 
-                    // get building x and building y
-                    var x = this.buildings[t].position.x;
-                    var y = this.buildings[t].position.y;
-
                     // find most creep in range
                     var target = null;
                     var highestCreep = 0;
-                    for (var i = x - this.buildings[t].weaponRadius; i < x + this.buildings[t].weaponRadius + 2; i++) {
-                        for (var j = y - this.buildings[t].weaponRadius; j < y + this.buildings[t].weaponRadius + 2; j++) {
-                            var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
+                    for (var i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
+                        for (var j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
+                            if (this.withinWorld(i, j)) {
+                                var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
 
-                            if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][0].creep > 0 && this.world.tiles[i][j][0].creep >= highestCreep) {
-                                highestCreep = this.world.tiles[i][j][0].creep;
-                                target = new Vector(i, j);
+                                if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][0].creep > 0 && this.world.tiles[i][j][0].creep >= highestCreep) {
+                                    highestCreep = this.world.tiles[i][j][0].creep;
+                                    target = new Vector(i, j);
+                                }
                             }
                         }
                     }
                     if (target) {
-                        engine.playSound("shot", new Vector(x, y));
+                        engine.playSound("shot", position);
                         var shell = new Shell(center, "shell", new Vector(target.x * this.tileSize + this.tileSize / 2, target.y * this.tileSize + this.tileSize / 2));
                         shell.init();
                         this.shells.push(shell);
@@ -1882,8 +1875,8 @@ var game = {
 
             var radius = radius * this.tileSize;
 
-            for (var i = -radius; i < radius; i++) {
-                for (var j = -radius; j < radius; j++) {
+            for (var i = -radius; i <= radius; i++) {
+                for (var j = -radius; j <= radius; j++) {
 
                     var positionCurrent = new Vector(
                         position.x + i,
@@ -2543,6 +2536,8 @@ function Packet(pPosition, pImage, pType) {
 
         var centerTarget = this.currentTarget.getCenter();
         if (this.position.x > centerTarget.x - 1 && this.position.x < centerTarget.x + 1 && this.position.y > centerTarget.y - 1 && this.position.y < centerTarget.y + 1) {
+            this.position.x = centerTarget.x;
+            this.position.y = centerTarget.y;
             // if the final node was reached deliver and remove
             if (this.currentTarget == this.target) {
                 //console.log("target node reached!");
@@ -2726,8 +2721,8 @@ function Spore(pPosition, pTargetPosition) {
             this.remove = true;
             engine.playSound("explosion", Helper.real2tiled(this.targetPosition));
 
-            for (var i = Math.floor(this.targetPosition.x / game.tileSize) - 2; i < Math.floor(this.targetPosition.x / game.tileSize) + 2; i++) {
-                for (var j = Math.floor(this.targetPosition.y / game.tileSize) - 2; j < Math.floor(this.targetPosition.y / game.tileSize) + 2; j++) {
+            for (var i = Math.floor(this.targetPosition.x / game.tileSize) - 2; i <= Math.floor(this.targetPosition.x / game.tileSize) + 2; i++) {
+                for (var j = Math.floor(this.targetPosition.y / game.tileSize) - 2; j <= Math.floor(this.targetPosition.y / game.tileSize) + 2; j++) {
                     if (game.withinWorld(i, j)) {
                         var distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.targetPosition.x + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.targetPosition.y + game.tileSize), 2);
                         if (distance < Math.pow(game.tileSize, 2)) {
@@ -3274,18 +3269,18 @@ function onMouseUp(evt) {
         // control ships
         for (var i = 0; i < game.ships.length; i++) {
             if (game.ships[i].selected) {
-                if (position.x - 1 == game.ships[i].home.x &&
-                    position.y - 1 == game.ships[i].home.y) {
-                    game.ships[i].tx = (position.x - 1) * game.tileSize;
-                    game.ships[i].ty = (position.y - 1) * game.tileSize;
+                if (position.x - 1 == game.ships[i].home.position.x &&
+                    position.y - 1 == game.ships[i].home.position.y) {
+                    game.ships[i].targetPosition.x = (position.x - 1) * game.tileSize;
+                    game.ships[i].targetPosition.y = (position.y - 1) * game.tileSize;
                     game.ships[i].status = 2;
                 }
                 else {
                     // take energy from base
                     game.ships[i].energy = game.ships[i].home.energy;
                     game.ships[i].home.energy = 0;
-                    game.ships[i].tx = position.x * game.tileSize;
-                    game.ships[i].ty = position.y * game.tileSize;
+                    game.ships[i].targetPosition.x = position.x * game.tileSize;
+                    game.ships[i].targetPosition.y = position.y * game.tileSize;
                     game.ships[i].status = 1;
                 }
 
