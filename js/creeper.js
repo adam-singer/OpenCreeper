@@ -1286,7 +1286,7 @@ var game = {
             this.spawnTimer = 0;
         }
 
-        var minimum = .001;
+        var minimum = .01;
 
         this.creeperTimer++;
         if (this.creeperTimer > (25 / this.speed)) {
@@ -1302,22 +1302,30 @@ var game = {
                 for (var j = 0; j < this.world.size.y; j++) {
 
                     var height = this.getHighestTerrain(new Vector(i, j));
-                    if (i - 1 > -1 && i + 1 < this.world.size.x && j - 1 > -1 && j + 1 < this.world.size.y) {
+                    //if (i - 1 > -1 && i + 1 < this.world.size.x && j - 1 > -1 && j + 1 < this.world.size.y) {
                         //if (height >= 0) {
                         // right neighbour
-                        var height2 = this.getHighestTerrain(new Vector(i + 1, j));
-                        this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i + 1][j][0]);
+                        if (i + 1 < this.world.size.x) {
+                            var height2 = this.getHighestTerrain(new Vector(i + 1, j));
+                            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i + 1][j][0]);
+                        }
                         // bottom right neighbour
-                        height2 = this.getHighestTerrain(new Vector(i - 1, j));
-                        this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i - 1][j][0]);
+                        if (i - 1 > -1) {
+                            var height2 = this.getHighestTerrain(new Vector(i - 1, j));
+                            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i - 1][j][0]);
+                        }
                         // bottom neighbour
-                        height2 = this.getHighestTerrain(new Vector(i, j + 1));
-                        this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j + 1][0]);
+                        if (j + 1 < this.world.size.y) {
+                            var height2 = this.getHighestTerrain(new Vector(i, j + 1));
+                            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j + 1][0]);
+                        }
                         // bottom left neighbour
-                        height2 = this.getHighestTerrain(new Vector(i, j - 1));
-                        this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j - 1][0]);
+                        if (j - 1 > -1) {
+                            var height2 = this.getHighestTerrain(new Vector(i, j - 1));
+                            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j - 1][0]);
+                        }
                         //}
-                    }
+                    //}
 
                 }
             }

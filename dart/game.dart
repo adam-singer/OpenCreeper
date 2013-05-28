@@ -977,7 +977,7 @@ class Game {
       this.spawnTimer = 0;
     }
 
-    num minimum = .001;
+    num minimum = .01;
 
     this.creeperTimer++;
     if (this.creeperTimer > (25 / this.speed)) {
@@ -993,22 +993,29 @@ class Game {
         for (int j = 0; j < this.world.size.y; j++) {
 
           int height = this.getHighestTerrain(new Vector(i, j));
-          if (i - 1 > -1 && i + 1 < this.world.size.x && j - 1 > -1 && j + 1 < this.world.size.y) {
+          //if (i - 1 > -1 && i + 1 < this.world.size.x && j - 1 > -1 && j + 1 < this.world.size.y) {
             //if (height >= 0) {
             // right neighbour
-            int height2 = this.getHighestTerrain(new Vector(i + 1, j));
-            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i + 1][j][0]);
+            if (i + 1 < this.world.size.x) {
+              int height2 = this.getHighestTerrain(new Vector(i + 1, j));
+              this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i + 1][j][0]);
+            }
             // bottom right neighbour
-            height2 = this.getHighestTerrain(new Vector(i - 1, j));
-            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i - 1][j][0]);
+            if (i - 1 > -1) {
+              int height2 = this.getHighestTerrain(new Vector(i - 1, j));
+              this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i - 1][j][0]);
+            }
             // bottom neighbour
-            height2 = this.getHighestTerrain(new Vector(i, j + 1));
-            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j + 1][0]);
+            if (j + 1 < this.world.size.y) {
+              int height2 = this.getHighestTerrain(new Vector(i, j + 1));
+              this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j + 1][0]);
+            }
             // bottom left neighbour
-            height2 = this.getHighestTerrain(new Vector(i, j - 1));
-            this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j - 1][0]);
-            //}
-          }
+            if (j - 1 > -1) {
+              int height2 = this.getHighestTerrain(new Vector(i, j - 1));
+              this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j - 1][0]);
+            }
+          //}
 
         }
       }
