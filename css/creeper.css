@@ -10,7 +10,7 @@ input, select {
     font-family: Georgia, "Times New Roman", serif;
 }
 
-#gui, #buttons {
+#gui, #buttons, #info {
     z-index: 2;
 }
 
