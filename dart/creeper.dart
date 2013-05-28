@@ -97,7 +97,6 @@ class Engine {
     query('#zoomin').onClick.listen((event) => game.zoomIn());
     query('#zoomout').onClick.listen((event) => game.zoomOut());
 
-    //jquery('#time').stopwatch().stopwatch('start');
     CanvasElement mainCanvas = engine.canvas["main"].element;
     CanvasElement guiCanvas = engine.canvas["gui"].element;
     mainCanvas.onMouseMove.listen((event) => onMouseMove(event));
@@ -267,6 +266,7 @@ class Game {
   Map keyMap = {
       "k81": "Q", "k87": "W", "k69": "E", "k82": "R", "k84": "T", "k90": "Z", "k85": "U", "k73": "I", "k65": "A", "k83": "S", "k68": "D", "k70": "F", "k71": "G", "k72": "H"
   };
+  Stopwatch stopwatch = new Stopwatch();
 
   Game();
 
@@ -287,7 +287,10 @@ class Game {
   }
 
   void reset() {
-    // TODO query('#time').stopwatch().stopwatch('reset');
+    this.stopwatch.reset();
+    this.stopwatch.start();
+    var oneSecond = new Duration(seconds:1);
+    new Timer.periodic(oneSecond, updateTime);
     query('#lose').style.display = 'none';
     query('#win').style.display = 'none';
 
@@ -3011,6 +3014,17 @@ void startGame() {
 void updates() {
   //engine.update();
   game.update();
+}
+
+void updateTime(Timer _) {
+  var s = game.stopwatch.elapsedMilliseconds~/1000;
+  var m = 0;
+  
+  if (s >= 60) { m = s ~/ 60; s = s % 60; }
+    
+  String minute = (m <= 9) ? '0$m' : '$m';
+  String second = (s <= 9) ? '0$s' : '$s';
+  query('#time').innerHtml = 'Time: $minute:$second';
 }
 
 void onMouseMove(MouseEvent evt) {
