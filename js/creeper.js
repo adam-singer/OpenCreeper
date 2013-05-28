@@ -739,13 +739,12 @@ var game = {
         }
 
         // find all packets with this building as target and remove them
-        for (var i = 0; i < this.packets.length; i++) {
+        for (var i = this.packets.length - 1; i >= 0; i--) {
             if (this.packets[i].currentTarget == building || this.packets[i].target == building) {
-                //this.packets[i].remove = true;
                 this.packets.splice(i, 1);
             }
         }
-        for (var i = 0; i < this.packetQueue.length; i++) {
+        for (var i = this.packetQueue.length - 1; i >= 0; i--) {
             if (this.packetQueue[i].currentTarget == building || this.packetQueue[i].target == building) {
                 this.packetQueue.splice(i, 1);
             }
@@ -1527,25 +1526,19 @@ var game = {
                         if (routes[i].nodes[routes[i].nodes.length - 1] == routes[j].nodes[routes[j].nodes.length - 1]) {
                             //console.log("5) found duplicate route to " + routes[i].nodes[routes[i].nodes.length - 1].type + ", removing longer");
                             if (routes[i].distanceTravelled < routes[j].distanceTravelled) {
-                                routes.splice(routes.indexOf(routes[j]), 1);
+                                routes[j].remove = true;
                             }
                             else if (routes[i].distanceTravelled > routes[j].distanceTravelled) {
-                                routes.splice(routes.indexOf(routes[i]), 1);
+                                routes[i].remove = true;
                             }
-
                         }
                     }
                 }
             }
-
-            /*$('#other').append("-- to be removed: " + remove.length);
-             for (var i = 0; i < remove.length; i++) {
-             for (var j = 0; j < routes.length; j++) {
-             if (remove[i].x == routes[i].x && remove[i].y == routes[i].y)
-             routes.splice(j);
-             }
-             }
-             $('#other').append(", new total routes: " + routes.length + "<br/>");*/
+            for (var i = routes.length - 1; i >= 0; i--) {
+                if (routes[i].remove)
+                    routes.splice(i, 1);
+            }
 
             // sort routes by total underestimate so that the possibly shortest route gets checked first
             routes.sort(function (a, b) {
@@ -1662,7 +1655,7 @@ var game = {
         return (!collision);
     },
     updatePacketQueue: function () {
-        for (var i = 0; i < this.packetQueue.length; i++) {
+        for (var i = this.packetQueue.length - 1; i >= 0; i--) {
             if (this.currentEnergy > 0) {
                 this.currentEnergy--;
                 this.updateEnergyElement();
@@ -1766,34 +1759,38 @@ var game = {
         }
     },
     updatePackets: function () {
-        for (var i = 0; i < this.packets.length; i++) {
-            this.packets[i].move();
+        for (var i = this.packets.length - 1; i >= 0; i--) {
             if (this.packets[i].remove)
                 this.packets.splice(i, 1);
+            else
+                this.packets[i].move();
         }
     },
     updateShells: function () {
-        for (var i = 0; i < this.shells.length; i++) {
-            this.shells[i].move();
+        for (var i = this.shells.length - 1; i >= 0; i--) {
             if (this.shells[i].remove)
                 this.shells.splice(i, 1);
+            else
+                this.shells[i].move();
         }
     },
     updateSpores: function () {
-        for (var i = 0; i < this.spores.length; i++) {
-            this.spores[i].move();
+        for (var i = this.spores.length - 1; i >= 0; i--) {
             if (this.spores[i].remove)
                 this.spores.splice(i, 1);
+            else
+                this.spores[i].move();
         }
     },
     updateSmokes: function () {
         this.smokeTimer++;
         if (this.smokeTimer > 3) {
             this.smokeTimer = 0;
-            for (var i = 0; i < this.smokes.length; i++) {
-                this.smokes[i].frame++;
+            for (var i = this.smokes.length - 1; i >= 0; i--) {
                 if (this.smokes[i].frame == 36)
                     this.smokes.splice(i, 1);
+                else
+                    this.smokes[i].frame++;
             }
         }
     },
@@ -1802,9 +1799,10 @@ var game = {
         if (this.explosionTimer == 1) {
             this.explosionTimer = 0;
             for (var i = 0; i < this.explosions.length; i++) {
-                this.explosions[i].frame++;
                 if (this.explosions[i].frame == 44)
                     this.explosions.splice(i, 1);
+                else
+                    this.explosions[i].frame++;
             }
         }
     },
@@ -3011,6 +3009,7 @@ function Route() {
     this.distanceTravelled = 0;
     this.distanceRemaining = 0;
     this.nodes = [];
+    this.remove = false;
 }
 
 /**

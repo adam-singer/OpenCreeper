@@ -693,13 +693,12 @@ class Game {
     }
 
     // find all packets with this building as target and remove them
-    for (int i = 0; i < this.packets.length; i++) {
+    for (int i = this.packets.length - 1; i >= 0; i--) {
       if (this.packets[i].currentTarget == building || this.packets[i].target == building) {
-        //this.packets[i].remove = true;
         this.packets.removeAt(i);
       }
     }
-    for (int i = 0; i < this.packetQueue.length; i++) {
+    for (int i = this.packetQueue.length - 1; i >= 0; i--) {
       if (this.packetQueue[i].currentTarget == building || this.packetQueue[i].target == building) {
         this.packetQueue.removeAt(i);
       }
@@ -1381,7 +1380,7 @@ class Game {
   // A* using Branch and Bound with dynamic programming and underestimates, thanks to: http://ai-depot.com/Tutorial/PathFinding-Optimal.html
 
     // this holds all routes
-    List routes = new List();
+    List<Route> routes = new List<Route>();
 
     // create a new route and add the current node as first element
     Route route = new Route();
@@ -1458,28 +1457,23 @@ class Game {
             if (routes[i].nodes[routes[i].nodes.length - 1] == routes[j].nodes[routes[j].nodes.length - 1]) {
               //console.log("5) found duplicate route to " + routes[i].nodes[routes[i].nodes.length - 1].type + ", removing longer");
               if (routes[i].distanceTravelled < routes[j].distanceTravelled) {
-                routes.removeAt(routes.indexOf(routes[j]));
+                routes[j].remove = true;
               } else if (routes[i].distanceTravelled > routes[j].distanceTravelled) {
-                routes.removeAt(routes.indexOf(routes[i]));
+                routes[i].remove = true;
               }
 
             }
           }
         }
       }
+      for (int i = routes.length - 1; i >= 0; i--) {
+        if (routes[i].remove)
+          routes.removeAt(i);
+      }
 
-    /*$('#other').append("-- to be removed: " + remove.length);
-              for (int i = 0; i < remove.length; i++) {
-                  for (int j = 0; j < routes.length; j++) {
-                      if (remove[i].x == routes[i].x && remove[i].y == routes[i].y)
-                      routes.removeAt(j);
-                  }
-              }
-              $('#other').append(", new total routes: " + routes.length + "<br/>");*/
-
-    // sort routes by total underestimate so that the possibly shortest route gets checked first
-    // FIXME
-    //routes.sort(function(a,b){return (a.distanceTravelled + a.distanceRemaining) - (b.distanceTravelled + b.distanceRemaining)});
+      // sort routes by total underestimate so that the possibly shortest route gets checked first
+      // FIXME
+      //routes.sort(function(a,b){return (a.distanceTravelled + a.distanceRemaining) - (b.distanceTravelled + b.distanceRemaining)});
     }
 
     // if a route is left set the second element as the next node for the packet
@@ -1588,7 +1582,7 @@ class Game {
   }
 
   void updatePacketQueue() {
-    for (int i = 0; i < this.packetQueue.length; i++) {
+    for (int i = this.packetQueue.length - 1; i >= 0; i--) {
       if (this.currentEnergy > 0) {
         this.currentEnergy--;
         this.updateEnergyElement();
@@ -1689,23 +1683,29 @@ class Game {
   }
 
   void updatePackets() {
-    for (int i = 0; i < this.packets.length; i++) {
-      this.packets[i].move();
-      if (this.packets[i].remove)this.packets.removeAt(i);
+    for (int i = this.packets.length - 1; i >= 0; i--) {
+      if (this.packets[i].remove)
+        this.packets.removeAt(i);
+      else
+        this.packets[i].move();
     }
   }
 
   void updateShells() {
-    for (int i = 0; i < this.shells.length; i++) {
-      this.shells[i].move();
-      if (this.shells[i].remove)this.shells.removeAt(i);
+    for (int i = this.shells.length - 1; i >= 0; i--) {
+      if (this.shells[i].remove)
+        this.shells.removeAt(i);
+      else
+        this.shells[i].move();
     }
   }
 
   void updateSpores() {
-    for (int i = 0; i < this.spores.length; i++) {
-      this.spores[i].move();
-      if (this.spores[i].remove)this.spores.removeAt(i);
+    for (int i = this.spores.length - 1; i >= 0; i--) {
+      if (this.spores[i].remove)
+        this.spores.removeAt(i);
+      else
+        this.spores[i].move();
     }
   }
 
@@ -1713,9 +1713,11 @@ class Game {
     this.smokeTimer++;
     if (this.smokeTimer > 3) {
       this.smokeTimer = 0;
-      for (int i = 0; i < this.smokes.length; i++) {
-        this.smokes[i].frame++;
-        if (this.smokes[i].frame == 36)this.smokes.removeAt(i);
+      for (int i = this.smokes.length - 1; i >= 0; i--) {
+        if (this.smokes[i].frame == 36)
+          this.smokes.removeAt(i);
+        else
+          this.smokes[i].frame++;
       }
     }
   }
@@ -1724,9 +1726,11 @@ class Game {
     this.explosionTimer++;
     if (this.explosionTimer == 1) {
       this.explosionTimer = 0;
-      for (int i = 0; i < this.explosions.length; i++) {
-        this.explosions[i].frame++;
-        if (this.explosions[i].frame == 44)this.explosions.removeAt(i);
+      for (int i = this.explosions.length - 1; i >= 0; i--) {
+        if (this.explosions[i].frame == 44)
+          this.explosions.removeAt(i);
+        else
+          this.explosions[i].frame++;
       }
     }
   }
@@ -2936,6 +2940,7 @@ class Vector3 {
 class Route {
   num distanceTravelled = 0, distanceRemaining = 0;
   List<Building> nodes = new List<Building>();
+  bool remove = false;
   
   Route();
 }
