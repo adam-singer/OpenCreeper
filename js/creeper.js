@@ -62,10 +62,10 @@ var engine = {
         engine.canvas["gui"].left = engine.canvas["gui"].element.offset().left;
 
         for (var i = 0; i < 10; i++) {
-            engine.canvas["level" + i] = new Canvas($("<canvas width='" + (128 * 16 + width * 2) + "' height='" + (128 * 16 + height * 2) + "' style='position: absolute'>"));
+            engine.canvas["level" + i] = new Canvas($("<canvas width='" + (128 * 16) + "' height='" + (128 * 16) + "' style='position: absolute'>"));
         }
 
-        engine.canvas["levelbuffer"] = new Canvas($("<canvas width='" + (128 * 16 + width * 2) + "' height='" + (128 * 16 + height * 2) + "' style='position: absolute'>"));
+        engine.canvas["levelbuffer"] = new Canvas($("<canvas width='" + (128 * 16) + "' height='" + (128 * 16) + "' style='position: absolute'>"));
         engine.canvas["levelfinal"] = new Canvas($("<canvas width='" + width + "' height='" + height + "' style='position: absolute'>"));
         document.getElementById('canvasContainer').appendChild(engine.canvas["levelfinal"].element[0]);
 
@@ -729,6 +729,7 @@ var game = {
 
         if (building.imageID == "base") {
             $('#lose').toggle();
+            $('#time').stopwatch().stopwatch('stop');
             this.stop();
         }
         if (building.imageID == "collector") {
@@ -840,7 +841,7 @@ var game = {
                         if (k + 1 < 10 && index == this.world.tiles[i][j][k + 1].index)
                             continue;
 
-                        engine.canvas["level" + k].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, engine.width + i * this.tileSize, engine.height + j * this.tileSize, this.tileSize, this.tileSize);
+                        engine.canvas["level" + k].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
 
                         // don't draw anymore under tiles that don't have transparent parts
                         if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
@@ -871,7 +872,7 @@ var game = {
                         if (k + 1 < 10 && index == this.world.tiles[i][j][k + 1].index)
                             continue;
 
-                        engine.canvas["level" + k].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, engine.width + i * this.tileSize, engine.height + j * this.tileSize, (this.tileSize + 2), (this.tileSize + 2));
+                        engine.canvas["level" + k].context.drawImage(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, i * this.tileSize, j * this.tileSize, (this.tileSize + 2), (this.tileSize + 2));
 
                         if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
                             break;
@@ -888,11 +889,30 @@ var game = {
     },
     copyTerrain: function () {
         engine.canvas["levelfinal"].clear();
-        var left = engine.width + this.scroll.x * this.tileSize - (engine.width / 2) * (1 / this.zoom);
-        var top = engine.height + this.scroll.y * this.tileSize - (engine.height / 2) * (1 / this.zoom);
+        var delta = new Vector(0,0);
+        var left = this.scroll.x * this.tileSize - (engine.width / 2) * (1 / this.zoom);
+        var top = this.scroll.y * this.tileSize - (engine.height / 2) * (1 / this.zoom);
+        if (left < 0) {
+            delta.x = -left * this.zoom;
+            left = 0;
+        }
+        if (top < 0) {
+            delta.y = -top * this.zoom;
+            top = 0;
+        }
+
+        var delta2 = new Vector(0, 0);
         var width = engine.width * (1 / this.zoom);
         var height = engine.height * (1 / this.zoom);
-        engine.canvas["levelfinal"].context.drawImage(engine.canvas["levelbuffer"].element[0], left, top, width, height, 0, 0, engine.width, engine.height);
+        if (left + width > 128 * this.tileSize) {
+            delta2.x = (left + width - 128 * this.tileSize) * this.zoom;
+            width = 128 * this.tileSize - left;
+        }
+        if (top + height > 128 * this.tileSize) {
+            delta2.y = (top + height - 128 * this.tileSize) * this.zoom;
+            height = 128 * this.tileSize - top ;
+        }
+        engine.canvas["levelfinal"].context.drawImage(engine.canvas["levelbuffer"].element[0], left, top, width, height, delta.x, delta.y, engine.width - delta2.x, engine.height - delta2.y);
     },
     /**
      * @param {Array} tilesToRedraw An array of tiles to redraw

@@ -53,10 +53,10 @@ class Engine {
     engine.canvas["gui"].left = engine.canvas["gui"].element.offsetLeft;
 
     for (int i = 0; i < 10; i++) {
-      engine.canvas["level$i"] = new Canvas(new CanvasElement(), 128 * 16 + width * 2, 128 * 16 + height * 2);
+      engine.canvas["level$i"] = new Canvas(new CanvasElement(), 128 * 16, 128 * 16);
     }
 
-    engine.canvas["levelbuffer"] = new Canvas(new CanvasElement(), 128 * 16 + width * 2, 128 * 16 + height * 2);
+    engine.canvas["levelbuffer"] = new Canvas(new CanvasElement(), 128 * 16, 128 * 16);
     engine.canvas["levelfinal"] = new Canvas(new CanvasElement(), width, height);
     query('#canvasContainer').children.add(engine.canvas["levelfinal"].element);
 
@@ -182,7 +182,7 @@ class Engine {
     this.mouseGUI.x = (evt.clientX - this.canvas["gui"].element.getBoundingClientRect().left).toInt();
     this.mouseGUI.y = (evt.clientY - this.canvas["gui"].element.getBoundingClientRect().top).toInt();
     
-    query("#mouse").innerHtml = ("Mouse: " + this.mouseGUI.x.toString() + "/" + this.mouseGUI.y.toString());
+    //query("#mouse").innerHtml = ("Mouse: " + this.mouseGUI.x.toString() + "/" + this.mouseGUI.y.toString());
     
     //}
   }

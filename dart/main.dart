@@ -64,21 +64,23 @@ void doneResizing() {
   engine.halfWidth = (width / 2).floor();
   engine.halfHeight = (height / 2).floor();
 
-  engine.canvas["main"].element[0].height = height;
-  engine.canvas["main"].element[0].width = width;
-  engine.canvas["buffer"].element[0].height = height;
-  engine.canvas["buffer"].element[0].width = width;
-  engine.canvas["collection"].element[0].height = height;
-  engine.canvas["collection"].element[0].width = width;
-  engine.canvas["creeper"].element[0].height = height;
-  engine.canvas["creeper"].element[0].width = width;
+  engine.canvas["main"].element.height = height;
+  engine.canvas["main"].element.width = width;
+  engine.canvas["buffer"].element.height = height;
+  engine.canvas["buffer"].element.width = width;
+  engine.canvas["collection"].element.height = height;
+  engine.canvas["collection"].element.width = width;
+  engine.canvas["creeper"].element.height = height;
+  engine.canvas["creeper"].element.width = width;
 
-  engine.canvas["gui"].top = engine.canvas["gui"].element.offset().top;
-  engine.canvas["gui"].left = engine.canvas["gui"].element.offset().left;
+  engine.canvas["gui"].top = engine.canvas["gui"].element.offsetTop;
+  engine.canvas["gui"].left = engine.canvas["gui"].element.offsetLeft;
 
-  game.copyTerrain();
-  game.drawCollection();
-  game.drawCreeper();
+  if (game != null) {
+    game.copyTerrain();
+    game.drawCollection();
+    game.drawCreeper();
+  }
 }
 
 void updateTime(Timer _) {

@@ -446,6 +446,7 @@ class Game {
 
     if (building.imageID == "base") {
       query('#lose').style.display = "block";
+      this.stopwatch.stop();
       this.stop();
     }
     if (building.imageID == "collector") {
@@ -551,7 +552,7 @@ class Game {
             // skip tiles that are identical to the one above
             if (k + 1 < 10 && index == this.world.tiles[i][j][k + 1].index)continue;
 
-            engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, engine.width + i * this.tileSize, engine.height + j * this.tileSize, this.tileSize, this.tileSize);
+            engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
 
             // don't draw anymore under tiles that don't have transparent parts
             if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)break;
@@ -580,7 +581,7 @@ class Game {
 
             if (k + 1 < 10 && index == this.world.tiles[i][j][k + 1].index)continue;
 
-            engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, engine.width + i * this.tileSize, engine.height + j * this.tileSize, (this.tileSize + 2), (this.tileSize + 2));
+            engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, i * this.tileSize, j * this.tileSize, (this.tileSize + 2), (this.tileSize + 2));
 
             if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)break;
           }
@@ -597,11 +598,32 @@ class Game {
 
   void copyTerrain() {
     engine.canvas["levelfinal"].clear();
-    var left = engine.width + this.scroll.x * this.tileSize - (engine.width / 2) * (1 / this.zoom);
-    var top = engine.height + this.scroll.y * this.tileSize - (engine.height / 2) * (1 / this.zoom);
+
+    Vector delta = new Vector(0,0);
+    var left = this.scroll.x * this.tileSize - (engine.width / 2) * (1 / this.zoom);
+    var top = this.scroll.y * this.tileSize - (engine.height / 2) * (1 / this.zoom);
+    if (left < 0) {
+      delta.x = -left * this.zoom;
+      left = 0;
+    }
+    if (top < 0) {
+      delta.y = -top * this.zoom;
+      top = 0;
+    }
+
+    Vector delta2 = new Vector(0, 0);
     var width = engine.width * (1 / this.zoom);
     var height = engine.height * (1 / this.zoom);
-    engine.canvas["levelfinal"].context.drawImageScaledFromSource(engine.canvas["levelbuffer"].element, left, top, width, height, 0, 0, engine.width, engine.height);
+    if (left + width > 128 * this.tileSize) {
+      delta2.x = (left + width - 128 * this.tileSize) * this.zoom;
+      width = 128 * this.tileSize - left;
+    }
+    if (top + height > 128 * this.tileSize) {
+      delta2.y = (top + height - 128 * this.tileSize) * this.zoom;
+      height = 128 * this.tileSize - top ;
+    }
+
+    engine.canvas["levelfinal"].context.drawImageScaledFromSource(engine.canvas["levelbuffer"].element, left, top, width, height, delta.x, delta.y, engine.width - delta2.x, engine.height - delta2.y);
   }
 
   /**
@@ -1389,7 +1411,7 @@ class Game {
         this.buildings[i].requestTimer++;
         // request health
         if (this.buildings[i].imageID != "base") {
-          int healthAndRequestDelta = this.buildings[i].maxHealth - this.buildings[i].health - this.buildings[i].healthRequests;
+          double healthAndRequestDelta = this.buildings[i].maxHealth - this.buildings[i].health - this.buildings[i].healthRequests;
           if (healthAndRequestDelta > 0 && this.buildings[i].requestTimer > 50) {
             this.buildings[i].requestTimer = 0;
             this.queuePacket(this.buildings[i], "health");
