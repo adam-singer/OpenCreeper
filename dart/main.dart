@@ -313,6 +313,7 @@ void onMouseUp(MouseEvent evt) {
       if (game.buildings[i].built && game.buildings[i].selected && game.buildings[i].canMove) {
         // check if it can be placed
         if (game.canBePlaced(position, game.buildings[i].size, game.buildings[i])) {
+          game.buildings[i].weaponTargetPosition = null;
           game.buildings[i].moving = true;
           game.buildings[i].moveTargetPosition = position;
           game.buildings[i].calculateVector();
@@ -555,7 +556,7 @@ void draw(num _) {
 
   // draw ships
   for (int i = 0; i < game.ships.length; i++) {
-    game.ships[i].draw(engine.canvas["buffer"].context);
+    game.ships[i].draw();
   }
 
   // draw building hover/selection box

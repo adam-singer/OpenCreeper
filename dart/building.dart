@@ -198,6 +198,22 @@ class Building {
         engine.canvas["buffer"].context.lineTo(targetPosition.x, targetPosition.y);
         engine.canvas["buffer"].context.stroke();
       }
+      if (this.imageID == "analyzer") {
+        Vector targetPosition = Helper.real2screen(this.weaponTargetPosition);
+        engine.canvas["buffer"].context.strokeStyle = '#00f';
+        engine.canvas["buffer"].context.lineWidth = 4;
+        engine.canvas["buffer"].context.beginPath();
+        engine.canvas["buffer"].context.moveTo(center.x, center.y);
+        engine.canvas["buffer"].context.lineTo(targetPosition.x, targetPosition.y);
+        engine.canvas["buffer"].context.stroke();
+
+        engine.canvas["buffer"].context.strokeStyle = '#fff';
+        engine.canvas["buffer"].context.lineWidth = 2;
+        engine.canvas["buffer"].context.beginPath();
+        engine.canvas["buffer"].context.moveTo(center.x, center.y);
+        engine.canvas["buffer"].context.lineTo(targetPosition.x, targetPosition.y);
+        engine.canvas["buffer"].context.stroke();
+      }
       if (this.imageID == "beam") {
         Vector targetPosition = Helper.real2screen(this.weaponTargetPosition);
         engine.canvas["buffer"].context.strokeStyle = '#f00';

@@ -51,7 +51,7 @@ class Helper {
     int len = list.length;
     int i = len;
     while (i-- > 0) {
-      int p = HelperRandomInt(0, len);
+      int p = Helper.randomInt(0, len);
       var t = list[i];
       list[i] = list[p];
       list[p] = t;

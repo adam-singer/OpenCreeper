@@ -361,6 +361,15 @@ class Game {
     Building building = new Building(position, type);
     building.health = 0;
 
+    if (building.imageID == "analyzer") {
+      building.maxHealth = 5;
+      building.maxEnergy = 20;
+      building.energy = 0;
+      building.size = 3;
+      building.canMove = true;
+      building.needsEnergy = true;
+      building.weaponRadius = 10;
+    }
     if (building.imageID == "terp") {
       building.maxHealth = 5; //60
       building.maxEnergy = 20;
@@ -517,6 +526,7 @@ class Game {
     this.symbols.add(new UISymbol(new Vector(2 * 81, 0), "reactor", "E", 3, 50, 0));
     this.symbols.add(new UISymbol(new Vector(3 * 81, 0), "storage", "R", 3, 8, 0));
     this.symbols.add(new UISymbol(new Vector(4 * 81, 0), "shield", "T", 3, 50, 10));
+    this.symbols.add(new UISymbol(new Vector(5 * 81, 0), "analyzer", "Z", 3, 100, 10));
 
     this.symbols.add(new UISymbol(new Vector(0, 56), "relay", "A", 3, 10, 8));
     this.symbols.add(new UISymbol(new Vector(81, 56), "mortar", "S", 3, 40, 12));
@@ -730,6 +740,34 @@ class Game {
         Vector position = this.buildings[t].position;
         Vector center = this.buildings[t].getCenter();
 
+        if (this.buildings[t].imageID == "analyzer" && this.buildings[t].energy > 0) {
+          // find emitter
+          if (this.buildings[t].weaponTargetPosition == null) {
+            for (int i = 0; i < this.emitters.length; i++) {
+              Vector emitterCenter = this.emitters[i].getCenter();
+              
+              num distance = Math.pow(emitterCenter.x - center.x, 2) + Math.pow(emitterCenter.y - center.y, 2);
+
+              if (distance <= Math.pow(this.emitters[i].weaponRadius * this.tileSize, 2)) {
+                if (this.emitters[i].building == null) {
+                  this.emitters[i].building = this.buildings[t];
+                  this.buildings[t].weaponTargetPosition = this.emitters[i].position;
+                  break;
+                }
+              }
+                
+            }
+          }
+          else {
+            if (this.buildings[t].energyTimer > 20) {
+              this.buildings[t].energyTimer = 0;
+              this.buildings[t].energy -= 1;
+            }
+  
+            this.buildings[t].operating = true;
+          }
+        }
+        
         if (this.buildings[t].imageID == "terp" && this.buildings[t].energy > 0) {
           // find lowest target
           if (this.buildings[t].weaponTargetPosition == null) {
@@ -1529,6 +1567,20 @@ class Game {
   }
 
   void update() {
+    // check for winning condition
+    int emittersChecked = 0;
+    for (int i = 0; i < this.emitters.length; i++) {
+      if (this.emitters[i].building != null)
+        emittersChecked++;
+    }
+    if (emittersChecked == this.emitters.length) {
+      // TODO: 10 seconds countdown
+      query('#win').style.display = "block";
+      this.stopwatch.stop();
+      this.stop();
+    }
+    
+    
     for (int i = 0; i < this.buildings.length; i++) {
       this.buildings[i].updateHoverState();
     }

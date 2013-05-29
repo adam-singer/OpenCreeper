@@ -4,9 +4,14 @@ class Emitter {
   Vector position;
   String imageID;
   num strength;
+  Building building;
 
   Emitter(this.position, this.strength) {
     this.imageID = "emitter";
+  }
+  
+  Vector getCenter() {
+    return new Vector(this.position.x * game.tileSize + 24, this.position.y * game.tileSize + 24);
   }
 
   void draw() {
@@ -17,7 +22,9 @@ class Emitter {
   }
 
   void spawn() {
-    game.world.tiles[this.position.x + 1][this.position.y + 1][0].creep += this.strength;
+    // only spawn creeper if not targeted by an analyzer
+    if (this.building != null)
+      game.world.tiles[this.position.x + 1][this.position.y + 1][0].creep += this.strength;
   }
 }
 
