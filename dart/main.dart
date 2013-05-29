@@ -49,6 +49,38 @@ void updates() {
   game.update();
 }
 
+void onResize(evt) {
+  // FIXME
+  /*clearTimeout(this.id);
+  this.id = setTimeout(doneResizing, 100);*/
+  doneResizing();
+}
+
+void doneResizing() {
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+  engine.width = width;
+  engine.height = height;
+  engine.halfWidth = (width / 2).floor();
+  engine.halfHeight = (height / 2).floor();
+
+  engine.canvas["main"].element[0].height = height;
+  engine.canvas["main"].element[0].width = width;
+  engine.canvas["buffer"].element[0].height = height;
+  engine.canvas["buffer"].element[0].width = width;
+  engine.canvas["collection"].element[0].height = height;
+  engine.canvas["collection"].element[0].width = width;
+  engine.canvas["creeper"].element[0].height = height;
+  engine.canvas["creeper"].element[0].width = width;
+
+  engine.canvas["gui"].top = engine.canvas["gui"].element.offset().top;
+  engine.canvas["gui"].left = engine.canvas["gui"].element.offset().left;
+
+  game.copyTerrain();
+  game.drawCollection();
+  game.drawCreeper();
+}
+
 void updateTime(Timer _) {
   var s = game.stopwatch.elapsedMilliseconds~/1000;
   var m = 0;

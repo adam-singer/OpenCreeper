@@ -139,6 +139,8 @@ var engine = {
         $(document).on('contextmenu', function () {
             return false;
         });
+
+        $(window).on('resize', onResize);
     },
     /**
      * Loads all images.
@@ -194,7 +196,7 @@ var engine = {
 
             engine.mouse.dragEnd = new Vector(position.x, position.y);
 
-            //$("#mouse").html("Mouse: " + this.mouse.x + "/" + this.mouse.y + " - " + position.x + "/" + position.y);
+            //console.log("Mouse: " + this.mouse.x + "/" + this.mouse.y + " - " + position.x + "/" + position.y);
         //}
     },
     updateMouseGUI: function (evt) {
@@ -223,7 +225,7 @@ var engine = {
 
         // update FPS display
         if (this.fps_updateTime > 1000) {
-            $("#fps").html("FPS: " + Math.floor(1000 * this.fps_frames / this.fps_totalTime) + " average, " + Math.floor(1000 * this.fps_updateFrames / this.fps_updateTime) + " currently, " + (game.speed * this.FPS) + " desired");
+            //console.log("FPS: " + Math.floor(1000 * this.fps_frames / this.fps_totalTime) + " average, " + Math.floor(1000 * this.fps_updateFrames / this.fps_updateTime) + " currently, " + (game.speed * this.FPS) + " desired");
             this.fps_updateTime -= 1000;
             this.fps_updateFrames = 0;
         }
@@ -886,10 +888,10 @@ var game = {
     },
     copyTerrain: function () {
         engine.canvas["levelfinal"].clear();
-        var left = engine.width + this.scroll.x * this.tileSize - (engine.width / this.tileSize / 2) * this.tileSize * (1 / this.zoom);
-        var top = engine.height + this.scroll.y * this.tileSize - (engine.height / this.tileSize / 2) * this.tileSize * (1 / this.zoom);
-        var width = (engine.width / this.tileSize) * this.tileSize * (1 / this.zoom);
-        var height = (engine.height / this.tileSize) * this.tileSize * (1 / this.zoom);
+        var left = engine.width + this.scroll.x * this.tileSize - (engine.width / 2) * (1 / this.zoom);
+        var top = engine.height + this.scroll.y * this.tileSize - (engine.height / 2) * (1 / this.zoom);
+        var width = engine.width * (1 / this.zoom);
+        var height = engine.height * (1 / this.zoom);
         engine.canvas["levelfinal"].context.drawImage(engine.canvas["levelbuffer"].element[0], left, top, width, height, 0, 0, engine.width, engine.height);
     },
     /**
@@ -3081,6 +3083,36 @@ function main() {
 function update() {
     engine.update();
     game.update();
+}
+
+function onResize(evt) {
+    clearTimeout(this.id);
+    this.id = setTimeout(doneResizing, 100);
+}
+
+function doneResizing() {
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    engine.width = width;
+    engine.height = height;
+    engine.halfWidth = Math.floor(width / 2);
+    engine.halfHeight = Math.floor(height / 2);
+
+    engine.canvas["main"].element[0].height = height;
+    engine.canvas["main"].element[0].width = width;
+    engine.canvas["buffer"].element[0].height = height;
+    engine.canvas["buffer"].element[0].width = width;
+    engine.canvas["collection"].element[0].height = height;
+    engine.canvas["collection"].element[0].width = width;
+    engine.canvas["creeper"].element[0].height = height;
+    engine.canvas["creeper"].element[0].width = width;
+
+    engine.canvas["gui"].top = engine.canvas["gui"].element.offset().top;
+    engine.canvas["gui"].left = engine.canvas["gui"].element.offset().left;
+
+    game.copyTerrain();
+    game.drawCollection();
+    game.drawCreeper();
 }
 
 function onMouseMove(evt) {

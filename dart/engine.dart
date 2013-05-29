@@ -112,6 +112,8 @@ class Engine {
       ..onKeyDown.listen((event) => onKeyDown(event))
       ..onKeyUp.listen((event) => onKeyUp(event));
     document.onContextMenu.listen((event) => event.preventDefault());
+
+    window..onResize.listen((event) => onResize(event));
   }
 
   /**
@@ -206,7 +208,7 @@ class Engine {
 
     // update FPS display
     if (this.fps_updateTime > 1000) {
-      query("#fps").innerHtml = "FPS: " + (1000 * this.fps_frames / this.fps_totalTime).floor().toString() + " average, " + (1000 * this.fps_updateFrames / this.fps_updateTime).floor().toString() + " currently, " + (game.speed * this.FPS).toString() + " desired";
+      //query("#fps").innerHtml = "FPS: " + (1000 * this.fps_frames / this.fps_totalTime).floor().toString() + " average, " + (1000 * this.fps_updateFrames / this.fps_updateTime).floor().toString() + " currently, " + (game.speed * this.FPS).toString() + " desired";
       this.fps_updateTime -= 1000;
       this.fps_updateFrames = 0;
     }

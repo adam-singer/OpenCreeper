@@ -597,10 +597,10 @@ class Game {
 
   void copyTerrain() {
     engine.canvas["levelfinal"].clear();
-    var left = engine.width + this.scroll.x * this.tileSize - (engine.width / this.tileSize / 2) * this.tileSize * (1 / this.zoom);
-    var top = engine.height + this.scroll.y * this.tileSize - (engine.height / this.tileSize / 2) * this.tileSize * (1 / this.zoom);
-    var width = (engine.width / this.tileSize) * this.tileSize * (1 / this.zoom);
-    var height = (engine.height / this.tileSize) * this.tileSize * (1 / this.zoom);
+    var left = engine.width + this.scroll.x * this.tileSize - (engine.width / 2) * (1 / this.zoom);
+    var top = engine.height + this.scroll.y * this.tileSize - (engine.height / 2) * (1 / this.zoom);
+    var width = engine.width * (1 / this.zoom);
+    var height = engine.height * (1 / this.zoom);
     engine.canvas["levelfinal"].context.drawImageScaledFromSource(engine.canvas["levelbuffer"].element, left, top, width, height, 0, 0, engine.width, engine.height);
   }
 
