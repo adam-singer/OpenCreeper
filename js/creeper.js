@@ -420,12 +420,14 @@ var game = {
         $('#resume').show();
         $('#paused').show();
         this.paused = true;
+        $('#time').stopwatch().stopwatch('stop');
     },
     resume: function () {
         $('#pause').show();
         $('#resume').hide();
         $('#paused').hide();
         this.paused = false;
+        $('#time').stopwatch().stopwatch('start');
     },
     stop: function () {
         clearInterval(this.running);

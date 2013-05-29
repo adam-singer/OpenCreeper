@@ -127,6 +127,7 @@ class Game {
     query('#resume').style.display = 'inline';
     query('#paused').style.display = 'block';
     this.paused = true;
+    this.stopwatch.stop();
   }
 
   void resume() {
@@ -134,6 +135,7 @@ class Game {
     query('#resume').style.display = 'none';
     query('#paused').style.display = 'none';
     this.paused = false;
+    this.stopwatch.start();
   }
 
   void stop() {
