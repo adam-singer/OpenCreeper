@@ -550,12 +550,13 @@ class Game {
             int index = this.world.tiles[i][j][k].index;
 
             // skip tiles that are identical to the one above
-            if (k + 1 < 10 && index == this.world.tiles[i][j][k + 1].index)continue;
+            if (k + 1 < 10 && index == this.world.tiles[i][j][k + 1].index)
+              continue;
 
             engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
 
             // don't draw anymore under tiles that don't have transparent parts
-            if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)break;
+            //if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)break;
           }
         }
       }
@@ -668,7 +669,8 @@ class Game {
           int index = this.world.tiles[iS][jS][t].index;
 
           // skip tiles that are identical to the one above
-          if (t + 1 < 10 && index == this.world.tiles[iS][jS][t + 1].index)continue;
+          if (t + 1 < 10 && index == this.world.tiles[iS][jS][t + 1].index)
+            continue;
 
           tempContext[t].drawImageScaledFromSource(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 0, 0, this.tileSize, this.tileSize);
 
@@ -679,13 +681,6 @@ class Game {
 
       // redraw pattern
       for (int t = 9; t > -1; t--) {
-        /*var tCanvas = document.createElement('canvas');
-                  tCanvas.width = 256;
-                  tCanvas.height = 256;
-                  var ctx = tCanvas.getContext('2d');
-
-                  ctx.drawImage(engine.images["level" + t], 0, 0);
-                  var pattern = tempContext[t].createPattern(tCanvas, 'repeat');*/
 
         if (this.world.tiles[iS][jS][t].full) {
           var pattern = tempContext[t].createPattern(engine.images["level$t"], 'repeat');
@@ -694,7 +689,7 @@ class Game {
           tempContext[t].fillStyle = pattern;
 
           tempContext[t].save();
-          Vector translation = new Vector(engine.width + (iS * this.tileSize).floor(), engine.height + (jS * this.tileSize).floor());
+          Vector translation = new Vector((iS * this.tileSize).floor(), (jS * this.tileSize).floor());
           tempContext[t].translate(-translation.x, -translation.y);
 
           //tempContext[t].fill();
@@ -718,9 +713,9 @@ class Game {
         }
       }
 
-      engine.canvas["levelbuffer"].context.clearRect(engine.width + iS * this.tileSize, engine.height + jS * this.tileSize, this.tileSize, this.tileSize);
+      engine.canvas["levelbuffer"].context.clearRect(iS * this.tileSize, jS * this.tileSize, this.tileSize, this.tileSize);
       for (int t = 0; t < 10; t++) {
-        engine.canvas["levelbuffer"].context.drawImageScaledFromSource(tempCanvas[t], 0, 0, this.tileSize, this.tileSize, engine.width + iS * this.tileSize, engine.height + jS * this.tileSize, this.tileSize, this.tileSize);
+        engine.canvas["levelbuffer"].context.drawImageScaledFromSource(tempCanvas[t], 0, 0, this.tileSize, this.tileSize, iS * this.tileSize, jS * this.tileSize, this.tileSize, this.tileSize);
       }
     }
     this.copyTerrain();

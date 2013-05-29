@@ -844,8 +844,8 @@ var game = {
                         engine.canvas["level" + k].context.drawImage(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
 
                         // don't draw anymore under tiles that don't have transparent parts
-                        if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
-                            break;
+                        //if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
+                        //    break;
                     }
                 }
             }
@@ -981,13 +981,6 @@ var game = {
 
             // redraw pattern
             for (var t = 9; t > -1; t--) {
-                /*var tCanvas = document.createElement('canvas');
-                 tCanvas.width = 256;
-                 tCanvas.height = 256;
-                 var ctx = tCanvas.getContext('2d');
-
-                 ctx.drawImage(engine.images["level" + t], 0, 0);
-                 var pattern = tempContext[t].createPattern(tCanvas, 'repeat');*/
 
                 if (this.world.tiles[iS][jS][t].full) {
                     var pattern = tempContext[t].createPattern(engine.images["level" + t], 'repeat');
@@ -997,8 +990,8 @@ var game = {
 
                     tempContext[t].save();
                     var translation = new Vector(
-                        engine.width + Math.floor(iS * this.tileSize),
-                        engine.height + Math.floor(jS * this.tileSize));
+                        Math.floor(iS * this.tileSize),
+                        Math.floor(jS * this.tileSize));
                     tempContext[t].translate(-translation.x, -translation.y);
 
                     //tempContext[t].fill();
@@ -1024,9 +1017,9 @@ var game = {
                 }
             }
 
-            engine.canvas["levelbuffer"].context.clearRect(engine.width + iS * this.tileSize, engine.height + jS * this.tileSize, this.tileSize, this.tileSize);
+            engine.canvas["levelbuffer"].context.clearRect(iS * this.tileSize, jS * this.tileSize, this.tileSize, this.tileSize);
             for (var t = 0; t < 10; t++) {
-                engine.canvas["levelbuffer"].context.drawImage(tempCanvas[t], 0, 0, this.tileSize, this.tileSize, engine.width + iS * this.tileSize, engine.height + jS * this.tileSize, this.tileSize, this.tileSize);
+                engine.canvas["levelbuffer"].context.drawImage(tempCanvas[t], 0, 0, this.tileSize, this.tileSize, iS * this.tileSize, jS * this.tileSize, this.tileSize, this.tileSize);
             }
         }
         this.copyTerrain();
@@ -1100,7 +1093,6 @@ var game = {
                             }
 
                             this.redrawTile(tilesToRedraw);
-                            this.copyTerrain();
 
                             height = this.getHighestTerrain(this.buildings[t].weaponTargetPosition);
                             if (height == terraformElement.target) {
@@ -3216,7 +3208,6 @@ function onKeyDown(evt) {
                 }
             }
             game.redrawTile(tilesToRedraw);
-            game.copyTerrain();
         }
     }
 
@@ -3233,7 +3224,6 @@ function onKeyDown(evt) {
                 }
             }
             game.redrawTile(tilesToRedraw);
-            game.copyTerrain();
         }
     }
 
@@ -3250,7 +3240,6 @@ function onKeyDown(evt) {
             }
         }
         game.redrawTile(tilesToRedraw);
-        game.copyTerrain();
     }
 
     // select height for terraforming

@@ -166,14 +166,12 @@ void onKeyDown(KeyboardEvent evt) {
     if (height > -1) {
       game.world.tiles[position.x][position.y][height].full = false;
       List tilesToRedraw = new List();
-      // reset index around tile
-      for (int i = -1; i <= 1; i++) {
-        for (int j = -1; j <= 1; j++) {
-          tilesToRedraw.add(new Vector3(position.x + i, position.y + j, height));
-        }
-      }
+      tilesToRedraw.add(new Vector3(position.x, position.y, height));
+      tilesToRedraw.add(new Vector3(position.x - 1, position.y, height));
+      tilesToRedraw.add(new Vector3(position.x, position.y - 1, height));
+      tilesToRedraw.add(new Vector3(position.x + 1, position.y, height));
+      tilesToRedraw.add(new Vector3(position.x, position.y + 1, height));
       game.redrawTile(tilesToRedraw);
-      game.copyTerrain();
     }
   }
 
@@ -184,13 +182,12 @@ void onKeyDown(KeyboardEvent evt) {
       game.world.tiles[position.x][position.y][height + 1].full = true;
       List tilesToRedraw = new List();
       // reset index around tile
-      for (int i = -1; i <= 1; i++) {
-        for (int j = -1; j <= 1; j++) {
-          tilesToRedraw.add(new Vector3(position.x + i, position.y + j, height + 1));
-        }
-      }
+      tilesToRedraw.add(new Vector3(position.x, position.y, height + 1));
+      tilesToRedraw.add(new Vector3(position.x - 1, position.y, height + 1));
+      tilesToRedraw.add(new Vector3(position.x, position.y - 1, height + 1));
+      tilesToRedraw.add(new Vector3(position.x + 1, position.y, height + 1));
+      tilesToRedraw.add(new Vector3(position.x, position.y + 1, height + 1));
       game.redrawTile(tilesToRedraw);
-      game.copyTerrain();
     }
   }
 
@@ -199,15 +196,14 @@ void onKeyDown(KeyboardEvent evt) {
     List tilesToRedraw = new List();
     for (int k = 0; k < 10; k++) {
       game.world.tiles[position.x][position.y][k].full = false;
-      // reset index around tile
-      for (int i = -1; i <= 1; i++) {
-        for (int j = -1; j <= 1; j++) {
-          tilesToRedraw.add(new Vector3(position.x + i, position.y + j, k));
-        }
-      }
     }
+    // reset index around tile
+    tilesToRedraw.add(new Vector3(position.x, position.y, 0));
+    tilesToRedraw.add(new Vector3(position.x - 1, position.y, 0));
+    tilesToRedraw.add(new Vector3(position.x, position.y - 1, 0));
+    tilesToRedraw.add(new Vector3(position.x + 1, position.y, 0));
+    tilesToRedraw.add(new Vector3(position.x, position.y + 1, 0));
     game.redrawTile(tilesToRedraw);
-    game.copyTerrain();
   }
 
   // select height for terraforming
