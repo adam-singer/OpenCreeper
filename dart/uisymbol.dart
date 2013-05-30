@@ -45,7 +45,7 @@ class UISymbol {
   void setActive() {
     this.active = false;
     if (engine.mouseGUI.x > this.position.x && engine.mouseGUI.x < this.position.x + this.width && engine.mouseGUI.y > this.position.y && engine.mouseGUI.y < this.position.y + this.height) {
-      game.activeSymbol = (this.position.x / 81).floor() + ((this.position.y / 56).floor()) * 5;
+      game.activeSymbol = (this.position.x / 81).floor() + ((this.position.y / 56).floor()) * 6;
       this.active = true;
     }
   }

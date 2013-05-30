@@ -316,7 +316,7 @@ class Game {
     // create emitter
     randomPosition = new Vector(
         Helper.randomInt(0, this.world.size.x - 3),
-        Helper.randomInt(0, this.world.size.x - 3));
+        Helper.randomInt(0, this.world.size.y - 3));
 
     Emitter emitter = new Emitter(randomPosition, 5);
     this.emitters.add(emitter);
@@ -334,7 +334,7 @@ class Game {
     // create sporetower
     randomPosition = new Vector(
         Helper.randomInt(0, this.world.size.x - 3),
-        Helper.randomInt(0, this.world.size.x - 3));
+        Helper.randomInt(0, this.world.size.y - 3));
 
     Sporetower sporetower = new Sporetower(randomPosition);
     sporetower.reset();
@@ -526,7 +526,7 @@ class Game {
     this.symbols.add(new UISymbol(new Vector(2 * 81, 0), "reactor", "E", 3, 50, 0));
     this.symbols.add(new UISymbol(new Vector(3 * 81, 0), "storage", "R", 3, 8, 0));
     this.symbols.add(new UISymbol(new Vector(4 * 81, 0), "shield", "T", 3, 50, 10));
-    this.symbols.add(new UISymbol(new Vector(5 * 81, 0), "analyzer", "Z", 3, 100, 10));
+    this.symbols.add(new UISymbol(new Vector(5 * 81, 0), "analyzer", "Z", 3, 80, 10));
 
     this.symbols.add(new UISymbol(new Vector(0, 56), "relay", "A", 3, 10, 8));
     this.symbols.add(new UISymbol(new Vector(81, 56), "mortar", "S", 3, 40, 12));
@@ -748,7 +748,7 @@ class Game {
               
               num distance = Math.pow(emitterCenter.x - center.x, 2) + Math.pow(emitterCenter.y - center.y, 2);
 
-              if (distance <= Math.pow(this.emitters[i].weaponRadius * this.tileSize, 2)) {
+              if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
                 if (this.emitters[i].building == null) {
                   this.emitters[i].building = this.buildings[t];
                   this.buildings[t].weaponTargetPosition = this.emitters[i].position;
@@ -1444,7 +1444,7 @@ class Game {
         this.buildings[i].requestTimer++;
         // request health
         if (this.buildings[i].imageID != "base") {
-          double healthAndRequestDelta = this.buildings[i].maxHealth - this.buildings[i].health - this.buildings[i].healthRequests;
+          num healthAndRequestDelta = this.buildings[i].maxHealth - this.buildings[i].health - this.buildings[i].healthRequests;
           if (healthAndRequestDelta > 0 && this.buildings[i].requestTimer > 50) {
             this.buildings[i].requestTimer = 0;
             this.queuePacket(this.buildings[i], "health");
@@ -1591,8 +1591,8 @@ class Game {
       this.updatePacketQueue();
       this.updateShells();
       this.updateSpores();
-      this.updateBuildings();
       this.updateCreeper();
+      this.updateBuildings();
       this.updateEnergy();
       this.updatePackets();
       this.updateSmokes();
