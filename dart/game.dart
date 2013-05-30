@@ -147,7 +147,8 @@ class Game {
   }
 
   void stop() {
-    if (this.running != null)this.running.cancel();
+    if (this.running != null)
+      this.running.cancel();
   }
 
   void run() {
@@ -815,29 +816,28 @@ class Game {
               int height = this.getHighestTerrain(this.buildings[t].weaponTargetPosition);
               List tilesToRedraw = new List();
 
-              if (height < terraformElement.target) {
+              if (height < terraformElement["target"]) {
                 this.world.tiles[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y][height + 1].full = true;
                 // reset index around tile
-                for (int i = -1; i <= 1; i++) {
-                  for (int j = -1; j <= 1; j++) {
-                    tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x + i, this.buildings[t].weaponTargetPosition.y + j, height + 1));
-                  }
-                }
+                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x, this.buildings[t].weaponTargetPosition.y, height + 1));
+                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x - 1, this.buildings[t].weaponTargetPosition.y, height + 1));
+                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x, this.buildings[t].weaponTargetPosition.y - 1, height + 1));
+                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x + 1, this.buildings[t].weaponTargetPosition.y, height + 1));
+                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x, this.buildings[t].weaponTargetPosition.y + 1, height + 1));
               } else {
                 this.world.tiles[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y][height].full = false;
                 // reset index around tile
-                for (int i = -1; i <= 1; i++) {
-                  for (int j = -1; j <= 1; j++) {
-                    tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x + i, this.buildings[t].weaponTargetPosition.y + j, height));
-                  }
-                }
+                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x, this.buildings[t].weaponTargetPosition.y, height));
+                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x - 1, this.buildings[t].weaponTargetPosition.y, height));
+                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x, this.buildings[t].weaponTargetPosition.y - 1, height));
+                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x + 1, this.buildings[t].weaponTargetPosition.y, height));
+                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x, this.buildings[t].weaponTargetPosition.y + 1, height));
               }
 
               this.redrawTile(tilesToRedraw);
-              this.copyTerrain();
 
               height = this.getHighestTerrain(this.buildings[t].weaponTargetPosition);
-              if (height == terraformElement.target) {
+              if (height == terraformElement["target"]) {
                 this.world.terraform[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y]["progress"] = 0;
                 this.world.terraform[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y]["target"] = -1;
               }
@@ -1219,11 +1219,11 @@ class Game {
     routes.add(route);
 
     /*
-              As long as there is any route AND
-              the last node of the route is not the end node try to get to the end node
+      As long as there is any route AND
+      the last node of the route is not the end node try to get to the end node
 
-              If there is no route the packet will be removed
-           */
+      If there is no route the packet will be removed
+     */
     while (routes.length > 0) {
 
       if (routes[0].nodes[routes[0].nodes.length - 1] == packet.target) {
@@ -1589,8 +1589,7 @@ class Game {
       query('#win').style.display = "block";
       this.stopwatch.stop();
       this.stop();
-    }
-    
+    }  
     
     for (int i = 0; i < this.buildings.length; i++) {
       this.buildings[i].updateHoverState();
