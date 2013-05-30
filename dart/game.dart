@@ -7,11 +7,19 @@ class World {
 }
 
 class Game {
-  num tileSize = 16, speed = 1, zoom = 1, currentEnergy = 0, maxEnergy = 0, collection = 0, creeperTimer = 0, energyTimer = 0, spawnTimer = 0, damageTimer = 0, smokeTimer = 0, explosionTimer = 0, shieldTimer = 0, activeSymbol = -1, packetSpeed = 1, shellSpeed = 1, sporeSpeed = 1, buildingSpeed = .5, shipSpeed = 1, terraformingHeight = 0;
+  int tileSize = 16, currentEnergy = 0, maxEnergy = 0, collection = 0, activeSymbol = -1, terraformingHeight = 0;
+  num speed = 1, zoom = 1, creeperTimer = 0, energyTimer = 0, spawnTimer = 0, damageTimer = 0, smokeTimer = 0, explosionTimer = 0, shieldTimer = 0, packetSpeed = 1, shellSpeed = 1, sporeSpeed = 1, buildingSpeed = .5, shipSpeed = 1;
   var running;
   String mode;
   bool paused = false, scrollingUp = false, scrollingDown = false, scrollingLeft = false, scrollingRight = false;
-  List spores = [], smokes = [], explosions = [], symbols = [], emitters = [], sporetowers = [], packetQueue = [], ghosts = [];
+  List<Vector> ghosts = new List<Vector>();
+  List<Packet> packetQueue = new List<Packet>();
+  List<Sporetower> sporetowers = new List<Sporetower>();
+  List<Emitter> emitters = new List<Emitter>();
+  List<UISymbol> symbols = new List<UISymbol>();
+  List<Explosion> explosions = new List<Explosion>();
+  List<Smoke> smokes = new List<Smoke>();
+  List<Spore> spores = new List<Spore>();
   List<Building> buildings = new List<Building>();
   List<Packet> packets = new List<Packet>();
   List<Shell> shells = new List<Shell>();
@@ -1358,6 +1366,9 @@ class Game {
 
       // 1. check for collision with another building
       for (int i = 0; i < this.buildings.length; i++) {
+        // don't check for collision with moving buildings
+        if (this.buildings[i].moving)
+          continue;
         if (building != null && building == this.buildings[i])
           continue;
         int x1 = this.buildings[i].position.x * this.tileSize;

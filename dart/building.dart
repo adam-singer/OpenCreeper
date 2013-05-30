@@ -199,7 +199,7 @@ class Building {
         engine.canvas["buffer"].context.stroke();
       }
       if (this.imageID == "analyzer") {
-        Vector targetPosition = Helper.real2screen(this.weaponTargetPosition);
+        Vector targetPosition = Helper.tiled2screen(this.weaponTargetPosition);
         engine.canvas["buffer"].context.strokeStyle = '#00f';
         engine.canvas["buffer"].context.lineWidth = 4;
         engine.canvas["buffer"].context.beginPath();
