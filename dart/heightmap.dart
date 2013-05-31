@@ -6,18 +6,18 @@
 part of creeper;
 
 class HeightMap {
-  int size, low_value, high_value, mid_value, centre_cell;
+  int seed, size, low_value, high_value, mid_value, centre_cell;
   List queue = new List();
   List map;
   
-  HeightMap(this.size, this.low_value, this.high_value) {
+  HeightMap(this.seed, this.size, this.low_value, this.high_value) {
     this.mid_value = ((this.low_value + this.high_value) / 2).floor();
     this.centre_cell = (this.size / 2).floor();
     this.reset();
   }
 
   reset() {
-      var random = new Random();
+      var random = new Random(this.seed);
       var x, y,
           _this = this;
       
@@ -34,7 +34,7 @@ class HeightMap {
       this.set_se(random.nextInt(this.high_value));
       
       return this.push(() {
-          return _this.diamond_square(0, 0, _this.size - 1, _this.size - 1, _this.mid_value);
+          return _this.diamond_square(0, 0, _this.size - 1, _this.size - 1, _this.mid_value, this.seed);
       });
   }
 
@@ -101,8 +101,8 @@ class HeightMap {
       return null;
   }
 
-  diamond_square(left, top, right, bottom, base_height) {
-    var random = new Random();
+  diamond_square(left, top, right, bottom, base_height, seed) {
+    var random = new Random(seed);
     
       var centre_point_value, x_centre, y_centre,
           _this = this;
@@ -121,16 +121,16 @@ class HeightMap {
       if ((right - left) > 2) {
           base_height = (base_height * pow(2.0, -0.75)).floor();
           this.push(() {
-              return _this.diamond_square(left, top, x_centre, y_centre, base_height);
+              return _this.diamond_square(left, top, x_centre, y_centre, base_height, random.nextInt(10000));
           });
           this.push(() {
-              return _this.diamond_square(x_centre, top, right, y_centre, base_height);
+              return _this.diamond_square(x_centre, top, right, y_centre, base_height, random.nextInt(10000));
           });
           this.push(() {
-              return _this.diamond_square(left, y_centre, x_centre, bottom, base_height);
+              return _this.diamond_square(left, y_centre, x_centre, bottom, base_height, random.nextInt(10000));
           });
           return this.push(() {
-              return _this.diamond_square(x_centre, y_centre, right, bottom, base_height);
+              return _this.diamond_square(x_centre, y_centre, right, bottom, base_height, random.nextInt(10000));
           });
       }
   }

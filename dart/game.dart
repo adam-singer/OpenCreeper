@@ -2,12 +2,16 @@ part of creeper;
 
 class World {
   List tiles;
-  Vector size = new Vector(Helper.randomInt(64, 127), Helper.randomInt(64, 127));
+  Vector size;
   List terraform;
+  
+  World(int seed) {
+    this.size = new Vector(Helper.randomInt(64, 127, seed), Helper.randomInt(64, 127, seed));
+  }
 }
 
 class Game {
-  int tileSize = 16, currentEnergy = 0, maxEnergy = 0, collection = 0, activeSymbol = -1, terraformingHeight = 0;
+  int seed, tileSize = 16, currentEnergy = 0, maxEnergy = 0, collection = 0, activeSymbol = -1, terraformingHeight = 0;
   num speed = 1, zoom = 1, creeperTimer = 0, energyTimer = 0, spawnTimer = 0, damageTimer = 0, smokeTimer = 0, explosionTimer = 0, shieldTimer = 0, packetSpeed = 1, shellSpeed = 1, sporeSpeed = 1, buildingSpeed = .5, shipSpeed = 1;
   var running;
   String mode;
@@ -24,7 +28,7 @@ class Game {
   List<Packet> packets = new List<Packet>();
   List<Shell> shells = new List<Shell>();
   List<Ship> ships = new List<Ship>();
-  World world = new World();
+  World world;
   Vector scroll = new Vector(0, 0);
   Building base;
   Map keyMap = {
@@ -33,6 +37,8 @@ class Game {
   Stopwatch stopwatch = new Stopwatch();
 
   Game() {
+    this.seed = 0; //Helper.randomInt(0, 10000);
+    this.world = new World(this.seed);
     this.init();
     this.drawTerrain();
     this.copyTerrain();
@@ -254,7 +260,7 @@ class Game {
       }
     }
 
-    var heightmap = new HeightMap(129, 0, 90);
+    var heightmap = new HeightMap(this.seed, 129, 0, 90);
     heightmap.run();
 
     for (int i = 0; i < this.world.size.x; i++) {
@@ -268,57 +274,10 @@ class Game {
       }
     }
 
-  /*for (int i = 0; i < this.world.size.x; i++) {
-                for (int j = 0; j < this.world.size.y; j++) {
-                    for (int k = 0; k < 10; k++) {
-
-                        if (this.world.tiles[i][j][k].full) {
-                            int up = 0, down = 0, left = 0, right = 0;
-                            if (j - 1 < 0)
-                                up = 0;
-                            else if (this.world.tiles[i][j - 1][k].full)
-                                up = 1;
-                            if (j + 1 > this.world.size.y - 1)
-                                down = 0;
-                            else if (this.world.tiles[i][j + 1][k].full)
-                                down = 1;
-                            if (i - 1 < 0)
-                                left = 0;
-                            else if (this.world.tiles[i - 1][j][k].full)
-                                left = 1;
-                            if (i + 1 > this.world.size.x - 1)
-                                right = 0;
-                            else if (this.world.tiles[i + 1][j][k].full)
-                                right = 1;
-
-                            // save index for later use
-                            this.world.tiles[i][j][k].index = (8 * down) + (4 * left) + (2 * up) + right;;
-                        }
-                    }
-
-                }
-            }
-
-            for (int i = 0; i < this.world.size.x; i++) {
-                for (int j = 0; j < this.world.size.y; j++) {
-                    bool removeBelow = false;
-                    for (int k = 9; k > -1; k--) {
-                        if (removeBelow) {
-                            this.world.tiles[i][j][k].full = false;
-                        }
-                        else {
-                            int index = this.world.tiles[i][j][k].index;
-                            if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)
-                            removeBelow = true;
-                        }
-                     }
-                }
-            }*/
-
     // create base
     Vector randomPosition = new Vector(
-        Helper.randomInt(0, this.world.size.x - 9),
-        Helper.randomInt(0, this.world.size.y - 9));
+        Helper.randomInt(0, this.world.size.x - 9, this.seed + 1),
+        Helper.randomInt(0, this.world.size.y - 9, this.seed + 1));
 
     this.scroll.x = randomPosition.x + 4;
     this.scroll.y = randomPosition.y + 4;
@@ -345,8 +304,8 @@ class Game {
 
     // create emitter
     randomPosition = new Vector(
-        Helper.randomInt(0, this.world.size.x - 3),
-        Helper.randomInt(0, this.world.size.y - 3));
+        Helper.randomInt(0, this.world.size.x - 3, this.seed + 2),
+        Helper.randomInt(0, this.world.size.y - 3, this.seed + 2));
 
     Emitter emitter = new Emitter(randomPosition, 5);
     this.emitters.add(emitter);
@@ -363,8 +322,8 @@ class Game {
 
     // create sporetower
     randomPosition = new Vector(
-        Helper.randomInt(0, this.world.size.x - 3),
-        Helper.randomInt(0, this.world.size.y - 3));
+        Helper.randomInt(0, this.world.size.x - 3, this.seed + 3),
+        Helper.randomInt(0, this.world.size.y - 3, this.seed + 3));
 
     Sporetower sporetower = new Sporetower(randomPosition);
     sporetower.reset();
@@ -1484,7 +1443,7 @@ class Game {
         }
         // request energy
         if (this.buildings[i].needsEnergy && this.buildings[i].built) {
-          int energyAndRequestDelta = this.buildings[i].maxEnergy - this.buildings[i].energy - this.buildings[i].energyRequests;
+          num energyAndRequestDelta = this.buildings[i].maxEnergy - this.buildings[i].energy - this.buildings[i].energyRequests;
           if (energyAndRequestDelta > 0 && this.buildings[i].requestTimer > 50) {
             this.buildings[i].requestTimer = 0;
             this.queuePacket(this.buildings[i], "energy");

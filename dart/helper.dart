@@ -42,8 +42,8 @@ class Helper {
     return newObject;
   }
   
-  static int randomInt(num from, num to) {
-    var random = new Random();
+  static int randomInt(num from, num to, [num seed]) {
+    var random = new Random(seed);
     return (random.nextInt(to - from + 1) + from);
   }
   
