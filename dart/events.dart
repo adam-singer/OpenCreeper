@@ -26,6 +26,16 @@ void onKeyDown(KeyboardEvent evt) {
   if (game.activeSymbol != -1) {
     engine.canvas["main"].element.style.cursor = "none";
   }
+  
+  // increase game speed
+  if (evt.keyCode == KeyCode.F1) {
+    game.faster();
+  }
+  
+  // decrease game speed
+  if (evt.keyCode == KeyCode.F2) {
+    game.slower();
+  }
 
   // delete building
   if (evt.keyCode == KeyCode.DELETE) {
@@ -233,9 +243,6 @@ void onMouseUp(MouseEvent evt) {
       for (int i = 0; i < game.buildings.length; i++) {
         game.buildings[i].selected = game.buildings[i].hovered;
         if (game.buildings[i].selected) {
-          query('#selection')
-          ..style.display = "block"
-          ..innerHtml = "Type: " + game.buildings[i].imageID + "<br/>" + "Health/HR/MaxHealth: " + game.buildings[i].health.toString() + "/" + game.buildings[i].healthRequests.toString() + "/" + game.buildings[i].maxHealth.toString();
           buildingSelected = game.buildings[i];
         }
       }
@@ -248,7 +255,6 @@ void onMouseUp(MouseEvent evt) {
           query('#activate').style.display = "block";
         }
       } else {
-        query('#selection').style.display = "none";
         query('#deactivate').style.display = "none";
         query('#activate').style.display = "none";
       }

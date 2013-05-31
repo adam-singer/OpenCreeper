@@ -16,11 +16,9 @@ input, select {
 
 #info {
     padding: 10px;
-    background-color: rgba(0, 0, 255, 0.5);
     position: absolute;
-    right: 50%;
-    margin-right: 400px;
-    bottom: 0;
+    left: 0;
+    top: 0;
     width: 200px;
     height: 110px;
     font-size: 12px;
@@ -28,11 +26,10 @@ input, select {
 
 #buttons {
     padding: 10px;
-    background-color: rgba(0, 255, 0, 0.5);
     position: absolute;
     bottom: 0;
     left: 50%;
-    margin-left: 420px;
+    margin-left: 300px;
     width: 200px;
     height: 110px;
 }

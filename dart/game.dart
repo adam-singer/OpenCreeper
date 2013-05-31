@@ -476,13 +476,15 @@ class Game {
 
   void activateBuilding() {
     for (int i = 0; i < this.buildings.length; i++) {
-      if (this.buildings[i].selected)this.buildings[i].active = true;
+      if (this.buildings[i].selected)
+        this.buildings[i].active = true;
     }
   }
 
   void deactivateBuilding() {
     for (int i = 0; i < this.buildings.length; i++) {
-      if (this.buildings[i].selected)this.buildings[i].active = false;
+      if (this.buildings[i].selected)
+        this.buildings[i].active = false;
     }
   }
 
@@ -499,7 +501,7 @@ class Game {
   }
 
   void updateCollectionElement() {
-    query('#collection').innerHtml = "Collection: ${this.collection.toString()}";
+    //query('#collection').innerHtml = "Collection: ${this.collection.toString()}";
   }
 
   void clearSymbols() {

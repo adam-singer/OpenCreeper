@@ -82,15 +82,15 @@ class Engine {
     this.imageSrcs = ["analyzer", "numbers", "level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon", "cannongun", "base", "collector", "reactor", "storage", "terp", "packet_collection", "packet_energy", "packet_health", "relay", "emitter", "creep", "mortar", "shell", "beam", "spore", "bomber", "bombership", "smoke", "explosion", "targetcursor", "sporetower", "forcefield", "shield"];
 
     query('#terraform').onClick.listen((event) => game.toggleTerraform());
-    query('#slower').onClick.listen((event) => game.slower());
-    query('#faster').onClick.listen((event) => game.faster());
-    query('#pause').onClick.listen((event) => game.pause());
-    query('#resume').onClick.listen((event) => game.resume());
+    //query('#slower').onClick.listen((event) => game.slower());
+    //query('#faster').onClick.listen((event) => game.faster());
+    //query('#pause').onClick.listen((event) => game.pause());
+    //query('#resume').onClick.listen((event) => game.resume());
     query('#restart').onClick.listen((event) => game.restart());
     query('#deactivate').onClick.listen((event) => game.deactivateBuilding());
     query('#activate').onClick.listen((event) => game.activateBuilding());
-    query('#zoomin').onClick.listen((event) => game.zoomIn());
-    query('#zoomout').onClick.listen((event) => game.zoomOut());
+    //query('#zoomin').onClick.listen((event) => game.zoomIn());
+    //query('#zoomout').onClick.listen((event) => game.zoomOut());
 
     CanvasElement mainCanvas = this.canvas["main"].element;
     CanvasElement guiCanvas = this.canvas["gui"].element;
@@ -167,8 +167,8 @@ class Engine {
 
   void updateMouse(MouseEvent evt) {
     //if (evt.pageX > this.canvas["main"].left && evt.pageX < this.canvas["main"].right && evt.pageY > this.canvas["main"].top && evt.pageY < this.canvas["main"].bottom) {
-    this.mouse.x = (evt.clientX - this.canvas["main"].element.getBoundingClientRect().left).toInt(); //evt.pageX - this.canvas["main"].left;
-    this.mouse.y = (evt.clientY - this.canvas["main"].element.getBoundingClientRect().left).toInt(); //evt.pageY - this.canvas["main"].top;
+    this.mouse.x = (evt.client.x - this.canvas["main"].element.getBoundingClientRect().left).toInt(); //evt.pageX - this.canvas["main"].left;
+    this.mouse.y = (evt.client.y - this.canvas["main"].element.getBoundingClientRect().left).toInt(); //evt.pageY - this.canvas["main"].top;
     if (game != null) {
       Vector position = game.getHoveredTilePosition();
       this.mouse.dragEnd = new Vector(position.x, position.y);
@@ -180,8 +180,8 @@ class Engine {
 
   void updateMouseGUI(MouseEvent evt) {
     //if (evt.pageX > this.canvas["gui"].left && evt.pageX < this.canvas["gui"].right && evt.pageY > this.canvas["gui"].top && evt.pageY < this.canvas["gui"].bottom) {
-    this.mouseGUI.x = (evt.clientX - this.canvas["gui"].element.getBoundingClientRect().left).toInt();
-    this.mouseGUI.y = (evt.clientY - this.canvas["gui"].element.getBoundingClientRect().top).toInt();
+    this.mouseGUI.x = (evt.client.x - this.canvas["gui"].element.getBoundingClientRect().left).toInt();
+    this.mouseGUI.y = (evt.client.y - this.canvas["gui"].element.getBoundingClientRect().top).toInt();
     
     //query("#mouse").innerHtml = ("Mouse: " + this.mouseGUI.x.toString() + "/" + this.mouseGUI.y.toString());
     
