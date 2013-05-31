@@ -126,20 +126,19 @@ class Engine {
 
   void loadImages(callback) {
     int loadedImages = 0;
-    int numImages = this.imageSrcs.length - 1;
+    int numImages = this.imageSrcs.length;
 
     for (int i = 0; i < this.imageSrcs.length; i++) {
-      this.images[this.imageSrcs[i]] = new ImageElement();
+      this.images[this.imageSrcs[i]] = new ImageElement(src: "images/" + this.imageSrcs[i] + ".png");
       this.images[this.imageSrcs[i]].onLoad.listen((event) {
-        if (++loadedImages >= numImages) {
+        if (++loadedImages == numImages) {
           callback();
         }
       });
-      this.images[this.imageSrcs[i]].src = "images/" + this.imageSrcs[i] + ".png";
     }
   }
 
-  void addSound(name, type) {
+  void addSound(String name, String type) {
     this.sounds[name] = new List();
     for (int i = 0; i < 5; i++) {
       this.sounds[name].add(new AudioElement("sounds/" + name + "." + type));
@@ -151,7 +150,9 @@ class Engine {
 
     num volume = 1;
     if (position != null) {
-      Vector screenCenter = new Vector((this.halfWidth / (game.tileSize * game.zoom)).floor() + game.scroll.x, (this.halfHeight / (game.tileSize * game.zoom)).floor() + game.scroll.y);
+      Vector screenCenter = new Vector(
+          (this.halfWidth / (game.tileSize * game.zoom)).floor() + game.scroll.x,
+          (this.halfHeight / (game.tileSize * game.zoom)).floor() + game.scroll.y);
       num distance = Helper.distance(screenCenter, position);
       volume = (game.zoom / pow(distance / 20, 2)).clamp(0, 1);
     }

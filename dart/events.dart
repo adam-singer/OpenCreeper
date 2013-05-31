@@ -290,7 +290,6 @@ void onMouseUp(MouseEvent evt) {
       game.ships[i].selected = false;
     }
 
-    query('#selection').innerHtml = "";
     query("#terraform").attributes['value'] = "Terraform Off";
     game.clearSymbols();
   }

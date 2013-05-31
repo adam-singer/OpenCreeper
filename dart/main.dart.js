@@ -199,9 +199,6 @@ $$.CssStyleDeclaration = {"": "Interceptor;length=",
     var propValue = receiver.getPropertyValue("size");
     return propValue != null ? propValue : "";
   },
-  set$src: function(receiver, value) {
-    this.setProperty$3(receiver, "src", value, "");
-  },
   get$top: function(receiver) {
     var propValue = receiver.getPropertyValue("top");
     return propValue != null ? propValue : "";
@@ -4658,10 +4655,11 @@ Engine: {"": "Object;FPS,delta,fps_delta,fps_frames,fps_totalTime,fps_updateTime
     var t1, numImages, i, t2, t3;
     t1 = {};
     t1.loadedImages_0 = 0;
-    numImages = this.imageSrcs.length - 1;
+    numImages = this.imageSrcs.length;
     for (i = 0; t2 = this.imageSrcs, i < t2.length; ++i) {
       t3 = this.images;
-      t3.$indexSet(t3, t2[i], $.ImageElement_ImageElement(null, null, null));
+      t2 = t2[i];
+      t3.$indexSet(t3, t2, $.ImageElement_ImageElement(null, $.JSString_methods.$add($.JSString_methods.$add("images/", t2), ".png"), null));
       t2 = this.images;
       t3 = this.imageSrcs;
       if (i >= t3.length)
@@ -4671,15 +4669,6 @@ Engine: {"": "Object;FPS,delta,fps_delta,fps_frames,fps_totalTime,fps_updateTime
       t2 = t3._onData;
       if (t2 != null && !t3.get$isPaused())
         $.$$dom_addEventListener$3$x(t3._target, t3._eventType, t2, t3._useCapture);
-      t2 = this.images;
-      t3 = this.imageSrcs;
-      if (i >= t3.length)
-        throw $.ioore(i);
-      t3 = t2.$index(t2, t3[i]);
-      t2 = this.imageSrcs;
-      if (i >= t2.length)
-        throw $.ioore(i);
-      $.set$src$x(t3, $.JSString_methods.$add($.JSString_methods.$add("images/", t2[i]), ".png"));
     }
   },
   addSound$2: function($name, type) {
@@ -5115,7 +5104,7 @@ Engine_loadImages_closure: {"": "Closure;box_0,callback_1,numImages_2",
     t1 = this.box_0;
     loadedImages = $.$add$ns(t1.loadedImages_0, 1);
     t1.loadedImages_0 = loadedImages;
-    if ($.$ge$n(loadedImages, this.numImages_2))
+    if ($.$eq(loadedImages, this.numImages_2))
       this.callback_1.call$0();
   }
 },
@@ -5578,12 +5567,12 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       height = 0;
     for (i = 0; i < 9; ++i)
       for (j = 0; j < 9; ++j)
-        for (k = 0; k < 10; ++k) {
+        for (k = 0; k <= height; ++k) {
           t1 = this.world.tiles;
           t2 = $.$add$ns($.get$x$x(building.position), i);
           if (t2 >>> 0 !== t2 || t2 >= t1.length)
             throw $.ioore(t2);
-          $.$index$asx($.$index$asx(t1[t2], $.$add$ns($.get$y$x(building.position), j)), k).set$full(k <= height);
+          $.$index$asx($.$index$asx(t1[t2], $.$add$ns($.get$y$x(building.position), j)), k).set$full(true);
         }
     this.calculateCollection$0();
     t1 = $.$sub$n(this.world.size.x, 3);
@@ -5611,12 +5600,12 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       height = 0;
     for (i = 0; i < 3; ++i)
       for (j = 0; j < 3; ++j)
-        for (k = 0; k < 10; ++k) {
+        for (k = 0; k < height; ++k) {
           t1 = this.world.tiles;
           t2 = $.$add$ns(emitter.position.x, i);
           if (t2 >>> 0 !== t2 || t2 >= t1.length)
             throw $.ioore(t2);
-          $.$index$asx($.$index$asx(t1[t2], $.$add$ns(emitter.position.y, j)), k).set$full(k <= height);
+          $.$index$asx($.$index$asx(t1[t2], $.$add$ns(emitter.position.y, j)), k).set$full(true);
         }
     t1 = $.$sub$n(this.world.size.x, 3);
     $.$add$ns(this.seed, 3);
@@ -5645,12 +5634,12 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       height = 0;
     for (i = 0; i < 3; ++i)
       for (j = 0; j < 3; ++j)
-        for (k = 0; k < 10; ++k) {
+        for (k = 0; k < height; ++k) {
           t1 = this.world.tiles;
           t2 = $.$add$ns(sporetower.position.x, i);
           if (t2 >>> 0 !== t2 || t2 >= t1.length)
             throw $.ioore(t2);
-          $.$index$asx($.$index$asx(t1[t2], $.$add$ns(sporetower.position.y, j)), k).set$full(k <= height);
+          $.$index$asx($.$index$asx(t1[t2], $.$add$ns(sporetower.position.y, j)), k).set$full(true);
         }
   },
   addBuilding$2: function(position, type) {
@@ -5661,7 +5650,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     if (typeof t1 !== "string")
       return this.addBuilding$2$bailout(1, building, t1);
     if (t1 === "analyzer") {
-      building.maxHealth = 5;
+      building.maxHealth = 80;
       building.maxEnergy = 20;
       building.energy = 0;
       building.size = 3;
@@ -5673,7 +5662,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     if (typeof t1 !== "string")
       return this.addBuilding$2$bailout(2, building, t1);
     if (t1 === "terp") {
-      building.maxHealth = 5;
+      building.maxHealth = 60;
       building.maxEnergy = 20;
       building.energy = 0;
       building.size = 3;
@@ -5685,7 +5674,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     if (typeof t1 !== "string")
       return this.addBuilding$2$bailout(3, building, t1);
     if (t1 === "shield") {
-      building.maxHealth = 5;
+      building.maxHealth = 75;
       building.maxEnergy = 20;
       building.energy = 0;
       building.size = 3;
@@ -5696,7 +5685,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     if (typeof t1 !== "string")
       return this.addBuilding$2$bailout(4, building, t1);
     if (t1 === "bomber") {
-      building.maxHealth = 5;
+      building.maxHealth = 75;
       building.maxEnergy = 15;
       building.energy = 0;
       building.size = 3;
@@ -5777,7 +5766,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       case 1:
         state0 = 0;
         if ($.$eq(t1, "analyzer")) {
-          building.maxHealth = 5;
+          building.maxHealth = 80;
           building.maxEnergy = 20;
           building.energy = 0;
           building.size = 3;
@@ -5789,7 +5778,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       case 2:
         state0 = 0;
         if ($.$eq(t1, "terp")) {
-          building.maxHealth = 5;
+          building.maxHealth = 60;
           building.maxEnergy = 20;
           building.energy = 0;
           building.size = 3;
@@ -5801,7 +5790,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       case 3:
         state0 = 0;
         if ($.$eq(t1, "shield")) {
-          building.maxHealth = 5;
+          building.maxHealth = 75;
           building.maxEnergy = 20;
           building.energy = 0;
           building.size = 3;
@@ -5812,7 +5801,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       case 4:
         state0 = 0;
         if ($.$eq(t1, "bomber")) {
-          building.maxHealth = 5;
+          building.maxHealth = 75;
           building.maxEnergy = 15;
           building.energy = 0;
           building.size = 3;
@@ -6063,7 +6052,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     this.symbols.push(new $.UISymbol(new $.Vector(81, 0), "collector", "W", 80, 55, 3, 5, 6, false, false));
     this.symbols.push(new $.UISymbol(new $.Vector(162, 0), "reactor", "E", 80, 55, 3, 50, 0, false, false));
     this.symbols.push(new $.UISymbol(new $.Vector(243, 0), "storage", "R", 80, 55, 3, 8, 0, false, false));
-    this.symbols.push(new $.UISymbol(new $.Vector(324, 0), "shield", "T", 80, 55, 3, 50, 10, false, false));
+    this.symbols.push(new $.UISymbol(new $.Vector(324, 0), "shield", "T", 80, 55, 3, 75, 10, false, false));
     this.symbols.push(new $.UISymbol(new $.Vector(405, 0), "analyzer", "Z", 80, 55, 3, 80, 10, false, false));
     this.symbols.push(new $.UISymbol(new $.Vector(0, 56), "relay", "A", 80, 55, 3, 10, 8, false, false));
     this.symbols.push(new $.UISymbol(new $.Vector(81, 56), "mortar", "S", 80, 55, 3, 40, 12, false, false));
@@ -11557,8 +11546,9 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     return new $.BoundClosure$1(this, "draw$1");
   },
   Game$0: function() {
-    var t1, max, t2;
-    this.seed = 0;
+    var max, t1, t2;
+    max = 10001;
+    this.seed = (Math.random() * max >>> 0) + 0;
     t1 = new $.World(null, null, null);
     max = 64;
     t2 = Math.random() * max >>> 0;
@@ -11889,9 +11879,10 @@ HeightMap_diamond_square_closure2: {"": "Closure;box_0,right_13,bottom_14,random
 
 main_closure: {"": "Closure;",
   call$0: function() {
-    var t1, t2, t3;
+    var t1, max, t2, t3;
     t1 = new $.Game(null, 16, 0, 0, 0, -1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0.5, 1, null, null, false, false, false, false, false, $.List_List($), $.List_List($), $.List_List($), $.List_List($), $.List_List($), $.List_List($), $.List_List($), $.List_List($), $.List_List($), $.List_List($), $.List_List($), $.List_List($), null, new $.Vector(0, 0), null, $.makeLiteralMap(["k81", "Q", "k87", "W", "k69", "E", "k82", "R", "k84", "T", "k90", "Z", "k85", "U", "k73", "I", "k65", "A", "k83", "S", "k68", "D", "k70", "F", "k71", "G", "k72", "H"]), new $.Stopwatch(null, null));
-    t1.seed = 0;
+    max = 10001;
+    t1.seed = (Math.random() * max >>> 0) + 0;
     t2 = t1.seed;
     t3 = new $.World(null, null, null);
     t3.size = $.Vector$($.Helper_randomInt(64, 127, t2), $.Helper_randomInt(64, 127, t2));
@@ -13683,7 +13674,6 @@ onMouseUp: function(evt) {
     }
     for (i = 0; t1 = $.game.ships, i < t1.length; ++i)
       $.set$selected$x(t1[i], false);
-    $.set$innerHtml$x(document.querySelector("#selection"), "");
     t1 = document.querySelector("#terraform");
     t1.get$attributes;
     new $._ElementAttributeMap(t1)._element.setAttribute("value", "Terraform Off");
@@ -17661,8 +17651,7 @@ Element__determineMouseWheelEventType: function(e) {
 
 ImageElement_ImageElement: function(height, src, width) {
   var e = document.createElement("img");
-  if (src != null)
-    $.set$src$x(e, src);
+  $.set$src$x(e, src);
   if (width != null)
     $.set$width$x(e, width);
   if (height != null)

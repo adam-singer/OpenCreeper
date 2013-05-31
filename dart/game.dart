@@ -37,7 +37,7 @@ class Game {
   Stopwatch stopwatch = new Stopwatch();
 
   Game() {
-    this.seed = 0; //Helper.randomInt(0, 10000);
+    this.seed = Helper.randomInt(0, 10000);
     this.world = new World(this.seed);
     this.init();
     this.drawTerrain();
@@ -124,12 +124,8 @@ class Game {
   /**
    * Checks if the given position is within the world
    *
-   * @param   {int}   x
-   * @param   {int}   y
-   * @return  {Boolean}   boolean
    */
-
-  bool withinWorld(num x, num y) {
+  bool withinWorld(int x, int y) {
     return (x > -1 && x < this.world.size.x && y > -1 && y < this.world.size.y);
   }
 
@@ -141,8 +137,7 @@ class Game {
   /**
    * @param {Vector} pVector The position of the tile to check
    */
-
-  int getHighestTerrain(pVector) {
+  int getHighestTerrain(Vector pVector) {
     int height = -1;
     for (int i = 9; i > -1; i--) {
       if (this.world.tiles[pVector.x][pVector.y][i].full) {
@@ -291,11 +286,12 @@ class Game {
     this.base = building;
 
     int height = this.getHighestTerrain(new Vector(building.position.x + 4, building.position.y + 4));
-    if (height < 0)height = 0;
+    if (height < 0)
+      height = 0;
     for (int i = 0; i < 9; i++) {
       for (int j = 0; j < 9; j++) {
-        for (int k = 0; k < 10; k++) {
-          this.world.tiles[building.position.x + i][building.position.y + j][k].full = (k <= height);
+        for (int k = 0; k <= height; k++) {
+          this.world.tiles[building.position.x + i][building.position.y + j][k].full = true;
         }
       }
     }
@@ -311,11 +307,12 @@ class Game {
     this.emitters.add(emitter);
 
     height = this.getHighestTerrain(new Vector(emitter.position.x + 1, emitter.position.y + 1));
-    if (height < 0)height = 0;
+    if (height < 0)
+      height = 0;
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
-        for (int k = 0; k < 10; k++) {
-          this.world.tiles[emitter.position.x + i][emitter.position.y + j][k].full = (k <= height);
+        for (int k = 0; k < height; k++) {
+          this.world.tiles[emitter.position.x + i][emitter.position.y + j][k].full = true;
         }
       }
     }
@@ -330,11 +327,12 @@ class Game {
     this.sporetowers.add(sporetower);
 
     height = this.getHighestTerrain(new Vector(sporetower.position.x + 1, sporetower.position.y + 1));
-    if (height < 0)height = 0;
+    if (height < 0)
+      height = 0;
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
-        for (int k = 0; k < 10; k++) {
-          this.world.tiles[sporetower.position.x + i][sporetower.position.y + j][k].full = (k <= height);
+        for (int k = 0; k < height; k++) {
+          this.world.tiles[sporetower.position.x + i][sporetower.position.y + j][k].full = true;
         }
       }
     }
@@ -351,7 +349,7 @@ class Game {
     building.health = 0;
 
     if (building.imageID == "analyzer") {
-      building.maxHealth = 5;
+      building.maxHealth = 80;
       building.maxEnergy = 20;
       building.energy = 0;
       building.size = 3;
@@ -360,7 +358,7 @@ class Game {
       building.weaponRadius = 10;
     }
     if (building.imageID == "terp") {
-      building.maxHealth = 5; //60
+      building.maxHealth = 60;
       building.maxEnergy = 20;
       building.energy = 0;
       building.size = 3;
@@ -369,7 +367,7 @@ class Game {
       building.weaponRadius = 12;
     }
     if (building.imageID == "shield") {
-      building.maxHealth = 5; //75
+      building.maxHealth = 75;
       building.maxEnergy = 20;
       building.energy = 0;
       building.size = 3;
@@ -377,7 +375,7 @@ class Game {
       building.needsEnergy = true;
     }
     if (building.imageID == "bomber") {
-      building.maxHealth = 5; // 75
+      building.maxHealth = 75;
       building.maxEnergy = 15;
       building.energy = 0;
       building.size = 3;
@@ -516,7 +514,7 @@ class Game {
     this.symbols.add(new UISymbol(new Vector(81, 0), "collector", "W", 3, 5, 6));
     this.symbols.add(new UISymbol(new Vector(2 * 81, 0), "reactor", "E", 3, 50, 0));
     this.symbols.add(new UISymbol(new Vector(3 * 81, 0), "storage", "R", 3, 8, 0));
-    this.symbols.add(new UISymbol(new Vector(4 * 81, 0), "shield", "T", 3, 50, 10));
+    this.symbols.add(new UISymbol(new Vector(4 * 81, 0), "shield", "T", 3, 75, 10));
     this.symbols.add(new UISymbol(new Vector(5 * 81, 0), "analyzer", "Z", 3, 80, 10));
 
     this.symbols.add(new UISymbol(new Vector(0, 56), "relay", "A", 3, 10, 8));
