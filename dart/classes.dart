@@ -14,17 +14,17 @@ class Emitter {
     return new Vector(this.position.x * game.tileSize + 24, this.position.y * game.tileSize + 24);
   }
 
+  void spawn() {
+    // only spawn creeper if not targeted by an analyzer
+    if (this.building == null)
+      game.world.tiles[this.position.x + 1][this.position.y + 1][0].creep += this.strength;
+  }
+  
   void draw() {
     Vector position = Helper.tiled2screen(this.position);
     if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
       engine.canvas["buffer"].context.drawImageScaled(engine.images[this.imageID], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
     }
-  }
-
-  void spawn() {
-    // only spawn creeper if not targeted by an analyzer
-    if (this.building == null)
-      game.world.tiles[this.position.x + 1][this.position.y + 1][0].creep += this.strength;
   }
 }
 
@@ -49,13 +49,6 @@ class Sporetower {
     return new Vector(this.position.x * game.tileSize + 24, this.position.y * game.tileSize + 24);
   }
 
-  void draw() {
-    Vector position = Helper.tiled2screen(this.position);
-    if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
-      engine.canvas["buffer"].context.drawImageScaled(engine.images[this.imageID], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
-    }
-  }
-
   void update() {
     this.sporeTimer -= 1;
     if (this.sporeTimer <= 0) {
@@ -72,6 +65,13 @@ class Sporetower {
     Spore spore = new Spore(this.getCenter(), target.getCenter());
     spore.init();
     game.spores.add(spore);
+  }
+  
+  void draw() {
+    Vector position = Helper.tiled2screen(this.position);
+    if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
+      engine.canvas["buffer"].context.drawImageScaled(engine.images[this.imageID], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
+    }
   }
 }
 

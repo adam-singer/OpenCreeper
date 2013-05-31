@@ -1670,13 +1670,15 @@ class Game {
      */
 
   void drawRangeBoxes(Vector position, String type, num rad, num size) {
+    CanvasRenderingContext2D context = engine.canvas["buffer"].context;
+    
     Vector positionCenter = new Vector(position.x * this.tileSize + (this.tileSize / 2) * size, position.y * this.tileSize + (this.tileSize / 2) * size);
     int positionHeight = this.getHighestTerrain(position);
 
     if (this.canBePlaced(position, size, null) && (type == "collector" || type == "cannon" || type == "mortar" || type == "shield" || type == "beam" || type == "terp")) {
 
-      engine.canvas["buffer"].context.save();
-      engine.canvas["buffer"].context.globalAlpha = .25;
+      context.save();
+      context.globalAlpha = .25;
 
       int radius = rad * this.tileSize;
 
@@ -1694,28 +1696,28 @@ class Game {
             if (pow(positionCurrentCenter.x - positionCenter.x, 2) + pow(positionCurrentCenter.y - positionCenter.y, 2) < pow(radius, 2)) {
               if (type == "collector") {
                 if (positionCurrentHeight == positionHeight) {
-                  engine.canvas["buffer"].context.fillStyle = "#fff";
+                  context.fillStyle = "#fff";
                 } else {
-                  engine.canvas["buffer"].context.fillStyle = "#f00";
+                  context.fillStyle = "#f00";
                 }
               }
               if (type == "cannon") {
                 if (positionCurrentHeight <= positionHeight) {
-                  engine.canvas["buffer"].context.fillStyle = "#fff";
+                  context.fillStyle = "#fff";
                 } else {
-                  engine.canvas["buffer"].context.fillStyle = "#f00";
+                  context.fillStyle = "#f00";
                 }
               }
               if (type == "mortar" || type == "shield" || type == "beam" || type == "terp") {
-                engine.canvas["buffer"].context.fillStyle = "#fff";
+                context.fillStyle = "#fff";
               }
-              engine.canvas["buffer"].context.fillRect(drawPositionCurrent.x, drawPositionCurrent.y, this.tileSize * this.zoom, this.tileSize * this.zoom);
+              context.fillRect(drawPositionCurrent.x, drawPositionCurrent.y, this.tileSize * this.zoom, this.tileSize * this.zoom);
             }
 
           }
         }
       }
-      engine.canvas["buffer"].context.restore();
+      context.restore();
     }
   }
 
@@ -1791,10 +1793,6 @@ class Game {
             if (jS + 1 > this.world.size.y - 1)down = 0; else if ((this.world.tiles[iS][jS + 1][0].creep).ceil() >= creep)down = 1;
             if (iS - 1 < 0)left = 0; else if ((this.world.tiles[iS - 1][jS][0].creep).ceil() >= creep)left = 1;
             if (iS + 1 > this.world.size.x - 1)right = 0; else if ((this.world.tiles[iS + 1][jS][0].creep).ceil() >= creep)right = 1;
-
-            //if (creep > 1) {
-            //    engine.canvas["buffer"].context.drawImage(engine.images["creep"], 15 * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
-            //}
 
             int index = (8 * down) + (4 * left) + (2 * up) + right;
             engine.canvas["creeper"].context.drawImageScaledFromSource(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, engine.halfWidth + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
@@ -1954,11 +1952,13 @@ class Game {
      */
 
   void drawGUI() {
+    CanvasRenderingContext2D context = engine.canvas["gui"].context;
+    
     Vector position = this.getHoveredTilePosition();
 
     engine.canvas["gui"].clear();
     for (int i = 0; i < this.symbols.length; i++) {
-      this.symbols[i].draw(engine.canvas["gui"].context);
+      this.symbols[i].draw();
     }
 
     if (this.withinWorld(position.x, position.y)) {
@@ -1966,29 +1966,31 @@ class Game {
       num total = this.world.tiles[position.x][position.y][0].creep;
 
       // draw height and creep meter
-      engine.canvas["gui"].context.fillStyle = '#fff';
-      engine.canvas["gui"].context.font = '9px';
-      engine.canvas["gui"].context.textAlign = 'right';
-      engine.canvas["gui"].context.strokeStyle = '#fff';
-      engine.canvas["gui"].context.lineWidth = 1;
-      engine.canvas["gui"].context.fillStyle = "rgba(205, 133, 63, 1)";
-      engine.canvas["gui"].context.fillRect(555, 110, 25, -this.getHighestTerrain(this.getHoveredTilePosition()) * 10 - 10);
-      engine.canvas["gui"].context.fillStyle = "rgba(100, 150, 255, 1)";
-      engine.canvas["gui"].context.fillRect(555, 110 - this.getHighestTerrain(this.getHoveredTilePosition()) * 10 - 10, 25, -total * 10);
-      engine.canvas["gui"].context.fillStyle = "rgba(255, 255, 255, 1)";
+      context.fillStyle = '#fff';
+      context.font = '9px';
+      context.textAlign = 'right';
+      context.strokeStyle = '#fff';
+      context.lineWidth = 1;
+      context.fillStyle = "rgba(205, 133, 63, 1)";
+      context.fillRect(555, 110, 25, -this.getHighestTerrain(this.getHoveredTilePosition()) * 10 - 10);
+      context.fillStyle = "rgba(100, 150, 255, 1)";
+      context.fillRect(555, 110 - this.getHighestTerrain(this.getHoveredTilePosition()) * 10 - 10, 25, -total * 10);
+      context.fillStyle = "rgba(255, 255, 255, 1)";
       for (int i = 1; i < 11; i++) {
-        engine.canvas["gui"].context.fillText(i.toString(), 550, 120 - i * 10);
-        engine.canvas["gui"].context.beginPath();
-        engine.canvas["gui"].context.moveTo(555, 120 - i * 10);
-        engine.canvas["gui"].context.lineTo(580, 120 - i * 10);
-        engine.canvas["gui"].context.stroke();
+        context.fillText(i.toString(), 550, 120 - i * 10);
+        context.beginPath();
+        context.moveTo(555, 120 - i * 10);
+        context.lineTo(580, 120 - i * 10);
+        context.stroke();
       }
-      engine.canvas["gui"].context.textAlign = 'left';
-      engine.canvas["gui"].context.fillText(total.toStringAsFixed(2), 605, 10);
+      context.textAlign = 'left';
+      context.fillText(total.toStringAsFixed(2), 605, 10);
     }
   }
   
   void draw(num _) {
+    CanvasRenderingContext2D context = engine.canvas["buffer"].context;
+    
     this.drawGUI();
 
     // clear canvas
@@ -2007,7 +2009,7 @@ class Game {
 
         if (this.withinWorld(iS, jS)) {
           if (this.world.terraform[iS][jS]["target"] > -1) {
-            engine.canvas["buffer"].context.drawImageScaledFromSource(engine.images["numbers"], this.world.terraform[iS][jS]["target"] * 16, 0, this.tileSize, this.tileSize, engine.halfWidth + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+            context.drawImageScaledFromSource(engine.images["numbers"], this.world.terraform[iS][jS]["target"] * 16, 0, this.tileSize, this.tileSize, engine.halfWidth + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
           }
         }
       }
@@ -2039,20 +2041,21 @@ class Game {
             }
 
             if (pow(centerJ.x - centerI.x, 2) + pow(centerJ.y - centerI.y, 2) <= pow(allowedDistance, 2)) {
-              engine.canvas["buffer"].context.strokeStyle = '#000';
-              engine.canvas["buffer"].context.lineWidth = 3;
-              engine.canvas["buffer"].context.beginPath();
-              engine.canvas["buffer"].context.moveTo(drawCenterI.x, drawCenterI.y);
-              engine.canvas["buffer"].context.lineTo(drawCenterJ.x, drawCenterJ.y);
-              engine.canvas["buffer"].context.stroke();
+              context.strokeStyle = '#000';
+              context.lineWidth = 3;
+              context.beginPath();
+              context.moveTo(drawCenterI.x, drawCenterI.y);
+              context.lineTo(drawCenterJ.x, drawCenterJ.y);
+              context.stroke();
 
-              engine.canvas["buffer"].context.strokeStyle = '#fff';
-              if (!this.buildings[i].built || !this.buildings[j].built)engine.canvas["buffer"].context.strokeStyle = '#777';
-              engine.canvas["buffer"].context.lineWidth = 2;
-              engine.canvas["buffer"].context.beginPath();
-              engine.canvas["buffer"].context.moveTo(drawCenterI.x, drawCenterI.y);
-              engine.canvas["buffer"].context.lineTo(drawCenterJ.x, drawCenterJ.y);
-              engine.canvas["buffer"].context.stroke();
+              context.strokeStyle = '#fff';
+              if (!this.buildings[i].built || !this.buildings[j].built)
+                context.strokeStyle = '#777';
+              context.lineWidth = 2;
+              context.beginPath();
+              context.moveTo(drawCenterI.x, drawCenterI.y);
+              context.lineTo(drawCenterJ.x, drawCenterJ.y);
+              context.stroke();
             }
           }
         }
@@ -2106,32 +2109,32 @@ class Game {
       if (this.mode == "TERRAFORM") {
         Vector positionScrolled = this.getHoveredTilePosition();
         Vector drawPosition = Helper.tiled2screen(positionScrolled);
-        engine.canvas["buffer"].context.drawImageScaledFromSource(engine.images["numbers"], this.terraformingHeight * this.tileSize, 0, this.tileSize, this.tileSize, drawPosition.x, drawPosition.y, this.tileSize * this.zoom, this.tileSize * this.zoom);
+        context.drawImageScaledFromSource(engine.images["numbers"], this.terraformingHeight * this.tileSize, 0, this.tileSize, this.tileSize, drawPosition.x, drawPosition.y, this.tileSize * this.zoom, this.tileSize * this.zoom);
 
-        engine.canvas["buffer"].context.strokeStyle = '#fff';
-        engine.canvas["buffer"].context.lineWidth = 1;
+        context.strokeStyle = '#fff';
+        context.lineWidth = 1;
 
-        engine.canvas["buffer"].context.beginPath();
-        engine.canvas["buffer"].context.moveTo(0, drawPosition.y);
-        engine.canvas["buffer"].context.lineTo(engine.width, drawPosition.y);
-        engine.canvas["buffer"].context.stroke();
+        context.beginPath();
+        context.moveTo(0, drawPosition.y);
+        context.lineTo(engine.width, drawPosition.y);
+        context.stroke();
 
-        engine.canvas["buffer"].context.beginPath();
-        engine.canvas["buffer"].context.moveTo(0, drawPosition.y + this.tileSize * this.zoom);
-        engine.canvas["buffer"].context.lineTo(engine.width, drawPosition.y + this.tileSize * this.zoom);
-        engine.canvas["buffer"].context.stroke();
+        context.beginPath();
+        context.moveTo(0, drawPosition.y + this.tileSize * this.zoom);
+        context.lineTo(engine.width, drawPosition.y + this.tileSize * this.zoom);
+        context.stroke();
 
-        engine.canvas["buffer"].context.beginPath();
-        engine.canvas["buffer"].context.moveTo(drawPosition.x, 0);
-        engine.canvas["buffer"].context.lineTo(drawPosition.x, engine.halfHeight * 2);
-        engine.canvas["buffer"].context.stroke();
+        context.beginPath();
+        context.moveTo(drawPosition.x, 0);
+        context.lineTo(drawPosition.x, engine.halfHeight * 2);
+        context.stroke();
 
-        engine.canvas["buffer"].context.beginPath();
-        engine.canvas["buffer"].context.moveTo(drawPosition.x + this.tileSize * this.zoom, 0);
-        engine.canvas["buffer"].context.lineTo(drawPosition.x + this.tileSize * this.zoom, engine.halfHeight * 2);
-        engine.canvas["buffer"].context.stroke();
+        context.beginPath();
+        context.moveTo(drawPosition.x + this.tileSize * this.zoom, 0);
+        context.lineTo(drawPosition.x + this.tileSize * this.zoom, engine.halfHeight * 2);
+        context.stroke();
 
-        engine.canvas["buffer"].context.stroke();
+        context.stroke();
 
       }
     }

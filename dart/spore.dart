@@ -53,14 +53,16 @@ class Spore {
   }
 
   void draw() {
+    CanvasRenderingContext2D context = engine.canvas["buffer"].context;
+    
     Vector position = Helper.real2screen(this.position);
 
     if (engine.isVisible(position, new Vector(32 * game.zoom, 32 * game.zoom))) {
-      engine.canvas["buffer"].context.save();
-      engine.canvas["buffer"].context.translate(position.x, position.y);
-      engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.rotation));
-      engine.canvas["buffer"].context.drawImageScaled(engine.images[this.imageID], -16 * game.zoom, -16 * game.zoom, 32 * game.zoom, 32 * game.zoom);
-      engine.canvas["buffer"].context.restore();
+      context.save();
+      context.translate(position.x, position.y);
+      context.rotate(Helper.deg2rad(this.rotation));
+      context.drawImageScaled(engine.images[this.imageID], -16 * game.zoom, -16 * game.zoom, 32 * game.zoom, 32 * game.zoom);
+      context.restore();
     }
   }
 }

@@ -137,43 +137,45 @@ class Ship {
   }
 
   void draw() {
+    CanvasRenderingContext2D context = engine.canvas["buffer"].context;
+    
     Vector position = Helper.real2screen(this.position);
 
     if (this.hovered) {
-      engine.canvas["buffer"].context.strokeStyle = "#f00";
-      engine.canvas["buffer"].context.beginPath();
-      engine.canvas["buffer"].context.arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, PI * 2, true);
-      engine.canvas["buffer"].context.closePath();
-      engine.canvas["buffer"].context.stroke();
+      context.strokeStyle = "#f00";
+      context.beginPath();
+      context.arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, PI * 2, true);
+      context.closePath();
+      context.stroke();
     }
 
     if (this.selected) {
-      engine.canvas["buffer"].context.strokeStyle = "#fff";
-      engine.canvas["buffer"].context.beginPath();
-      engine.canvas["buffer"].context.arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, PI * 2, true);
-      engine.canvas["buffer"].context.closePath();
-      engine.canvas["buffer"].context.stroke();
+      context.strokeStyle = "#fff";
+      context.beginPath();
+      context.arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, PI * 2, true);
+      context.closePath();
+      context.stroke();
 
       if (this.status == 1) {
         Vector cursorPosition = Helper.real2screen(this.targetPosition);
-        engine.canvas["buffer"].context.save();
-        engine.canvas["buffer"].context.globalAlpha = .5;
-        engine.canvas["buffer"].context.drawImageScaled(engine.images["targetcursor"], cursorPosition.x - game.tileSize * game.zoom, cursorPosition.y - game.tileSize * game.zoom, 48 * game.zoom, 48 * game.zoom);
-        engine.canvas["buffer"].context.restore();
+        context.save();
+        context.globalAlpha = .5;
+        context.drawImageScaled(engine.images["targetcursor"], cursorPosition.x - game.tileSize * game.zoom, cursorPosition.y - game.tileSize * game.zoom, 48 * game.zoom, 48 * game.zoom);
+        context.restore();
       }
     }
 
     if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
       // draw ship
-      engine.canvas["buffer"].context.save();
-      engine.canvas["buffer"].context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);
-      engine.canvas["buffer"].context.rotate(Helper.deg2rad(this.angle + 90));
-      engine.canvas["buffer"].context.drawImageScaled(engine.images[this.imageID], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
-      engine.canvas["buffer"].context.restore();
+      context.save();
+      context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);
+      context.rotate(Helper.deg2rad(this.angle + 90));
+      context.drawImageScaled(engine.images[this.imageID], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
+      context.restore();
 
       // draw energy bar
-      engine.canvas["buffer"].context.fillStyle = '#f00';
-      engine.canvas["buffer"].context.fillRect(position.x + 2, position.y + 1, (44 * game.zoom / this.maxEnergy) * this.energy, 3);
+      context.fillStyle = '#f00';
+      context.fillRect(position.x + 2, position.y + 1, (44 * game.zoom / this.maxEnergy) * this.energy, 3);
     }
   }
 }
