@@ -11,9 +11,8 @@ class Packet {
 
   void move() {
     this.calculateVector();
-
-    this.position.x += this.speed.x;
-    this.position.y += this.speed.y;
+    
+    this.position += this.speed;
 
     Vector centerTarget = this.currentTarget.getCenter();
     if (this.position.x > centerTarget.x - 1 && this.position.x < centerTarget.x + 1 && this.position.y > centerTarget.y - 1 && this.position.y < centerTarget.y + 1) {

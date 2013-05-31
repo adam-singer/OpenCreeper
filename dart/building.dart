@@ -18,8 +18,9 @@ class Building {
 
   void move() {
     if (this.moving) {
-      this.position.x += this.speed.x;
-      this.position.y += this.speed.y;
+      
+      this.position += this.speed;
+      
       if (this.position.x * game.tileSize > this.moveTargetPosition.x * game.tileSize - 3 && this.position.x * game.tileSize < this.moveTargetPosition.x * game.tileSize + 3 && this.position.y * game.tileSize > this.moveTargetPosition.y * game.tileSize - 3 && this.position.y * game.tileSize < this.moveTargetPosition.y * game.tileSize + 3) {
         this.moving = false;
         this.position.x = this.moveTargetPosition.x;

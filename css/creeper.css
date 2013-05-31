@@ -59,6 +59,7 @@ input, select {
     top: 100px;
     left: 50%;
     display: none;
+    z-index: 3;
 }
 
 #win {
@@ -72,6 +73,7 @@ input, select {
     top: 100px;
     left: 50%;
     display: none;
+    z-index: 3;
 }
 
 #loading {

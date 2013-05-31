@@ -90,8 +90,7 @@ class Ship {
       this.turnToTarget();
       this.calculateVector();
 
-      this.position.x += this.speed.x;
-      this.position.y += this.speed.y;
+      this.position += this.speed;
 
       if (this.position.x > this.targetPosition.x - 2 && this.position.x < this.targetPosition.x + 2 && this.position.y > this.targetPosition.y - 2 && this.position.y < this.targetPosition.y + 2) {
         if (this.status == 1) {

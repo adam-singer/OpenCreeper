@@ -31,8 +31,7 @@ class Spore {
     this.rotation += 10;
     if (this.rotation > 359)this.rotation -= 359;
 
-    this.position.x += this.speed.x;
-    this.position.y += this.speed.y;
+    this.position += this.speed;
 
     if (this.position.x > this.targetPosition.x - 2 && this.position.x < this.targetPosition.x + 2 && this.position.y > this.targetPosition.y - 2 && this.position.y < this.targetPosition.y + 2) {
       // if the target is reached explode and remove
