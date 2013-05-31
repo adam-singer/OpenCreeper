@@ -9,14 +9,18 @@ class UISymbol {
   UISymbol(this.position, this.imageID, this.key, this.size, this.packets, this.radius);
 
   void checkHovered() {
-    this.hovered = (engine.mouseGUI.x > this.position.x && engine.mouseGUI.x < this.position.x + this.width && engine.mouseGUI.y > this.position.y && engine.mouseGUI.y < this.position.y + this.height);
+    this.hovered = (engine.mouseGUI.x > this.position.x &&
+                    engine.mouseGUI.x < this.position.x + this.width &&
+                    engine.mouseGUI.y > this.position.y &&
+                    engine.mouseGUI.y < this.position.y + this.height);
   }
 
   void setActive() {
-    this.active = false;
-    if (engine.mouseGUI.x > this.position.x && engine.mouseGUI.x < this.position.x + this.width && engine.mouseGUI.y > this.position.y && engine.mouseGUI.y < this.position.y + this.height) {
+    if (this.hovered) {
       game.activeSymbol = (this.position.x / 81).floor() + ((this.position.y / 56).floor()) * 6;
       this.active = true;
+    } else {
+      this.active = false;
     }
   }
   

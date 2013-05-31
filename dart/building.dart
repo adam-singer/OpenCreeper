@@ -91,9 +91,11 @@ class Building {
     
     if (this.hovered || this.selected) {
       Vector position = Helper.tiled2screen(this.position);
-      context.lineWidth = 2 * game.zoom;
-      context.strokeStyle = "#000";
-      context.strokeRect(position.x, position.y, game.tileSize * this.size * game.zoom, game.tileSize * this.size * game.zoom);
+
+      context
+        ..lineWidth = 2 * game.zoom
+        ..strokeStyle = "#000"
+        ..strokeRect(position.x, position.y, game.tileSize * this.size * game.zoom, game.tileSize * this.size * game.zoom);
     }
   }
 
@@ -103,15 +105,18 @@ class Building {
     if (this.moving) {
       Vector center = Helper.real2screen(this.getCenter());
       Vector target = Helper.tiled2screen(this.moveTargetPosition);
+
       // draw box
-      context.fillStyle = "rgba(0,255,0,0.5)";
-      context.fillRect(target.x, target.y, this.size * game.tileSize * game.zoom, this.size * game.tileSize * game.zoom);
+      context
+        ..fillStyle = "rgba(0,255,0,0.5)"
+        ..fillRect(target.x, target.y, this.size * game.tileSize * game.zoom, this.size * game.tileSize * game.zoom);
       // draw line
-      context.strokeStyle = "rgba(255,255,255,0.5)";
-      context.beginPath();
-      context.moveTo(center.x, center.y);
-      context.lineTo(target.x + (game.tileSize / 2) * this.size * game.zoom, target.y + (game.tileSize / 2) * this.size * game.zoom);
-      context.stroke();
+      context
+        ..strokeStyle = "rgba(255,255,255,0.5)"
+        ..beginPath()
+        ..moveTo(center.x, center.y)
+        ..lineTo(target.x + (game.tileSize / 2) * this.size * game.zoom, target.y + (game.tileSize / 2) * this.size * game.zoom)
+        ..stroke();
     }
   }
 
@@ -136,11 +141,12 @@ class Building {
       // draw rectangle
       context.strokeRect(drawPosition.x, drawPosition.y, game.tileSize * this.size * game.zoom, game.tileSize * this.size * game.zoom);
       // draw line
-      context.strokeStyle = "rgba(255,255,255,0.5)";
-      context.beginPath();
-      context.moveTo(center.x, center.y);
-      context.lineTo(drawPositionCenter.x, drawPositionCenter.y);
-      context.stroke();
+      context
+        ..strokeStyle = "rgba(255,255,255,0.5)"
+        ..beginPath()
+        ..moveTo(center.x, center.y)
+        ..lineTo(drawPositionCenter.x, drawPositionCenter.y)
+        ..stroke();
     }
   }
 
@@ -246,19 +252,22 @@ class Building {
       }
       if (this.imageID == "terp") {
         Vector targetPosition = Helper.tiled2screen(this.weaponTargetPosition);
-        context.strokeStyle = '#f00';
-        context.lineWidth = 4;
-        context.beginPath();
-        context.moveTo(center.x, center.y);
-        context.lineTo(targetPosition.x + 8, targetPosition.y + 8);
-        context.stroke();
 
-        context.strokeStyle = '#fff';
-        context.lineWidth = 2;
-        context.beginPath();
-        context.moveTo(center.x, center.y);
-        context.lineTo(targetPosition.x + 8, targetPosition.y + 8);
-        context.stroke();
+        context
+          ..strokeStyle = '#f00'
+          ..lineWidth = 4
+          ..beginPath()
+          ..moveTo(center.x, center.y)
+          ..lineTo(targetPosition.x + 8, targetPosition.y + 8)
+          ..stroke();
+
+        context
+          ..strokeStyle = '#fff'
+          ..lineWidth = 2
+          ..beginPath()
+          ..moveTo(center.x, center.y)
+          ..lineTo(targetPosition.x + 8, targetPosition.y + 8)
+          ..stroke();
       }
     }
 

@@ -62,11 +62,12 @@ class Shell {
     Vector position = Helper.real2screen(this.position);
 
     if (engine.isVisible(position, new Vector(16 * game.zoom, 16 * game.zoom))) {
-      context.save();
-      context.translate(position.x + 8 * game.zoom, position.y + 8 * game.zoom);
-      context.rotate(Helper.deg2rad(this.rotation));
-      context.drawImageScaled(engine.images["shell"], -8 * game.zoom, -8 * game.zoom, 16 * game.zoom, 16 * game.zoom);
-      context.restore();
+      context
+        ..save()
+        ..translate(position.x + 8 * game.zoom, position.y + 8 * game.zoom)
+        ..rotate(Helper.deg2rad(this.rotation))
+        ..drawImageScaled(engine.images["shell"], -8 * game.zoom, -8 * game.zoom, 16 * game.zoom, 16 * game.zoom)
+        ..restore();
     }
   }
 }

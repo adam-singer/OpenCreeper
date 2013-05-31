@@ -16,7 +16,6 @@ class Ship {
   bool updateHoverState() {
     Vector position = Helper.real2screen(this.position);
     this.hovered = (engine.mouse.x > position.x && engine.mouse.x < position.x + 47 && engine.mouse.y > position.y && engine.mouse.y < position.y + 47);
-
     return this.hovered;
   }
 
@@ -41,8 +40,10 @@ class Ship {
       else
         this.angle -= turnRate;
 
-    if (this.angle > 180)this.angle -= 360;
-    if (this.angle < -180)this.angle += 360;
+    if (this.angle > 180)
+      this.angle -= 360;
+    if (this.angle < -180)
+      this.angle += 360;
   }
 
   void calculateVector() {
@@ -60,12 +61,13 @@ class Ship {
     // control if selected
     if (this.selected) {
       game.mode = "SHIP_SELECTED";
+      // return home
       if (position.x - 1 == this.home.position.x && position.y - 1 == this.home.position.y) {
         this.targetPosition.x = (position.x - 1) * game.tileSize;
         this.targetPosition.y = (position.y - 1) * game.tileSize;
         this.status = 2;
       } else {
-        // take energy from base
+        // leave home
         this.energy = this.home.energy;
         this.home.energy = 0;
         this.targetPosition.x = position.x * game.tileSize;
@@ -141,40 +143,45 @@ class Ship {
     Vector position = Helper.real2screen(this.position);
 
     if (this.hovered) {
-      context.strokeStyle = "#f00";
-      context.beginPath();
-      context.arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, PI * 2, true);
-      context.closePath();
-      context.stroke();
+      context
+        ..strokeStyle = "#f00"
+        ..beginPath()
+        ..arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, PI * 2, true)
+        ..closePath()
+        ..stroke();
     }
 
     if (this.selected) {
-      context.strokeStyle = "#fff";
-      context.beginPath();
-      context.arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, PI * 2, true);
-      context.closePath();
-      context.stroke();
+      context
+        ..strokeStyle = "#fff"
+        ..beginPath()
+        ..arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, PI * 2, true)
+        ..closePath()
+        ..stroke();
 
       if (this.status == 1) {
         Vector cursorPosition = Helper.real2screen(this.targetPosition);
-        context.save();
-        context.globalAlpha = .5;
-        context.drawImageScaled(engine.images["targetcursor"], cursorPosition.x - game.tileSize * game.zoom, cursorPosition.y - game.tileSize * game.zoom, 48 * game.zoom, 48 * game.zoom);
-        context.restore();
+        context
+          ..save()
+          ..globalAlpha = .5
+          ..drawImageScaled(engine.images["targetcursor"], cursorPosition.x - game.tileSize * game.zoom, cursorPosition.y - game.tileSize * game.zoom, 48 * game.zoom, 48 * game.zoom)
+          ..restore();
       }
     }
 
     if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
       // draw ship
-      context.save();
-      context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);
-      context.rotate(Helper.deg2rad(this.angle + 90));
-      context.drawImageScaled(engine.images[this.imageID], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
-      context.restore();
+      context
+        ..save()
+        ..translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom)
+        ..rotate(Helper.deg2rad(this.angle + 90))
+        ..drawImageScaled(engine.images[this.imageID], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom)
+        ..restore();
 
       // draw energy bar
-      context.fillStyle = '#f00';
-      context.fillRect(position.x + 2, position.y + 1, (44 * game.zoom / this.maxEnergy) * this.energy, 3);
+      context
+        ..fillStyle = '#f00'
+        ..fillRect(position.x + 2, position.y + 1, (44 * game.zoom / this.maxEnergy) * this.energy, 3);
     }
   }
 }

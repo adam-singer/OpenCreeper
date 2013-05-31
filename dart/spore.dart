@@ -29,7 +29,8 @@ class Spore {
       game.smokes.add(new Smoke(this.getCenter()));
     }
     this.rotation += 10;
-    if (this.rotation > 359)this.rotation -= 359;
+    if (this.rotation > 359)
+      this.rotation -= 359;
 
     this.position += this.speed;
 
@@ -57,11 +58,12 @@ class Spore {
     Vector position = Helper.real2screen(this.position);
 
     if (engine.isVisible(position, new Vector(32 * game.zoom, 32 * game.zoom))) {
-      context.save();
-      context.translate(position.x, position.y);
-      context.rotate(Helper.deg2rad(this.rotation));
-      context.drawImageScaled(engine.images[this.imageID], -16 * game.zoom, -16 * game.zoom, 32 * game.zoom, 32 * game.zoom);
-      context.restore();
+      context
+        ..save()
+        ..translate(position.x, position.y)
+        ..rotate(Helper.deg2rad(this.rotation))
+        ..drawImageScaled(engine.images[this.imageID], -16 * game.zoom, -16 * game.zoom, 32 * game.zoom, 32 * game.zoom)
+        ..restore();
     }
   }
 }
