@@ -42,14 +42,15 @@ class UISymbol {
     if (this.imageID == "bomber")
       context.drawImageScaled(engine.images["bombership"], this.position.x + 24, this.position.y + 20, 32, 32);
     
-    context.fillStyle = '#fff';
-    context.font = '10px';
-    context.textAlign = 'center';
-    context.fillText(this.imageID.substring(0, 1).toUpperCase() + this.imageID.substring(1), this.position.x + (this.width / 2), this.position.y + 15);
-    context.textAlign = 'left';
-    context.fillText("(" + this.key.toString() + ")", this.position.x + 5, this.position.y + 50);
-    context.textAlign = 'right';
-    context.fillText(this.packets.toString(), this.position.x + this.width - 5, this.position.y + 50);
+    context
+      ..fillStyle = '#fff'
+      ..font = '10px'
+      ..textAlign = 'center'
+      ..fillText(this.imageID.substring(0, 1).toUpperCase() + this.imageID.substring(1), this.position.x + (this.width / 2), this.position.y + 15)
+      ..textAlign = 'left'
+      ..fillText("(" + this.key.toString() + ")", this.position.x + 5, this.position.y + 50)
+      ..textAlign = 'right'
+      ..fillText(this.packets.toString(), this.position.x + this.width - 5, this.position.y + 50);
   }
 
 }
