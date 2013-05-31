@@ -152,7 +152,7 @@ class Engine {
     if (position != null) {
       Vector screenCenter = new Vector((this.halfWidth / (game.tileSize * game.zoom)).floor() + game.scroll.x, (this.halfHeight / (game.tileSize * game.zoom)).floor() + game.scroll.y);
       num distance = Helper.distance(screenCenter, position);
-      volume = (game.zoom / Math.pow(distance / 20, 2)).clamp(0, 1);
+      volume = (game.zoom / pow(distance / 20, 2)).clamp(0, 1);
     }
 
     for (int i = 0; i < 5; i++) {

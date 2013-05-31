@@ -755,9 +755,9 @@ class Game {
             for (int i = 0; i < this.emitters.length; i++) {
               Vector emitterCenter = this.emitters[i].getCenter();
               
-              num distance = Math.pow(emitterCenter.x - center.x, 2) + Math.pow(emitterCenter.y - center.y, 2);
+              num distance = pow(emitterCenter.x - center.x, 2) + pow(emitterCenter.y - center.y, 2);
 
-              if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
+              if (distance <= pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
                 if (this.emitters[i].building == null) {
                   this.emitters[i].building = this.buildings[t];
                   this.buildings[t].weaponTargetPosition = this.emitters[i].position;
@@ -788,10 +788,10 @@ class Game {
               for (int j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
 
                 if (this.withinWorld(i, j)) {
-                  var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
+                  var distance = pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
                   var tileHeight = this.getHighestTerrain(new Vector(i, j));
 
-                  if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.terraform[i][j]["target"] > -1 && tileHeight <= lowestTile) {
+                  if (distance <= pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.terraform[i][j]["target"] > -1 && tileHeight <= lowestTile) {
                     lowestTile = tileHeight;
                     target = new Vector(i, j);
                   }
@@ -872,9 +872,9 @@ class Game {
                   if (this.withinWorld(i, j)) {
                     int tileHeight = this.getHighestTerrain(new Vector(i, j));
                     if (tileHeight <= height) {
-                      var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
+                      var distance = pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
 
-                      if (distance <= Math.pow(radius, 2) && this.world.tiles[i][j][0].creep > 0) {
+                      if (distance <= pow(radius, 2) && this.world.tiles[i][j][0].creep > 0) {
                         targets.add(new Vector(i, j));
                       }
                     }
@@ -890,7 +890,7 @@ class Game {
 
                 var dx = targets[0].x * this.tileSize + this.tileSize / 2 - center.x;
                 var dy = targets[0].y * this.tileSize + this.tileSize / 2 - center.y;
-                this.buildings[t].targetAngle = Math.atan2(dy, dx) + Math.PI / 2;
+                this.buildings[t].targetAngle = atan2(dy, dx) + PI / 2;
                 this.buildings[t].weaponTargetPosition = new Vector(targets[0].x, targets[0].y);
                 this.buildings[t].energy -= 1;
                 this.buildings[t].operating = true;
@@ -910,9 +910,9 @@ class Game {
               for (int i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
                 for (int j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
                   if (game.withinWorld(i, j)) {
-                    var distance = Math.pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + Math.pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
+                    var distance = pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
   
-                    if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][0].creep > 0 && this.world.tiles[i][j][0].creep >= highestCreep) {
+                    if (distance <= pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][0].creep > 0 && this.world.tiles[i][j][0].creep >= highestCreep) {
                       highestCreep = this.world.tiles[i][j][0].creep;
                       target = new Vector(i, j);
                     }
@@ -934,9 +934,9 @@ class Game {
                 // find spore in range
                 for (int i = 0; i < this.spores.length; i++) {
                   Vector sporeCenter = this.spores[i].getCenter();
-                  var distance = Math.pow(sporeCenter.x - center.x, 2) + Math.pow(sporeCenter.y - center.y, 2);
+                  var distance = pow(sporeCenter.x - center.x, 2) + pow(sporeCenter.y - center.y, 2);
 
-                  if (distance <= Math.pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
+                  if (distance <= pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
                     this.buildings[t].weaponTargetPosition = sporeCenter;
                     this.buildings[t].energy -= .1;
                     this.buildings[t].operating = true;
@@ -972,14 +972,14 @@ class Game {
           int tileHeight = this.getHighestTerrain(positionCurrent);
 
           if (action == "add") {
-            if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
+            if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(this.tileSize * 6, 2)) {
               if (tileHeight == height) {
                 this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = building;
               }
             }
           } else if (action == "remove") {
 
-            if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
+            if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(this.tileSize * 6, 2)) {
               if (tileHeight == height) {
                 this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = null;
               }
@@ -989,7 +989,7 @@ class Game {
               if (this.buildings[k] != building && this.buildings[k].imageID == "collector") {
                 int heightK = this.getHighestTerrain(new Vector(this.buildings[k].position.x, this.buildings[k].position.y));
                 Vector centerBuildingK = this.buildings[k].getCenter();
-                if (Math.pow(positionCurrentCenter.x - centerBuildingK.x, 2) + Math.pow(positionCurrentCenter.y - centerBuildingK.y, 2) < Math.pow(this.tileSize * 6, 2)) {
+                if (pow(positionCurrentCenter.x - centerBuildingK.x, 2) + pow(positionCurrentCenter.y - centerBuildingK.y, 2) < pow(this.tileSize * 6, 2)) {
                   if (tileHeight == heightK) {
                     this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = this.buildings[k];
                   }
@@ -1491,7 +1491,7 @@ class Game {
                 Vector positionCurrentCenter = new Vector(positionCurrent.x * this.tileSize + (this.tileSize / 2), positionCurrent.y * this.tileSize + (this.tileSize / 2));
                 int tileHeight = this.getHighestTerrain(positionCurrent);
                 
-                if (Math.pow(positionCurrentCenter.x - centerBuilding.x, 2) + Math.pow(positionCurrentCenter.y - centerBuilding.y, 2) < Math.pow(this.tileSize * 6, 2)) {
+                if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(this.tileSize * 6, 2)) {
                   if (tileHeight == height) {
                     if (this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector == this.buildings[k])this.buildings[k].collectedEnergy += 1;
                   }
@@ -1671,7 +1671,7 @@ class Game {
           if (this.withinWorld(positionCurrent.x, positionCurrent.y)) {
             int positionCurrentHeight = this.getHighestTerrain(positionCurrent);
 
-            if (Math.pow(positionCurrentCenter.x - positionCenter.x, 2) + Math.pow(positionCurrentCenter.y - positionCenter.y, 2) < Math.pow(radius, 2)) {
+            if (pow(positionCurrentCenter.x - positionCenter.x, 2) + pow(positionCurrentCenter.y - positionCenter.y, 2) < pow(radius, 2)) {
               if (type == "collector") {
                 if (positionCurrentHeight == positionHeight) {
                   engine.canvas["buffer"].context.fillStyle = "#fff";
@@ -1867,7 +1867,7 @@ class Game {
             allowedDistance = 20 * this.tileSize;
           }
 
-          if (Math.pow(center.x - positionScrolledCenter.x, 2) + Math.pow(center.y - positionScrolledCenter.y, 2) <= Math.pow(allowedDistance, 2)) {
+          if (pow(center.x - positionScrolledCenter.x, 2) + pow(center.y - positionScrolledCenter.y, 2) <= pow(allowedDistance, 2)) {
             Vector lineToTarget = Helper.real2screen(positionScrolledCenter);
             engine.canvas["buffer"].context.strokeStyle = '#000';
             engine.canvas["buffer"].context.lineWidth = 2;
@@ -1895,7 +1895,7 @@ class Game {
               allowedDistance = 20 * this.tileSize;
             }
 
-            if (Math.pow(center.x - positionScrolledCenter.x, 2) + Math.pow(center.y - positionScrolledCenter.y, 2) <= Math.pow(allowedDistance, 2)) {
+            if (pow(center.x - positionScrolledCenter.x, 2) + pow(center.y - positionScrolledCenter.y, 2) <= pow(allowedDistance, 2)) {
               Vector lineToTarget = Helper.real2screen(positionScrolledCenter);
               engine.canvas["buffer"].context.strokeStyle = '#000';
               engine.canvas["buffer"].context.lineWidth = 2;

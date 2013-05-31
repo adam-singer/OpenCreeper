@@ -43,8 +43,8 @@ class Shell {
       for (int i = (this.targetPosition.x / game.tileSize).floor() - 4; i < (this.targetPosition.x / game.tileSize).floor() + 5; i++) {
         for (int j = (this.targetPosition.y / game.tileSize).floor() - 4; j < (this.targetPosition.y / game.tileSize).floor() + 5; j++) {
           if (game.withinWorld(i, j)) {
-            num distance = Math.pow((i * game.tileSize + game.tileSize / 2) - this.targetPosition.x, 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - this.targetPosition.y, 2);
-            if (distance < Math.pow(game.tileSize * 4, 2)) {
+            num distance = pow((i * game.tileSize + game.tileSize / 2) - this.targetPosition.x, 2) + pow((j * game.tileSize + game.tileSize / 2) - this.targetPosition.y, 2);
+            if (distance < pow(game.tileSize * 4, 2)) {
               game.world.tiles[i][j][0].creep -= 10;
               if (game.world.tiles[i][j][0].creep < 0) {
                 game.world.tiles[i][j][0].creep = 0;

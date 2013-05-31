@@ -10,7 +10,7 @@ class Helper {
   }
   
   static num distance(Vector a, Vector b) {
-    return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+    return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
   }
   
   // converts tile coordinates to canvas coordinates
@@ -43,7 +43,7 @@ class Helper {
   }
   
   static int randomInt(num from, num to) {
-    var random = new Math.Random();
+    var random = new Random();
     return (random.nextInt(to - from + 1) + from);
   }
   

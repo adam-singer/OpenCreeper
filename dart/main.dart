@@ -9,7 +9,7 @@
 library creeper;
 
 import 'dart:html';
-import 'dart:math' as Math;
+import 'dart:math';
 import 'dart:async';
 
 part 'classes.dart';
@@ -116,7 +116,7 @@ void draw(num _) {
             allowedDistance = 20 * game.tileSize;
           }
 
-          if (Math.pow(centerJ.x - centerI.x, 2) + Math.pow(centerJ.y - centerI.y, 2) <= Math.pow(allowedDistance, 2)) {
+          if (pow(centerJ.x - centerI.x, 2) + pow(centerJ.y - centerI.y, 2) <= pow(allowedDistance, 2)) {
             engine.canvas["buffer"].context.strokeStyle = '#000';
             engine.canvas["buffer"].context.lineWidth = 3;
             engine.canvas["buffer"].context.beginPath();

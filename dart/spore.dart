@@ -42,8 +42,8 @@ class Spore {
       for (int i = (this.targetPosition.x / game.tileSize).floor() - 2; i < (this.targetPosition.x / game.tileSize).floor() + 2; i++) {
         for (int j = (this.targetPosition.y / game.tileSize).floor() - 2; j < (this.targetPosition.y / game.tileSize).floor() + 2; j++) {
           if (game.withinWorld(i, j)) {
-            num distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.targetPosition.x + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.targetPosition.y + game.tileSize), 2);
-            if (distance < Math.pow(game.tileSize, 2)) {
+            num distance = pow((i * game.tileSize + game.tileSize / 2) - (this.targetPosition.x + game.tileSize), 2) + pow((j * game.tileSize + game.tileSize / 2) - (this.targetPosition.y + game.tileSize), 2);
+            if (distance < pow(game.tileSize, 2)) {
               game.world.tiles[i][j][0].creep += .05;
             }
           }

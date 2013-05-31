@@ -22,7 +22,7 @@ class Ship {
 
   void turnToTarget() {
     Vector delta = new Vector(this.targetPosition.x - this.position.x, this.targetPosition.y - this.position.y);
-    int angleToTarget = Helper.rad2deg(Math.atan2(delta.y, delta.x));
+    int angleToTarget = Helper.rad2deg(atan2(delta.y, delta.x));
 
     num turnRate = 1.5;
     num absoluteDelta = (angleToTarget - this.angle).abs();
@@ -46,8 +46,8 @@ class Ship {
   }
 
   void calculateVector() {
-    num x = Math.cos(Helper.deg2rad(this.angle));
-    num y = Math.sin(Helper.deg2rad(this.angle));
+    num x = cos(Helper.deg2rad(this.angle));
+    num y = sin(Helper.deg2rad(this.angle));
 
     this.speed.x = x * game.shipSpeed * game.speed;
     this.speed.y = y * game.shipSpeed * game.speed;
@@ -105,8 +105,8 @@ class Ship {
               for (int j = (this.targetPosition.y / game.tileSize).floor() - 3; j < (this.targetPosition.y / game.tileSize).floor() + 5; j++)
                 if (game.withinWorld(i, j)) {
                   {
-                    num distance = Math.pow((i * game.tileSize + game.tileSize / 2) - (this.targetPosition.x + game.tileSize), 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - (this.targetPosition.y + game.tileSize), 2);
-                    if (distance < Math.pow(game.tileSize * 3, 2)) {
+                    num distance = pow((i * game.tileSize + game.tileSize / 2) - (this.targetPosition.x + game.tileSize), 2) + pow((j * game.tileSize + game.tileSize / 2) - (this.targetPosition.y + game.tileSize), 2);
+                    if (distance < pow(game.tileSize * 3, 2)) {
                       game.world.tiles[i][j][0].creep -= 5;
                       if (game.world.tiles[i][j][0].creep < 0) {
                         game.world.tiles[i][j][0].creep = 0;
@@ -142,7 +142,7 @@ class Ship {
     if (this.hovered) {
       engine.canvas["buffer"].context.strokeStyle = "#f00";
       engine.canvas["buffer"].context.beginPath();
-      engine.canvas["buffer"].context.arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, Math.PI * 2, true);
+      engine.canvas["buffer"].context.arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, PI * 2, true);
       engine.canvas["buffer"].context.closePath();
       engine.canvas["buffer"].context.stroke();
     }
@@ -150,7 +150,7 @@ class Ship {
     if (this.selected) {
       engine.canvas["buffer"].context.strokeStyle = "#fff";
       engine.canvas["buffer"].context.beginPath();
-      engine.canvas["buffer"].context.arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, Math.PI * 2, true);
+      engine.canvas["buffer"].context.arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, PI * 2, true);
       engine.canvas["buffer"].context.closePath();
       engine.canvas["buffer"].context.stroke();
 

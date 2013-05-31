@@ -119,8 +119,8 @@ class Building {
       for (int i = this.position.x - 9; i < this.position.x + 10; i++) {
         for (int j = this.position.y - 9; j < this.position.y + 10; j++) {
           if (game.withinWorld(i, j)) {
-            num distance = Math.pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + Math.pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
-            if (distance < Math.pow(game.tileSize * 10, 2)) {
+            num distance = pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
+            if (distance < pow(game.tileSize * 10, 2)) {
               if (game.world.tiles[i][j][0].creep > 0) {
                 game.world.tiles[i][j][0].creep -= distance / game.tileSize * .1; // the closer to the shield the more creep is removed
                 if (game.world.tiles[i][j][0].creep < 0) {
@@ -177,7 +177,7 @@ class Building {
         engine.canvas["buffer"].context.lineWidth = 2;
 
         engine.canvas["buffer"].context.beginPath();
-        engine.canvas["buffer"].context.arc(center.x, center.y, (game.tileSize / 2) * this.size, 0, Math.PI * 2, true);
+        engine.canvas["buffer"].context.arc(center.x, center.y, (game.tileSize / 2) * this.size, 0, PI * 2, true);
         engine.canvas["buffer"].context.closePath();
         engine.canvas["buffer"].context.stroke();
 

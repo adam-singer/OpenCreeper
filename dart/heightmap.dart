@@ -17,7 +17,7 @@ class HeightMap {
   }
 
   reset() {
-      var random = new Math.Random();
+      var random = new Random();
       var x, y,
           _this = this;
       
@@ -102,7 +102,7 @@ class HeightMap {
   }
 
   diamond_square(left, top, right, bottom, base_height) {
-    var random = new Math.Random();
+    var random = new Random();
     
       var centre_point_value, x_centre, y_centre,
           _this = this;
@@ -119,7 +119,7 @@ class HeightMap {
       this.soft_set_cell(right, y_centre, ((this.get_cell(right, top) + this.get_cell(right, bottom)) / 2 + ((random.nextDouble() - 0.5) * base_height)).floor());
       
       if ((right - left) > 2) {
-          base_height = (base_height * Math.pow(2.0, -0.75)).floor();
+          base_height = (base_height * pow(2.0, -0.75)).floor();
           this.push(() {
               return _this.diamond_square(left, top, x_centre, y_centre, base_height);
           });
