@@ -48,6 +48,8 @@ class Game {
     this.packetQueue = [];
     this.reset();
     this.setupUI();
+    //engine.sounds["music"].loop = true;
+    //engine.sounds["music"].play();
   }
 
   void reset() {
@@ -153,7 +155,7 @@ class Game {
 
   void run() {
     this.running = new Timer.periodic(new Duration(milliseconds: (1000 / this.speed / engine.FPS).floor()), (Timer timer) => updates());
-    engine.animationRequest = window.requestAnimationFrame(draw);
+    engine.animationRequest = window.requestAnimationFrame(this.draw);
   }
 
   void restart() {
@@ -308,7 +310,7 @@ class Game {
     building.built = true;
     building.size = 9;
     this.buildings.add(building);
-    game.base = building;
+    this.base = building;
 
     int height = this.getHighestTerrain(new Vector(building.position.x + 4, building.position.y + 4));
     if (height < 0)height = 0;
@@ -909,7 +911,7 @@ class Game {
               var highestCreep = 0;
               for (int i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
                 for (int j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
-                  if (game.withinWorld(i, j)) {
+                  if (this.withinWorld(i, j)) {
                     var distance = pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
   
                     if (distance <= pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][0].creep > 0 && this.world.tiles[i][j][0].creep >= highestCreep) {
@@ -1338,10 +1340,10 @@ class Game {
 
   void queuePacket(Building building, String type) {
     String img = "packet_" + type;
-    Vector center = game.base.getCenter();
+    Vector center = this.base.getCenter();
     Packet packet = new Packet(center, img, type);
     packet.target = building;
-    packet.currentTarget = game.base;
+    packet.currentTarget = this.base;
     this.findRoute(packet);
     if (packet.currentTarget != null) {
       if (packet.type == "health")packet.target.healthRequests++;
@@ -1509,7 +1511,7 @@ class Game {
         String img = "packet_collection";
         Vector center = this.buildings[i].getCenter();
         Packet packet = new Packet(center, img, "collection");
-        packet.target = game.base;
+        packet.target = this.base;
         packet.currentTarget = this.buildings[i];
         this.findRoute(packet);
         if (packet.currentTarget != null)this.packets.add(packet);
@@ -1777,7 +1779,7 @@ class Game {
             //}
 
             int index = (8 * down) + (4 * left) + (2 * up) + right;
-            engine.canvas["creeper"].context.drawImageScaledFromSource(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, engine.halfWidth + i * this.tileSize * game.zoom, engine.halfHeight + j * this.tileSize * game.zoom, this.tileSize * game.zoom, this.tileSize * game.zoom);
+            engine.canvas["creeper"].context.drawImageScaledFromSource(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, engine.halfWidth + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
           }
 
         // creep value
@@ -1798,7 +1800,7 @@ class Game {
      */
 
   void drawPositionInfo() {
-    game.ghosts = new List(); // ghosts are all the placeholders to build
+    this.ghosts = new List(); // ghosts are all the placeholders to build
     if (engine.mouse.dragStart != null) {
 
       Vector start = engine.mouse.dragStart;
@@ -1807,7 +1809,7 @@ class Game {
       num distance = Helper.distance(start, end);
       num times = (distance / 10).floor() + 1;
 
-      game.ghosts.add(start);
+      this.ghosts.add(start);
 
       for (int i = 1; i < times; i++) {
         num newX = (start.x + (delta.x / distance) * i * 10).floor();
@@ -1815,23 +1817,23 @@ class Game {
 
         if (this.withinWorld(newX, newY)) {
           Vector ghost = new Vector(newX, newY);
-          game.ghosts.add(ghost);
+          this.ghosts.add(ghost);
         }
       }
       if (this.withinWorld(end.x, end.y)) {
-        game.ghosts.add(end);
+        this.ghosts.add(end);
       }
     } else {
       if (engine.mouse.active) {
         Vector position = this.getHoveredTilePosition();
         if (this.withinWorld(position.x, position.y)) {
-          game.ghosts.add(position);
+          this.ghosts.add(position);
         }
       }
     }
 
-    for (int j = 0; j < game.ghosts.length; j++) {
-      Vector positionScrolled = new Vector(game.ghosts[j].x, game.ghosts[j].y); //this.getHoveredTilePosition();
+    for (int j = 0; j < this.ghosts.length; j++) {
+      Vector positionScrolled = new Vector(this.ghosts[j].x, this.ghosts[j].y); //this.getHoveredTilePosition();
       Vector drawPosition = Helper.tiled2screen(positionScrolled);
       Vector positionScrolledCenter = new Vector(positionScrolled.x * this.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size, positionScrolled.y * this.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size);
 
@@ -1885,9 +1887,9 @@ class Game {
           }
         }
         // draw lines to other ghosts
-        for (int k = 0; k < game.ghosts.length; k++) {
+        for (int k = 0; k < this.ghosts.length; k++) {
           if (k != j) {
-            Vector center = new Vector(game.ghosts[k].x * game.tileSize + (game.tileSize / 2) * 3, game.ghosts[k].y * game.tileSize + (game.tileSize / 2) * 3);
+            Vector center = new Vector(this.ghosts[k].x * this.tileSize + (this.tileSize / 2) * 3, this.ghosts[k].y * this.tileSize + (this.tileSize / 2) * 3);
             Vector drawCenter = Helper.real2screen(center);
 
             int allowedDistance = 10 * this.tileSize;
@@ -1934,7 +1936,7 @@ class Game {
      */
 
   void drawGUI() {
-    Vector position = game.getHoveredTilePosition();
+    Vector position = this.getHoveredTilePosition();
 
     engine.canvas["gui"].clear();
     for (int i = 0; i < this.symbols.length; i++) {
@@ -1966,5 +1968,173 @@ class Game {
       engine.canvas["gui"].context.textAlign = 'left';
       engine.canvas["gui"].context.fillText(total.toStringAsFixed(2), 605, 10);
     }
+  }
+  
+  void draw(num _) {
+    this.drawGUI();
+
+    // clear canvas
+    engine.canvas["buffer"].clear();
+    engine.canvas["main"].clear();
+
+    // draw terraform numbers
+    int timesX = (engine.halfWidth / this.tileSize / this.zoom).floor();
+    int timesY = (engine.halfHeight / this.tileSize / this.zoom).floor();
+
+    for (int i = -timesX; i <= timesX; i++) {
+      for (int j = -timesY; j <= timesY; j++) {
+
+        int iS = i + this.scroll.x;
+        int jS = j + this.scroll.y;
+
+        if (this.withinWorld(iS, jS)) {
+          if (this.world.terraform[iS][jS]["target"] > -1) {
+            engine.canvas["buffer"].context.drawImageScaledFromSource(engine.images["numbers"], this.world.terraform[iS][jS]["target"] * 16, 0, this.tileSize, this.tileSize, engine.halfWidth + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+          }
+        }
+      }
+    }
+
+    // draw emitters
+    for (int i = 0; i < this.emitters.length; i++) {
+      this.emitters[i].draw();
+    }
+
+    // draw spore towers
+    for (int i = 0; i < this.sporetowers.length; i++) {
+      this.sporetowers[i].draw();
+    }
+
+    // draw node connections
+    for (int i = 0; i < this.buildings.length; i++) {
+      Vector centerI = this.buildings[i].getCenter();
+      Vector drawCenterI = Helper.real2screen(centerI);
+      for (int j = 0; j < this.buildings.length; j++) {
+        if (i != j) {
+          if (!this.buildings[i].moving && !this.buildings[j].moving) {
+            Vector centerJ = this.buildings[j].getCenter();
+            Vector drawCenterJ = Helper.real2screen(centerJ);
+
+            num allowedDistance = 10 * this.tileSize;
+            if (this.buildings[i].imageID == "relay" && this.buildings[j].imageID == "relay") {
+              allowedDistance = 20 * this.tileSize;
+            }
+
+            if (pow(centerJ.x - centerI.x, 2) + pow(centerJ.y - centerI.y, 2) <= pow(allowedDistance, 2)) {
+              engine.canvas["buffer"].context.strokeStyle = '#000';
+              engine.canvas["buffer"].context.lineWidth = 3;
+              engine.canvas["buffer"].context.beginPath();
+              engine.canvas["buffer"].context.moveTo(drawCenterI.x, drawCenterI.y);
+              engine.canvas["buffer"].context.lineTo(drawCenterJ.x, drawCenterJ.y);
+              engine.canvas["buffer"].context.stroke();
+
+              engine.canvas["buffer"].context.strokeStyle = '#fff';
+              if (!this.buildings[i].built || !this.buildings[j].built)engine.canvas["buffer"].context.strokeStyle = '#777';
+              engine.canvas["buffer"].context.lineWidth = 2;
+              engine.canvas["buffer"].context.beginPath();
+              engine.canvas["buffer"].context.moveTo(drawCenterI.x, drawCenterI.y);
+              engine.canvas["buffer"].context.lineTo(drawCenterJ.x, drawCenterJ.y);
+              engine.canvas["buffer"].context.stroke();
+            }
+          }
+        }
+      }
+    }
+
+    // draw movement indicators
+    for (int i = 0; i < this.buildings.length; i++) {
+      this.buildings[i].drawMovementIndicators();
+    }
+
+    // draw buildings
+    for (int i = 0; i < this.buildings.length; i++) {
+      this.buildings[i].draw();
+    }
+
+    // draw shells
+    for (int i = 0; i < this.shells.length; i++) {
+      this.shells[i].draw();
+    }
+
+    // draw smokes
+    for (int i = 0; i < this.smokes.length; i++) {
+      this.smokes[i].draw();
+    }
+
+    // draw explosions
+    for (int i = 0; i < this.explosions.length; i++) {
+      this.explosions[i].draw();
+    }
+
+    // draw spores
+    for (int i = 0; i < this.spores.length; i++) {
+      this.spores[i].draw();
+    }
+
+    if (engine.mouse.active) {
+
+      // if a building is built and selected draw a green box and a line at mouse position as the reposition target
+      for (int i = 0; i < this.buildings.length; i++) {
+        this.buildings[i].drawRepositionInfo();
+      }
+
+      // draw attack symbol
+      this.drawAttackSymbol();
+
+      if (this.activeSymbol != -1) {
+        this.drawPositionInfo();
+      }
+
+      if (this.mode == "TERRAFORM") {
+        Vector positionScrolled = this.getHoveredTilePosition();
+        Vector drawPosition = Helper.tiled2screen(positionScrolled);
+        engine.canvas["buffer"].context.drawImageScaledFromSource(engine.images["numbers"], this.terraformingHeight * this.tileSize, 0, this.tileSize, this.tileSize, drawPosition.x, drawPosition.y, this.tileSize * this.zoom, this.tileSize * this.zoom);
+
+        engine.canvas["buffer"].context.strokeStyle = '#fff';
+        engine.canvas["buffer"].context.lineWidth = 1;
+
+        engine.canvas["buffer"].context.beginPath();
+        engine.canvas["buffer"].context.moveTo(0, drawPosition.y);
+        engine.canvas["buffer"].context.lineTo(engine.width, drawPosition.y);
+        engine.canvas["buffer"].context.stroke();
+
+        engine.canvas["buffer"].context.beginPath();
+        engine.canvas["buffer"].context.moveTo(0, drawPosition.y + this.tileSize * this.zoom);
+        engine.canvas["buffer"].context.lineTo(engine.width, drawPosition.y + this.tileSize * this.zoom);
+        engine.canvas["buffer"].context.stroke();
+
+        engine.canvas["buffer"].context.beginPath();
+        engine.canvas["buffer"].context.moveTo(drawPosition.x, 0);
+        engine.canvas["buffer"].context.lineTo(drawPosition.x, engine.halfHeight * 2);
+        engine.canvas["buffer"].context.stroke();
+
+        engine.canvas["buffer"].context.beginPath();
+        engine.canvas["buffer"].context.moveTo(drawPosition.x + this.tileSize * this.zoom, 0);
+        engine.canvas["buffer"].context.lineTo(drawPosition.x + this.tileSize * this.zoom, engine.halfHeight * 2);
+        engine.canvas["buffer"].context.stroke();
+
+        engine.canvas["buffer"].context.stroke();
+
+      }
+    }
+
+    // draw packets
+    for (int i = 0; i < this.packets.length; i++) {
+      this.packets[i].draw();
+    }
+
+    // draw ships
+    for (int i = 0; i < this.ships.length; i++) {
+      this.ships[i].draw();
+    }
+
+    // draw building hover/selection box
+    for (int i = 0; i < this.buildings.length; i++) {
+      this.buildings[i].drawBox();
+    }
+
+    engine.canvas["main"].context.drawImage(engine.canvas["buffer"].element, 0, 0);
+
+    window.requestAnimationFrame(this.draw);
   }
 }
