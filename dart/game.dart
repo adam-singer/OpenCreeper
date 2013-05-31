@@ -32,7 +32,9 @@ class Game {
   };
   Stopwatch stopwatch = new Stopwatch();
 
-  Game();
+  Game() {
+    this.init();
+  }
 
   void init() {
     this.buildings = [];
@@ -56,7 +58,7 @@ class Game {
     this.stopwatch.reset();
     this.stopwatch.start();
     var oneSecond = new Duration(seconds:1);
-    new Timer.periodic(oneSecond, updateTime);
+    new Timer.periodic(oneSecond, this.updateTime);
     query('#lose').style.display = 'none';
     query('#win').style.display = 'none';
 
@@ -98,6 +100,17 @@ class Game {
     this.updateCollectionElement();
     this.clearSymbols();
     this.createWorld();
+  }
+  
+  void updateTime(Timer _) {
+    var s = game.stopwatch.elapsedMilliseconds~/1000;
+    var m = 0;
+    
+    if (s >= 60) { m = s ~/ 60; s = s % 60; }
+    
+    String minute = (m <= 9) ? '0$m' : '$m';
+    String second = (s <= 9) ? '0$s' : '$s';
+    query('#time').innerHtml = 'Time: $minute:$second';
   }
 
   /**
@@ -154,8 +167,13 @@ class Game {
   }
 
   void run() {
-    this.running = new Timer.periodic(new Duration(milliseconds: (1000 / this.speed / engine.FPS).floor()), (Timer timer) => updates());
+    this.running = new Timer.periodic(new Duration(milliseconds: (1000 / this.speed / engine.FPS).floor()), (Timer timer) => this.updateAll());
     engine.animationRequest = window.requestAnimationFrame(this.draw);
+  }
+  
+  void updateAll() {
+    //engine.update();
+    game.update();
   }
 
   void restart() {

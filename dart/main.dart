@@ -30,29 +30,11 @@ Game game;
 
 void main() {
   engine = new Engine();
-  engine.init();
   engine.loadImages(() {
     game = new Game();
-    game.init();
     game.drawTerrain();
     game.copyTerrain();
     game.stop();
     game.run();
   });
-}
-
-void updates() {
-  //engine.update();
-  game.update();
-}
-
-void updateTime(Timer _) {
-  var s = game.stopwatch.elapsedMilliseconds~/1000;
-  var m = 0;
-  
-  if (s >= 60) { m = s ~/ 60; s = s % 60; }
-    
-  String minute = (m <= 9) ? '0$m' : '$m';
-  String second = (s <= 9) ? '0$s' : '$s';
-  query('#time').innerHtml = 'Time: $minute:$second';
 }

@@ -20,6 +20,7 @@ class Engine {
     this.canvas = new Map();
     this.sounds = new Map();
     this.images = new Map();
+    this.init();
   }
 
   /**
@@ -35,38 +36,38 @@ class Engine {
     this.halfHeight = (height / 2).floor();
 
     // main
-    engine.canvas["main"] = new Canvas(new CanvasElement(), width, height);
-    query('#canvasContainer').children.add(engine.canvas["main"].element);
-    engine.canvas["main"].top = engine.canvas["main"].element.offsetTop;
-    engine.canvas["main"].left = engine.canvas["main"].element.offsetLeft;
-    engine.canvas["main"].right = engine.canvas["main"].element.offset.right;
-    engine.canvas["main"].bottom = engine.canvas["main"].element.offset.bottom;
-    engine.canvas["main"].element.style.zIndex = "1";
+    this.canvas["main"] = new Canvas(new CanvasElement(), width, height);
+    query('#canvasContainer').children.add(this.canvas["main"].element);
+    this.canvas["main"].top = this.canvas["main"].element.offsetTop;
+    this.canvas["main"].left = this.canvas["main"].element.offsetLeft;
+    this.canvas["main"].right = this.canvas["main"].element.offset.right;
+    this.canvas["main"].bottom = this.canvas["main"].element.offset.bottom;
+    this.canvas["main"].element.style.zIndex = "1";
 
     // buffer
-    engine.canvas["buffer"] = new Canvas(new CanvasElement(), width, height);
+    this.canvas["buffer"] = new Canvas(new CanvasElement(), width, height);
 
     // gui
-    engine.canvas["gui"] = new Canvas(new CanvasElement(), 780, 110);
-    query('#gui').children.add(engine.canvas["gui"].element);
-    engine.canvas["gui"].top = engine.canvas["gui"].element.offsetTop;
-    engine.canvas["gui"].left = engine.canvas["gui"].element.offsetLeft;
+    this.canvas["gui"] = new Canvas(new CanvasElement(), 780, 110);
+    query('#gui').children.add(this.canvas["gui"].element);
+    this.canvas["gui"].top = this.canvas["gui"].element.offsetTop;
+    this.canvas["gui"].left = this.canvas["gui"].element.offsetLeft;
 
     for (int i = 0; i < 10; i++) {
-      engine.canvas["level$i"] = new Canvas(new CanvasElement(), 128 * 16, 128 * 16);
+      this.canvas["level$i"] = new Canvas(new CanvasElement(), 128 * 16, 128 * 16);
     }
 
-    engine.canvas["levelbuffer"] = new Canvas(new CanvasElement(), 128 * 16, 128 * 16);
-    engine.canvas["levelfinal"] = new Canvas(new CanvasElement(), width, height);
-    query('#canvasContainer').children.add(engine.canvas["levelfinal"].element);
+    this.canvas["levelbuffer"] = new Canvas(new CanvasElement(), 128 * 16, 128 * 16);
+    this.canvas["levelfinal"] = new Canvas(new CanvasElement(), width, height);
+    query('#canvasContainer').children.add(this.canvas["levelfinal"].element);
 
     // collection
-    engine.canvas["collection"] = new Canvas(new CanvasElement(), width, height);
-    query('#canvasContainer').children.add(engine.canvas["collection"].element);
+    this.canvas["collection"] = new Canvas(new CanvasElement(), width, height);
+    query('#canvasContainer').children.add(this.canvas["collection"].element);
 
     // creeper
-    engine.canvas["creeper"] = new Canvas(new CanvasElement(), width, height);
-    query('#canvasContainer').children.add(engine.canvas["creeper"].element);
+    this.canvas["creeper"] = new Canvas(new CanvasElement(), width, height);
+    query('#canvasContainer').children.add(this.canvas["creeper"].element);
 
     // load sounds
     this.addSound("shot", "wav");
@@ -91,8 +92,8 @@ class Engine {
     query('#zoomin').onClick.listen((event) => game.zoomIn());
     query('#zoomout').onClick.listen((event) => game.zoomOut());
 
-    CanvasElement mainCanvas = engine.canvas["main"].element;
-    CanvasElement guiCanvas = engine.canvas["gui"].element;
+    CanvasElement mainCanvas = this.canvas["main"].element;
+    CanvasElement guiCanvas = this.canvas["gui"].element;
     mainCanvas.onMouseMove.listen((event) => onMouseMove(event));
     mainCanvas.onDoubleClick.listen((event) => onDoubleClick(event));
     mainCanvas
