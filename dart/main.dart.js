@@ -13280,22 +13280,8 @@ UISymbol: {"": "Object;position>,imageID<,key>,width*,height*,size>,packets,radi
     this.hovered = t1;
   },
   setActive$0: function() {
-    var t1, t2, t3, truncated;
-    this.active = false;
-    t1 = $.engine.mouseGUI.x;
-    t2 = this.position.x;
-    t3 = $.getInterceptor$n(t1);
-    if (t3.$gt(t1, t2))
-      if (t3.$lt(t1, $.$add$ns(t2, this.width))) {
-        t1 = $.engine.mouseGUI.y;
-        t2 = this.position.y;
-        t3 = $.getInterceptor$n(t1);
-        t1 = t3.$gt(t1, t2) && t3.$lt(t1, $.$add$ns(t2, this.height));
-      } else
-        t1 = false;
-    else
-      t1 = false;
-    if (t1) {
+    var t1, t2, truncated, t3;
+    if (this.hovered) {
       t1 = $.game;
       t2 = Math.floor($.$div$n(this.position.x, 81));
       if (isNaN(t2))
@@ -13312,7 +13298,8 @@ UISymbol: {"": "Object;position>,imageID<,key>,width*,height*,size>,packets,radi
       truncated = t3 < 0 ? Math.ceil(t3) : Math.floor(t3);
       t1.activeSymbol = t2 + (truncated == -0.0 ? 0 : truncated) * 6;
       this.active = true;
-    }
+    } else
+      this.active = false;
   },
   draw$0: function() {
     var t1, context, t2;
