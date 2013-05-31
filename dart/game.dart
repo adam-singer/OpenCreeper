@@ -2,7 +2,7 @@ part of creeper;
 
 class World {
   List tiles;
-  Vector size = new Vector(128, 128);
+  Vector size = new Vector(Helper.randomInt(64, 127), Helper.randomInt(64, 127));
   List terraform;
 }
 
@@ -34,6 +34,8 @@ class Game {
 
   Game() {
     this.init();
+    this.drawTerrain();
+    this.copyTerrain();
   }
 
   void init() {
@@ -162,8 +164,7 @@ class Game {
   }
 
   void stop() {
-    if (this.running != null)
-      this.running.cancel();
+    this.running.cancel();
   }
 
   void run() {
@@ -654,13 +655,13 @@ class Game {
     Vector delta2 = new Vector(0, 0);
     var width = engine.width * (1 / this.zoom);
     var height = engine.height * (1 / this.zoom);
-    if (left + width > 128 * this.tileSize) {
-      delta2.x = (left + width - 128 * this.tileSize) * this.zoom;
-      width = 128 * this.tileSize - left;
+    if (left + width > this.world.size.x * this.tileSize) {
+      delta2.x = (left + width - this.world.size.x * this.tileSize) * this.zoom;
+      width = this.world.size.x * this.tileSize - left;
     }
-    if (top + height > 128 * this.tileSize) {
-      delta2.y = (top + height - 128 * this.tileSize) * this.zoom;
-      height = 128 * this.tileSize - top ;
+    if (top + height > this.world.size.y * this.tileSize) {
+      delta2.y = (top + height - this.world.size.y * this.tileSize) * this.zoom;
+      height = this.world.size.y * this.tileSize - top ;
     }
 
     engine.canvas["levelfinal"].context.drawImageScaledFromSource(engine.canvas["levelbuffer"].element, left, top, width, height, delta.x, delta.y, engine.width - delta2.x, engine.height - delta2.y);

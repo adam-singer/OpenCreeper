@@ -1,5 +1,5 @@
 /*!
- * Open Creeper v1.2.4
+ * Open Creeper v1.2.5
  * http://alexanderzeillinger.github.com/OpenCreeper/
  *
  * Copyright 2012, Alexander Zeillinger
@@ -32,9 +32,6 @@ void main() {
   engine = new Engine();
   engine.loadImages(() {
     game = new Game();
-    game.drawTerrain();
-    game.copyTerrain();
-    game.stop();
     game.run();
   });
 }
