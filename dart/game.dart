@@ -282,6 +282,7 @@ class Game {
     building.maxHealth = 40;
     building.built = true;
     building.size = 9;
+    building.canMove = true;
     this.buildings.add(building);
     this.base = building;
 
@@ -507,7 +508,7 @@ class Game {
     this.activeSymbol = -1;
     for (int i = 0; i < this.symbols.length; i++)
       this.symbols[i].active = false;
-    engine.canvas["main"].element.style.cursor = "default";
+    engine.canvas["main"].element.style.cursor = "url('images/Normal.cur') 2 2, pointer";
   }
 
   void setupUI() {

@@ -4,6 +4,7 @@ body {
     color: #fff;
     margin: 0;
     padding: 0;
+    cursor: url('../images/Normal.cur') 2 2, pointer;
 }
 
 input, select {

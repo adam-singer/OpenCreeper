@@ -43,6 +43,9 @@ http://gushh.net/blog/free-game-sprites-smoke-1/
 Explosion image credits:
 http://april-young.com/home/spritesheet-for-explosion/
 
+Cursor image credits:
+http://ozzy8031.deviantart.com/art/Polar-Cursor-Set-for-Windows-123943236
+
 Shot sound:
 http://www.freesound.org/people/nthompson/sounds/47252/
 

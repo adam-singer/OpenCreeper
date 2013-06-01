@@ -145,6 +145,8 @@ class Building {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;
     
     if (this.built && this.selected && this.canMove) {
+      engine.canvas["main"].element.style.cursor = "none";
+      
       Vector positionScrolled = game.getHoveredTilePosition();
       Vector drawPosition = Helper.tiled2screen(positionScrolled);
       Vector positionScrolledCenter = new Vector(positionScrolled.x * game.tileSize + (game.tileSize / 2) * this.size, positionScrolled.y * game.tileSize + (game.tileSize / 2) * this.size);
@@ -187,7 +189,7 @@ class Building {
         }
         context.restore();
       } else {
-        context.drawImageScaled(engine.images[this.imageID], position.x + 24 - 24 * this.scale, position.y + 24 - 24 * this.scale, engine.images[this.imageID].width * game.zoom * this.scale, engine.images[this.imageID].height * game.zoom * this.scale);
+        context.drawImageScaled(engine.images[this.imageID], position.x + this.size * 8 - this.size * 8 * this.scale, position.y + this.size * 8 - this.size * 8 * this.scale, engine.images[this.imageID].width * game.zoom * this.scale, engine.images[this.imageID].height * game.zoom * this.scale);
         if (this.imageID == "cannon") {
           context.save();
           context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);

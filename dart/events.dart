@@ -72,7 +72,7 @@ void onKeyDown(KeyboardEvent evt) {
     for (int i = 0; i < game.ships.length; i++) {
       game.ships[i].selected = false;
     }
-    engine.canvas["main"].element.style.cursor = "default";
+    engine.canvas["main"].element.style.cursor = "url('images/Normal.cur') 2 2, pointer";
   }
 
   if (evt.keyCode == KeyCode.LEFT)
@@ -239,6 +239,7 @@ void onMouseUp(MouseEvent evt) {
       if (game.buildings[i].built && game.buildings[i].selected && game.buildings[i].canMove) {
         // check if it can be placed
         if (game.canBePlaced(position, game.buildings[i].size, game.buildings[i])) {
+          engine.canvas["main"].element.style.cursor = "url('images/Normal.cur') 2 2, pointer";
           game.buildings[i].operating = false;
           game.buildings[i].weaponTargetPosition = null;
           game.buildings[i].status = "RISING";
