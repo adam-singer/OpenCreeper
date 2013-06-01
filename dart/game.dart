@@ -149,16 +149,12 @@ class Game {
   }
 
   void pause() {
-    query('#pause').style.display = 'none';
-    query('#resume').style.display = 'inline';
     query('#paused').style.display = 'block';
     this.paused = true;
     this.stopwatch.stop();
   }
 
   void resume() {
-    query('#pause').style.display = 'inline';
-    query('#resume').style.display = 'none';
     query('#paused').style.display = 'none';
     this.paused = false;
     this.stopwatch.start();
@@ -375,7 +371,7 @@ class Game {
       building.needsEnergy = true;
     }
     if (building.imageID == "bomber") {
-      building.maxHealth = 5; // 75
+      building.maxHealth = 75; // 75
       building.maxEnergy = 15;
       building.energy = 0;
       building.size = 3;
@@ -398,7 +394,7 @@ class Game {
       building.size = 3;
     }
     if (building.imageID == "cannon") {
-      building.maxHealth = 25;
+      building.maxHealth = 5; //25
       building.maxEnergy = 40;
       building.energy = 0;
       building.weaponRadius = 8;
@@ -723,7 +719,7 @@ class Game {
   void checkOperating() {
     for (int t = 0; t < this.buildings.length; t++) {
       this.buildings[t].operating = false;
-      if (this.buildings[t].needsEnergy && this.buildings[t].active && !this.buildings[t].moving) {
+      if (this.buildings[t].needsEnergy && this.buildings[t].active && this.buildings[t].status == "IDLE") {
 
         this.buildings[t].energyTimer++;
         Vector position = this.buildings[t].position;
@@ -1125,7 +1121,7 @@ class Game {
       } else {
         // if the node is not the target AND built it is a valid neighbour
         // also the neighbour must not be moving
-        if (!this.buildings[i].moving) {
+        if (this.buildings[i].status == "IDLE") {
           // && this.buildings[i].imageID != "base") {
           if (this.buildings[i] != target) {
             if (this.buildings[i].built) {
@@ -1347,7 +1343,7 @@ class Game {
       // 1. check for collision with another building
       for (int i = 0; i < this.buildings.length; i++) {
         // don't check for collision with moving buildings
-        if (this.buildings[i].moving)
+        if (this.buildings[i].status != "IDLE")
           continue;
         if (building != null && building == this.buildings[i])
           continue;
@@ -1431,7 +1427,7 @@ class Game {
 
     // request packets
     for (int i = 0; i < this.buildings.length; i++) {
-      if (this.buildings[i].active && !this.buildings[i].moving) {
+      if (this.buildings[i].active && this.buildings[i].status == "IDLE") {
         this.buildings[i].requestTimer++;
         // request health
         if (this.buildings[i].imageID != "base") {
@@ -1991,7 +1987,7 @@ class Game {
       Vector drawCenterI = Helper.real2screen(centerI);
       for (int j = 0; j < this.buildings.length; j++) {
         if (i != j) {
-          if (!this.buildings[i].moving && !this.buildings[j].moving) {
+          if (this.buildings[i].status == "IDLE" && this.buildings[j].status == "IDLE") {
             Vector centerJ = this.buildings[j].getCenter();
             Vector drawCenterJ = Helper.real2screen(centerJ);
 

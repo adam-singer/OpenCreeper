@@ -2,9 +2,9 @@ part of creeper;
 
 class Building {
   Vector position, moveTargetPosition, weaponTargetPosition, speed = new Vector(0, 0);
-  String imageID;
-  bool operating = false, selected = false, hovered = false, built = false, active = true, moving = false, canMove = false, needsEnergy = false;
-  num health = 0, maxHealth = 0, energy = 0, maxEnergy = 0, energyTimer = 0, healthRequests = 0, energyRequests = 0, requestTimer = 0, weaponRadius = 0, targetAngle = 0, size = 0, collectedEnergy = 0;
+  String imageID, status = "IDLE"; // MOVING, RISING, FALLING
+  bool operating = false, selected = false, hovered = false, built = false, active = true, canMove = false, needsEnergy = false;
+  num health = 0, maxHealth = 0, energy = 0, maxEnergy = 0, energyTimer = 0, healthRequests = 0, energyRequests = 0, requestTimer = 0, weaponRadius = 0, targetAngle = 0, size = 0, collectedEnergy = 0, flightCounter = 0, scale = 1;
   Ship ship;
 
   Building(this.position, this.imageID);
@@ -17,14 +17,35 @@ class Building {
   }
 
   void move() {
-    if (this.moving) {
+    if (this.status == "RISING") {
+      if (this.flightCounter < 25) {
+        this.flightCounter++;
+        this.scale *= 1.01;
+      }
+      if (this.flightCounter == 25) {
+        this.status = "MOVING";
+      }
+    }
+    
+    else if (this.status == "FALLING") {
+      if (this.flightCounter > 0) {
+        this.flightCounter--;
+        this.scale /= 1.01;
+      }
+      if (this.flightCounter == 0) {
+        this.status = "IDLE";
+        this.position.x = this.moveTargetPosition.x;
+        this.position.y = this.moveTargetPosition.y;
+        this.scale = 1;
+      }
+    }
+
+    if (this.status == "MOVING") {
       
       this.position += this.speed;
       
-      if (this.position.x * game.tileSize > this.moveTargetPosition.x * game.tileSize - 3 && this.position.x * game.tileSize < this.moveTargetPosition.x * game.tileSize + 3 && this.position.y * game.tileSize > this.moveTargetPosition.y * game.tileSize - 3 && this.position.y * game.tileSize < this.moveTargetPosition.y * game.tileSize + 3) {
-        this.moving = false;
-        this.position.x = this.moveTargetPosition.x;
-        this.position.y = this.moveTargetPosition.y;
+      if (this.position.x * game.tileSize > this.moveTargetPosition.x * game.tileSize - 2 && this.position.x * game.tileSize < this.moveTargetPosition.x * game.tileSize + 2 && this.position.y * game.tileSize > this.moveTargetPosition.y * game.tileSize - 2 && this.position.y * game.tileSize < this.moveTargetPosition.y * game.tileSize + 2) {
+        this.status = "FALLING";
       }
     }
   }
@@ -47,7 +68,7 @@ class Building {
 
   void takeDamage() {
     // buildings can only be damaged while not moving
-    if (!this.moving) {
+    if (this.status == "IDLE") {
 
       for (int i = 0; i < this.size; i++) {
         for (int j = 0; j < this.size; j++) {
@@ -64,7 +85,7 @@ class Building {
   }
   
   void shield() {
-    if (this.built && this.imageID == "shield" && !this.moving) {
+    if (this.built && this.imageID == "shield" && this.status == "IDLE") {
       Vector center = this.getCenter();
 
       for (int i = this.position.x - 9; i < this.position.x + 10; i++) {
@@ -102,14 +123,14 @@ class Building {
   void drawMovementIndicators() {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;
     
-    if (this.moving) {
+    if (this.status != "IDLE") {
       Vector center = Helper.real2screen(this.getCenter());
       Vector target = Helper.tiled2screen(this.moveTargetPosition);
 
       // draw box
       context
-        ..fillStyle = "rgba(0,255,0,0.5)"
-        ..fillRect(target.x, target.y, this.size * game.tileSize * game.zoom, this.size * game.tileSize * game.zoom);
+        ..strokeStyle = "rgba(0,255,0,0.5)"
+        ..strokeRect(target.x, target.y, this.size * game.tileSize * game.zoom, this.size * game.tileSize * game.zoom);
       // draw line
       context
         ..strokeStyle = "rgba(255,255,255,0.5)"
@@ -166,12 +187,12 @@ class Building {
         }
         context.restore();
       } else {
-        context.drawImageScaled(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
+        context.drawImageScaled(engine.images[this.imageID], position.x + 24 - 24 * this.scale, position.y + 24 - 24 * this.scale, engine.images[this.imageID].width * game.zoom * this.scale, engine.images[this.imageID].height * game.zoom * this.scale);
         if (this.imageID == "cannon") {
           context.save();
           context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);
           context.rotate(this.targetAngle);
-          context.drawImageScaled(engine.images["cannongun"], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
+          context.drawImageScaled(engine.images["cannongun"], -24 * game.zoom * this.scale, -24 * game.zoom * this.scale, 48 * game.zoom * this.scale, 48 * game.zoom * this.scale);
           context.restore();
         }
       }

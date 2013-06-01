@@ -233,7 +233,7 @@ void onMouseUp(MouseEvent evt) {
         // check if it can be placed
         if (game.canBePlaced(position, game.buildings[i].size, game.buildings[i])) {
           game.buildings[i].weaponTargetPosition = null;
-          game.buildings[i].moving = true;
+          game.buildings[i].status = "RISING";
           game.buildings[i].moveTargetPosition = position;
           game.buildings[i].calculateVector();
         }
