@@ -3930,7 +3930,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
     var t1, context, position, t2, t3, t4, t5;
     t1 = $.engine.canvas;
     context = t1.$index(t1, "buffer").get$context();
-    if (this.hovered || this.selected === true) {
+    if (this.hovered || this.selected) {
       position = $.Helper_tiled2screen(this.position);
       t1 = $.game.zoom;
       if (typeof t1 !== "number")
@@ -3992,7 +3992,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
     var t1, context, positionScrolled, drawPosition, drawPositionCenter, center, t2, t3, t4, t5;
     t1 = $.engine.canvas;
     context = t1.$index(t1, "buffer").get$context();
-    if (this.built && this.selected === true && this.canMove) {
+    if (this.built && this.selected && this.canMove) {
       positionScrolled = $.game.getHoveredTilePosition$0();
       drawPosition = $.Helper_tiled2screen(positionScrolled);
       drawPositionCenter = $.Helper_real2screen(new $.Vector($.$add$ns($.$mul$n(positionScrolled.x, $.game.tileSize), $.game.tileSize / 2 * this.size), $.$add$ns($.$mul$n(positionScrolled.y, $.game.tileSize), $.game.tileSize / 2 * this.size)));
@@ -5685,7 +5685,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     if (typeof t1 !== "string")
       return this.addBuilding$2$bailout(4, building, t1);
     if (t1 === "bomber") {
-      building.maxHealth = 75;
+      building.maxHealth = 5;
       building.maxEnergy = 15;
       building.energy = 0;
       building.size = 3;
@@ -5801,7 +5801,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       case 4:
         state0 = 0;
         if ($.$eq(t1, "bomber")) {
-          building.maxHealth = 75;
+          building.maxHealth = 5;
           building.maxEnergy = 15;
           building.energy = 0;
           building.size = 3;
@@ -11285,14 +11285,28 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     }
   },
   drawAttackSymbol$0: function() {
-    var position, t1, t2, t3;
+    var position, t1, t2, t3, t4, t5, t6;
     if (this.mode === "SHIP_SELECTED") {
       position = $.Helper_tiled2screen(this.getHoveredTilePosition$0());
       t1 = $.engine.canvas;
       t1 = t1.$index(t1, "buffer").get$context();
       t2 = $.engine.images;
-      t3 = this.tileSize;
-      $.drawImage$3$x(t1, t2.$index(t2, "targetcursor"), $.$sub$n(position.x, t3), $.$sub$n(position.y, t3));
+      t2 = t2.$index(t2, "targetcursor");
+      t3 = position.x;
+      t4 = this.tileSize;
+      t5 = this.zoom;
+      if (typeof t5 !== "number")
+        throw $.iae(t5);
+      t5 = $.$sub$n(t3, t4 * t5);
+      t3 = position.y;
+      t6 = this.zoom;
+      if (typeof t6 !== "number")
+        throw $.iae(t6);
+      t6 = $.$sub$n(t3, t4 * t6);
+      t4 = this.zoom;
+      if (typeof t4 !== "number")
+        throw $.iae(t4);
+      $.drawImageScaled$5$x(t1, t2, t5, t6, 48 * t4, 48 * t4);
     }
   },
   drawGUI$0: function() {
@@ -11941,7 +11955,7 @@ Packet: {"": "Object;position>,speed,imageID<,type,remove*,speedMultiplier,targe
                 t1 = $.$mul$n($.get$x$x($.get$position$x(this.target)), $.game.tileSize);
                 t2 = $.$mul$n($.get$y$x($.get$position$x(this.target)), $.game.tileSize);
                 t3 = this.target;
-                ship = new $.Ship(new $.Vector(t1, t2), null, null, "bombership", "Bomber", false, null, null, null, 15, 0, 0, 0, 0, t3);
+                ship = new $.Ship(new $.Vector(t1, t2), new $.Vector(0, 0), new $.Vector(0, 0), "bombership", "Bomber", "IDLE", false, false, false, 0, 15, 0, 0, 0, 1, 0, t3);
                 t3.set$ship(ship);
                 $.game.ships.push(ship);
               }
@@ -12447,7 +12461,7 @@ Shell: {"": "Object;position>,targetPosition,speed,imageID<,remove*,rotation,tra
   }
 },
 
-Ship: {"": "Object;position>,speed,targetPosition,imageID<,type,remove*,hovered<,selected*,angle,maxEnergy<,energy@,status,trailTimer,weaponTimer,home",
+Ship: {"": "Object;position>,speed,targetPosition,imageID<,type,status,remove*,hovered<,selected*,angle,maxEnergy<,energy@,trailTimer,weaponTimer,scale,flightCounter,home",
   remove$0: function($receiver) {
     return this.remove.call$0();
   },
@@ -12476,7 +12490,7 @@ Ship: {"": "Object;position>,speed,targetPosition,imageID<,type,remove*,hovered<
   turnToTarget$0: function() {
     var t1, delta, t2, angleToTarget, absoluteDelta, turnRate;
     t1 = this.targetPosition;
-    delta = new $.Vector($.$sub$n($.JSNull_methods.get$x(t1), this.position.x), $.$sub$n($.JSNull_methods.get$y(t1), this.position.y));
+    delta = new $.Vector($.$sub$n(t1.x, this.position.x), $.$sub$n(t1.y, this.position.y));
     t1 = delta.y;
     t2 = delta.x;
     if (typeof t1 !== "number")
@@ -12484,74 +12498,80 @@ Ship: {"": "Object;position>,speed,targetPosition,imageID<,type,remove*,hovered<
     if (typeof t2 !== "number")
       $.throwExpression(new $.ArgumentError(t2));
     angleToTarget = Math.atan2(t1, t2) * 57.29577951308232;
-    t1 = this.angle;
-    if (typeof t1 !== "number")
-      throw $.iae(t1);
-    absoluteDelta = Math.abs(angleToTarget - t1);
+    absoluteDelta = Math.abs(angleToTarget - this.angle);
     turnRate = absoluteDelta < 1.5 ? absoluteDelta : 1.5;
     if (absoluteDelta <= 180) {
       t1 = this.angle;
-      if ($.JSDouble_methods.$lt(angleToTarget, t1))
-        this.angle = $.$sub$n(t1, turnRate);
+      if (angleToTarget < t1)
+        this.angle = t1 - turnRate;
       else
-        this.angle = $.$add$ns(t1, turnRate);
+        this.angle = t1 + turnRate;
     } else {
       t1 = this.angle;
-      if ($.JSDouble_methods.$lt(angleToTarget, t1))
-        this.angle = $.$add$ns(t1, turnRate);
+      if (angleToTarget < t1)
+        this.angle = t1 + turnRate;
       else
-        this.angle = $.$sub$n(t1, turnRate);
+        this.angle = t1 - turnRate;
     }
     t1 = this.angle;
-    t2 = $.getInterceptor$n(t1);
-    if (t2.$gt(t1, 180))
-      this.angle = t2.$sub(t1, 360);
+    if (t1 > 180)
+      this.angle = t1 - 360;
     t1 = this.angle;
-    if ($.$lt$n(t1, -180))
-      this.angle = $.$add$ns(t1, 360);
+    if (t1 < -180)
+      this.angle = t1 + 360;
   },
   calculateVector$0: function() {
-    var t1, x, y, t2, t3;
-    t1 = $.$mul$n(this.angle, 0.017453292519943295);
-    if (typeof t1 !== "number")
-      $.throwExpression(new $.ArgumentError(t1));
+    var t1, x, y, t2;
+    t1 = this.angle * 0.017453292519943295;
     x = Math.cos(t1);
-    t1 = $.$mul$n(this.angle, 0.017453292519943295);
-    if (typeof t1 !== "number")
-      $.throwExpression(new $.ArgumentError(t1));
+    t1 = this.angle * 0.017453292519943295;
     y = Math.sin(t1);
     t1 = this.speed;
     t2 = $.game;
-    t3 = t2.shipSpeed;
-    t2 = t2.speed;
-    $.JSNull_methods.set$x(t1, x * t3 * t2);
-    $.JSNull_methods.set$y(t1, y * t3 * t2);
+    t1.x = x * t2.shipSpeed * t2.speed;
+    this.speed.y = y * t2.shipSpeed * t2.speed;
   },
   control$1: function(_, position) {
     var t1, t2, t3;
-    this.selected = this.hovered;
-    if (this.selected === true) {
+    if (this.hovered)
+      this.selected = true;
+    if (this.selected) {
       $.game.mode = "SHIP_SELECTED";
-      t1 = this.home;
-      t2 = $.getInterceptor$x(t1);
-      t2 = $.$eq($.$sub$n(position.x, 1), $.get$x$x(t2.get$position(t1))) && $.$eq($.$sub$n(position.y, 1), $.get$y$x(t2.get$position(t1)));
-      t3 = this.targetPosition;
-      if (t2) {
-        $.JSNull_methods.set$x(t3, $.$mul$n($.$sub$n(position.x, 1), $.game.tileSize));
-        $.JSNull_methods.set$y(t3, $.$mul$n($.$sub$n(position.y, 1), $.game.tileSize));
-        this.status = 2;
-      } else {
-        this.energy = t1.get$energy();
-        t1.set$energy(0);
-        $.JSNull_methods.set$x(t3, $.$mul$n(position.x, $.game.tileSize));
-        $.JSNull_methods.set$y(t3, $.$mul$n(position.y, $.game.tileSize));
-        this.status = 1;
+      if (this.status === "IDLE") {
+        t1 = this.home;
+        t2 = $.getInterceptor$x(t1);
+        if (!$.$eq($.$sub$n(position.x, 1), $.get$x$x(t2.get$position(t1))) && !$.$eq($.$sub$n(position.y, 1), $.get$y$x(t2.get$position(t1)))) {
+          this.energy = t1.get$energy();
+          t1.set$energy(0);
+          t1 = this.targetPosition;
+          t1.x = $.$mul$n(position.x, $.game.tileSize);
+          t1.y = $.$mul$n(position.y, $.game.tileSize);
+          this.status = "RISING";
+        }
+      }
+      t1 = this.status;
+      if (t1 === "ATTACKING" || t1 === "RETURNING") {
+        t1 = this.home;
+        t2 = $.getInterceptor$x(t1);
+        t1 = $.$eq($.$sub$n(position.x, 1), $.get$x$x(t2.get$position(t1))) && $.$eq($.$sub$n(position.y, 1), $.get$y$x(t2.get$position(t1)));
+        t2 = position.x;
+        t3 = this.targetPosition;
+        if (t1) {
+          t3.x = $.$mul$n($.$sub$n(t2, 1), $.game.tileSize);
+          t3.y = $.$mul$n($.$sub$n(position.y, 1), $.game.tileSize);
+          this.status = "RETURNING";
+        } else {
+          t3.x = $.$mul$n($.$sub$n(t2, 1), $.game.tileSize);
+          t3.y = $.$mul$n($.$sub$n(position.y, 1), $.game.tileSize);
+          this.status = "ATTACKING";
+        }
       }
     }
   },
   move$0: function() {
     var t1, t2, t3, truncated, i, j, t4;
-    if (this.status !== 0) {
+    t1 = this.status;
+    if (t1 === "ATTACKING" || t1 === "RETURNING") {
       this.trailTimer = this.trailTimer + 1;
       if (this.trailTimer === 10) {
         this.trailTimer = 0;
@@ -12563,292 +12583,351 @@ Ship: {"": "Object;position>,speed,targetPosition,imageID<,type,remove*,hovered<
         t3.imageID = "smoke";
         t1.push(t3);
       }
+    }
+    t1 = this.status;
+    if (t1 === "RISING") {
+      t1 = this.flightCounter;
+      if (t1 < 25) {
+        this.flightCounter = t1 + 1;
+        this.scale = this.scale * 1.01;
+      }
+      if (this.flightCounter === 25)
+        this.status = "ATTACKING";
+    } else if (t1 === "FALLING") {
+      t1 = this.flightCounter;
+      if (t1 > 0) {
+        this.flightCounter = t1 - 1;
+        this.scale = this.scale / 1.01;
+      }
+      if (this.flightCounter === 0) {
+        this.status = "IDLE";
+        t1 = this.home;
+        t2 = $.getInterceptor$x(t1);
+        this.position.x = $.$mul$n($.get$x$x(t2.get$position(t1)), $.game.tileSize);
+        this.position.y = $.$mul$n($.get$y$x(t2.get$position(t1)), $.game.tileSize);
+        t1 = this.targetPosition;
+        t1.x = 0;
+        t1.y = 0;
+        this.energy = 5;
+        this.scale = 1;
+      }
+    } else if (t1 === "ATTACKING") {
       this.weaponTimer = this.weaponTimer + 1;
       this.turnToTarget$0();
       this.calculateVector$0();
       t1 = this.position;
       t2 = this.speed;
-      this.position = new $.Vector($.$add$ns(t1.x, $.JSNull_methods.get$x(t2)), $.$add$ns(t1.y, $.JSNull_methods.get$y(t2)));
+      this.position = new $.Vector($.$add$ns(t1.x, t2.x), $.$add$ns(t1.y, t2.y));
       t1 = this.targetPosition;
-      if ($.$gt$n(this.position.x, $.$sub$n($.JSNull_methods.get$x(t1), 2)) && $.$lt$n(this.position.x, $.$add$ns($.JSNull_methods.get$x(t1), 2)) && $.$gt$n(this.position.y, $.$sub$n($.JSNull_methods.get$y(t1), 2)) && $.$lt$n(this.position.y, $.$add$ns($.JSNull_methods.get$y(t1), 2))) {
-        t2 = this.status;
-        if (t2 === 1) {
-          if (this.weaponTimer >= 10) {
-            this.weaponTimer = 0;
-            t2 = $.game.explosions;
-            t3 = new $.Explosion(null, null, null);
-            t3.position = new $.Vector($.JSNull_methods.get$x(t1), $.JSNull_methods.get$y(t1));
-            t3.frame = 0;
-            t3.imageID = "explosion";
-            t2.push(t3);
-            this.energy = this.energy - 1;
-            t2 = Math.floor($.$div$n($.JSNull_methods.get$x(t1), $.game.tileSize));
+      if ($.$gt$n(this.position.x, $.$sub$n(t1.x, 2)) && $.$lt$n(this.position.x, $.$add$ns(t1.x, 2)) && $.$gt$n(this.position.y, $.$sub$n(t1.y, 2)) && $.$lt$n(this.position.y, $.$add$ns(t1.y, 2)))
+        if (this.weaponTimer >= 10) {
+          this.weaponTimer = 0;
+          t2 = $.game.explosions;
+          t3 = new $.Explosion(null, null, null);
+          t3.position = new $.Vector(t1.x, t1.y);
+          t3.frame = 0;
+          t3.imageID = "explosion";
+          t2.push(t3);
+          this.energy = this.energy - 1;
+          t2 = Math.floor($.$div$n(t1.x, $.game.tileSize));
+          if (isNaN(t2))
+            $.throwExpression(new $.UnsupportedError("NaN"));
+          if (t2 == Infinity || t2 == -Infinity)
+            $.throwExpression(new $.UnsupportedError("Infinity"));
+          truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
+          i = (truncated == -0.0 ? 0 : truncated) - 3;
+          if (i !== (i | 0))
+            return this.move$0$bailout(1, t1, i);
+          while (true) {
+            t2 = Math.floor($.$div$n(t1.x, $.game.tileSize));
             if (isNaN(t2))
               $.throwExpression(new $.UnsupportedError("NaN"));
             if (t2 == Infinity || t2 == -Infinity)
               $.throwExpression(new $.UnsupportedError("Infinity"));
             truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
-            i = (truncated == -0.0 ? 0 : truncated) - 3;
-            if (i !== (i | 0))
-              return this.move$0$bailout(1, t1, i);
+            if (!(i < (truncated == -0.0 ? 0 : truncated) + 5))
+              break;
+            t2 = Math.floor($.$div$n(t1.y, $.game.tileSize));
+            if (isNaN(t2))
+              $.throwExpression(new $.UnsupportedError("NaN"));
+            if (t2 == Infinity || t2 == -Infinity)
+              $.throwExpression(new $.UnsupportedError("Infinity"));
+            truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
+            j = (truncated == -0.0 ? 0 : truncated) - 3;
             while (true) {
-              t2 = Math.floor($.$div$n($.JSNull_methods.get$x(t1), $.game.tileSize));
+              t2 = Math.floor($.$div$n(t1.y, $.game.tileSize));
               if (isNaN(t2))
                 $.throwExpression(new $.UnsupportedError("NaN"));
               if (t2 == Infinity || t2 == -Infinity)
                 $.throwExpression(new $.UnsupportedError("Infinity"));
               truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
-              if (!(i < (truncated == -0.0 ? 0 : truncated) + 5))
+              if (!(j < (truncated == -0.0 ? 0 : truncated) + 5))
                 break;
-              t2 = Math.floor($.$div$n($.JSNull_methods.get$y(t1), $.game.tileSize));
-              if (isNaN(t2))
-                $.throwExpression(new $.UnsupportedError("NaN"));
-              if (t2 == Infinity || t2 == -Infinity)
-                $.throwExpression(new $.UnsupportedError("Infinity"));
-              truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
-              j = (truncated == -0.0 ? 0 : truncated) - 3;
-              while (true) {
-                t2 = Math.floor($.$div$n($.JSNull_methods.get$y(t1), $.game.tileSize));
-                if (isNaN(t2))
-                  $.throwExpression(new $.UnsupportedError("NaN"));
-                if (t2 == Infinity || t2 == -Infinity)
-                  $.throwExpression(new $.UnsupportedError("Infinity"));
-                truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
-                if (!(j < (truncated == -0.0 ? 0 : truncated) + 5))
-                  break;
-                t2 = $.game;
-                if (t2.withinWorld$2(i, j)) {
-                  t2 = t2.tileSize;
-                  t3 = $.$add$ns($.JSNull_methods.get$x(t1), t2);
-                  if (typeof t3 !== "number")
-                    throw $.iae(t3);
-                  t3 = i * t2 + t2 / 2 - t3;
-                  t2 = Math.pow(t3, 2);
-                  t3 = $.game.tileSize;
-                  t4 = $.$add$ns($.JSNull_methods.get$y(t1), t3);
-                  if (typeof t4 !== "number")
-                    throw $.iae(t4);
-                  t4 = j * t3 + t3 / 2 - t4;
-                  t3 = Math.pow(t4, 2);
-                  t4 = $.game.tileSize * 3;
-                  if (t2 + t3 < Math.pow(t4, 2)) {
-                    t2 = $.game.world.tiles;
-                    if (i < 0 || i >= t2.length)
-                      throw $.ioore(i);
-                    t2 = t2[i];
-                    if (typeof t2 !== "string" && (typeof t2 !== "object" || t2 === null || t2.constructor !== Array && !$.isJsIndexable(t2, t2[$.dispatchPropertyName])))
-                      return this.move$0$bailout(2, t1, i, j, t2);
-                    if (j >>> 0 !== j || j >= t2.length)
-                      throw $.ioore(j);
-                    t2 = $.$index$asx(t2[j], 0);
-                    t2.set$creep($.$sub$n(t2.get$creep(), 5));
+              t2 = $.game;
+              if (t2.withinWorld$2(i, j)) {
+                t2 = t2.tileSize;
+                t3 = $.$add$ns(t1.x, t2);
+                if (typeof t3 !== "number")
+                  throw $.iae(t3);
+                t3 = i * t2 + t2 / 2 - t3;
+                t2 = Math.pow(t3, 2);
+                t3 = $.game.tileSize;
+                t4 = $.$add$ns(t1.y, t3);
+                if (typeof t4 !== "number")
+                  throw $.iae(t4);
+                t4 = j * t3 + t3 / 2 - t4;
+                t3 = Math.pow(t4, 2);
+                t4 = $.game.tileSize * 3;
+                if (t2 + t3 < Math.pow(t4, 2)) {
+                  t2 = $.game.world.tiles;
+                  if (i < 0 || i >= t2.length)
+                    throw $.ioore(i);
+                  t2 = t2[i];
+                  if (typeof t2 !== "string" && (typeof t2 !== "object" || t2 === null || t2.constructor !== Array && !$.isJsIndexable(t2, t2[$.dispatchPropertyName])))
+                    return this.move$0$bailout(2, t1, i, j, t2);
+                  if (j >>> 0 !== j || j >= t2.length)
+                    throw $.ioore(j);
+                  t2 = $.$index$asx(t2[j], 0);
+                  t2.set$creep($.$sub$n(t2.get$creep(), 5));
+                  t2 = $.game.world.tiles;
+                  if (i >= t2.length)
+                    throw $.ioore(i);
+                  t2 = t2[i];
+                  if (typeof t2 !== "string" && (typeof t2 !== "object" || t2 === null || t2.constructor !== Array && !$.isJsIndexable(t2, t2[$.dispatchPropertyName])))
+                    return this.move$0$bailout(3, t1, i, j, t2);
+                  if (j >= t2.length)
+                    throw $.ioore(j);
+                  if ($.$lt$n($.$index$asx(t2[j], 0).get$creep(), 0)) {
                     t2 = $.game.world.tiles;
                     if (i >= t2.length)
                       throw $.ioore(i);
                     t2 = t2[i];
                     if (typeof t2 !== "string" && (typeof t2 !== "object" || t2 === null || t2.constructor !== Array && !$.isJsIndexable(t2, t2[$.dispatchPropertyName])))
-                      return this.move$0$bailout(3, t1, i, j, t2);
+                      return this.move$0$bailout(4, t1, i, j, t2);
                     if (j >= t2.length)
                       throw $.ioore(j);
-                    if ($.$lt$n($.$index$asx(t2[j], 0).get$creep(), 0)) {
-                      t2 = $.game.world.tiles;
-                      if (i >= t2.length)
-                        throw $.ioore(i);
-                      t2 = t2[i];
-                      if (typeof t2 !== "string" && (typeof t2 !== "object" || t2 === null || t2.constructor !== Array && !$.isJsIndexable(t2, t2[$.dispatchPropertyName])))
-                        return this.move$0$bailout(4, t1, i, j, t2);
-                      if (j >= t2.length)
-                        throw $.ioore(j);
-                      $.$index$asx(t2[j], 0).set$creep(0);
-                    }
+                    $.$index$asx(t2[j], 0).set$creep(0);
                   }
                 }
-                ++j;
               }
-              ++i;
+              ++j;
             }
-            if (this.energy === 0) {
-              this.status = 2;
-              t2 = this.home;
-              t3 = $.getInterceptor$x(t2);
-              $.JSNull_methods.set$x(t1, $.$mul$n($.get$x$x(t3.get$position(t2)), $.game.tileSize));
-              $.JSNull_methods.set$y(t1, $.$mul$n($.get$y$x(t3.get$position(t2)), $.game.tileSize));
-            }
+            ++i;
           }
-        } else if (t2 === 2) {
-          this.status = 0;
-          t2 = this.home;
-          t3 = $.getInterceptor$x(t2);
-          this.position.x = $.$mul$n($.get$x$x(t3.get$position(t2)), $.game.tileSize);
-          this.position.y = $.$mul$n($.get$y$x(t3.get$position(t2)), $.game.tileSize);
-          $.JSNull_methods.set$x(t1, 0);
-          $.JSNull_methods.set$y(t1, 0);
-          this.energy = 5;
+          if (this.energy === 0) {
+            this.status = "RETURNING";
+            t2 = this.home;
+            t3 = $.getInterceptor$x(t2);
+            t1.x = $.$mul$n($.get$x$x(t3.get$position(t2)), $.game.tileSize);
+            t1.y = $.$mul$n($.get$y$x(t3.get$position(t2)), $.game.tileSize);
+          }
         }
-      }
+    } else if (t1 === "RETURNING") {
+      this.turnToTarget$0();
+      this.calculateVector$0();
+      t1 = this.position;
+      t2 = this.speed;
+      this.position = new $.Vector($.$add$ns(t1.x, t2.x), $.$add$ns(t1.y, t2.y));
+      t1 = this.targetPosition;
+      if ($.$gt$n(this.position.x, $.$sub$n(t1.x, 2)) && $.$lt$n(this.position.x, $.$add$ns(t1.x, 2)) && $.$gt$n(this.position.y, $.$sub$n(t1.y, 2)) && $.$lt$n(this.position.y, $.$add$ns(t1.y, 2)))
+        this.status = "FALLING";
     }
   },
   move$0$bailout: function(state0, t1, i, j, t2) {
     switch (state0) {
       case 0:
+        t1 = this.status;
+        if (t1 === "ATTACKING" || t1 === "RETURNING") {
+          this.trailTimer = this.trailTimer + 1;
+          if (this.trailTimer === 10) {
+            this.trailTimer = 0;
+            t1 = $.game.smokes;
+            t2 = new $.Vector($.$add$ns(this.position.x, 24), $.$add$ns(this.position.y, 24));
+            t3 = new $.Smoke(null, null, null);
+            t3.position = new $.Vector(t2.x, t2.y);
+            t3.frame = 0;
+            t3.imageID = "smoke";
+            t1.push(t3);
+          }
+        }
+        t1 = this.status;
       default:
         var t3, truncated, t4;
-        if (state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && this.status !== 0)
+        if (state0 === 0 && t1 === "RISING") {
+          t1 = this.flightCounter;
+          if (t1 < 25) {
+            this.flightCounter = t1 + 1;
+            this.scale = this.scale * 1.01;
+          }
+          if (this.flightCounter === 25)
+            this.status = "ATTACKING";
+        } else
           switch (state0) {
             case 0:
-              this.trailTimer = this.trailTimer + 1;
-              if (this.trailTimer === 10) {
-                this.trailTimer = 0;
-                t1 = $.game.smokes;
-                t2 = new $.Vector($.$add$ns(this.position.x, 24), $.$add$ns(this.position.y, 24));
-                t3 = new $.Smoke(null, null, null);
-                t3.position = new $.Vector(t2.x, t2.y);
-                t3.frame = 0;
-                t3.imageID = "smoke";
-                t1.push(t3);
-              }
-              this.weaponTimer = this.weaponTimer + 1;
-              this.turnToTarget$0();
-              this.calculateVector$0();
-              t1 = this.position;
-              t2 = this.speed;
-              this.position = new $.Vector($.$add$ns(t1.x, $.JSNull_methods.get$x(t2)), $.$add$ns(t1.y, $.JSNull_methods.get$y(t2)));
-              t1 = this.targetPosition;
             default:
-              if (state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && $.$gt$n(this.position.x, $.$sub$n($.JSNull_methods.get$x(t1), 2)) && $.$lt$n(this.position.x, $.$add$ns($.JSNull_methods.get$x(t1), 2)) && $.$gt$n(this.position.y, $.$sub$n($.JSNull_methods.get$y(t1), 2)) && $.$lt$n(this.position.y, $.$add$ns($.JSNull_methods.get$y(t1), 2)))
+              if (state0 === 0 && t1 === "FALLING") {
+                t1 = this.flightCounter;
+                if (t1 > 0) {
+                  this.flightCounter = t1 - 1;
+                  this.scale = this.scale / 1.01;
+                }
+                if (this.flightCounter === 0) {
+                  this.status = "IDLE";
+                  t1 = this.home;
+                  t2 = $.getInterceptor$x(t1);
+                  this.position.x = $.$mul$n($.get$x$x(t2.get$position(t1)), $.game.tileSize);
+                  this.position.y = $.$mul$n($.get$y$x(t2.get$position(t1)), $.game.tileSize);
+                  t1 = this.targetPosition;
+                  t1.x = 0;
+                  t1.y = 0;
+                  this.energy = 5;
+                  this.scale = 1;
+                }
+              } else
                 switch (state0) {
                   case 0:
-                    t2 = this.status;
                   default:
-                    if (state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && t2 === 1)
+                    if (state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && t1 === "ATTACKING")
                       switch (state0) {
                         case 0:
+                          this.weaponTimer = this.weaponTimer + 1;
+                          this.turnToTarget$0();
+                          this.calculateVector$0();
+                          t1 = this.position;
+                          t2 = this.speed;
+                          this.position = new $.Vector($.$add$ns(t1.x, t2.x), $.$add$ns(t1.y, t2.y));
+                          t1 = this.targetPosition;
                         default:
-                          if (state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && this.weaponTimer >= 10)
+                          if (state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && $.$gt$n(this.position.x, $.$sub$n(t1.x, 2)) && $.$lt$n(this.position.x, $.$add$ns(t1.x, 2)) && $.$gt$n(this.position.y, $.$sub$n(t1.y, 2)) && $.$lt$n(this.position.y, $.$add$ns(t1.y, 2)))
                             switch (state0) {
                               case 0:
-                                this.weaponTimer = 0;
-                                t2 = $.game.explosions;
-                                t3 = new $.Explosion(null, null, null);
-                                t3.position = new $.Vector($.JSNull_methods.get$x(t1), $.JSNull_methods.get$y(t1));
-                                t3.frame = 0;
-                                t3.imageID = "explosion";
-                                t2.push(t3);
-                                this.energy = this.energy - 1;
-                                t2 = Math.floor($.$div$n($.JSNull_methods.get$x(t1), $.game.tileSize));
-                                if (isNaN(t2))
-                                  $.throwExpression(new $.UnsupportedError("NaN"));
-                                if (t2 == Infinity || t2 == -Infinity)
-                                  $.throwExpression(new $.UnsupportedError("Infinity"));
-                                truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
-                                i = (truncated == -0.0 ? 0 : truncated) - 3;
-                              case 1:
-                                state0 = 0;
                               default:
-                                L0:
-                                  while (true)
-                                    switch (state0) {
-                                      case 0:
-                                        t2 = Math.floor($.$div$n($.JSNull_methods.get$x(t1), $.game.tileSize));
-                                        if (isNaN(t2))
-                                          $.throwExpression(new $.UnsupportedError("NaN"));
-                                        if (t2 == Infinity || t2 == -Infinity)
-                                          $.throwExpression(new $.UnsupportedError("Infinity"));
-                                        truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
-                                        if (!(i < (truncated == -0.0 ? 0 : truncated) + 5))
-                                          break L0;
-                                        t2 = Math.floor($.$div$n($.JSNull_methods.get$y(t1), $.game.tileSize));
-                                        if (isNaN(t2))
-                                          $.throwExpression(new $.UnsupportedError("NaN"));
-                                        if (t2 == Infinity || t2 == -Infinity)
-                                          $.throwExpression(new $.UnsupportedError("Infinity"));
-                                        truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
-                                        j = (truncated == -0.0 ? 0 : truncated) - 3;
-                                      default:
-                                        L1:
-                                          while (true)
-                                            switch (state0) {
-                                              case 0:
-                                                t2 = Math.floor($.$div$n($.JSNull_methods.get$y(t1), $.game.tileSize));
-                                                if (isNaN(t2))
-                                                  $.throwExpression(new $.UnsupportedError("NaN"));
-                                                if (t2 == Infinity || t2 == -Infinity)
-                                                  $.throwExpression(new $.UnsupportedError("Infinity"));
-                                                truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
-                                                if (!(j < (truncated == -0.0 ? 0 : truncated) + 5))
-                                                  break L1;
-                                                t2 = $.game;
-                                              default:
-                                                if (state0 === 4 || state0 === 3 || state0 === 2 || state0 === 0 && t2.withinWorld$2(i, j))
+                                if (state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && this.weaponTimer >= 10)
+                                  switch (state0) {
+                                    case 0:
+                                      this.weaponTimer = 0;
+                                      t2 = $.game.explosions;
+                                      t3 = new $.Explosion(null, null, null);
+                                      t3.position = new $.Vector(t1.x, t1.y);
+                                      t3.frame = 0;
+                                      t3.imageID = "explosion";
+                                      t2.push(t3);
+                                      this.energy = this.energy - 1;
+                                      t2 = Math.floor($.$div$n(t1.x, $.game.tileSize));
+                                      if (isNaN(t2))
+                                        $.throwExpression(new $.UnsupportedError("NaN"));
+                                      if (t2 == Infinity || t2 == -Infinity)
+                                        $.throwExpression(new $.UnsupportedError("Infinity"));
+                                      truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
+                                      i = (truncated == -0.0 ? 0 : truncated) - 3;
+                                    case 1:
+                                      state0 = 0;
+                                    default:
+                                      L0:
+                                        while (true)
+                                          switch (state0) {
+                                            case 0:
+                                              t2 = Math.floor($.$div$n(t1.x, $.game.tileSize));
+                                              if (isNaN(t2))
+                                                $.throwExpression(new $.UnsupportedError("NaN"));
+                                              if (t2 == Infinity || t2 == -Infinity)
+                                                $.throwExpression(new $.UnsupportedError("Infinity"));
+                                              truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
+                                              if (!(i < (truncated == -0.0 ? 0 : truncated) + 5))
+                                                break L0;
+                                              t2 = Math.floor($.$div$n(t1.y, $.game.tileSize));
+                                              if (isNaN(t2))
+                                                $.throwExpression(new $.UnsupportedError("NaN"));
+                                              if (t2 == Infinity || t2 == -Infinity)
+                                                $.throwExpression(new $.UnsupportedError("Infinity"));
+                                              truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
+                                              j = (truncated == -0.0 ? 0 : truncated) - 3;
+                                            default:
+                                              L1:
+                                                while (true)
                                                   switch (state0) {
                                                     case 0:
-                                                      t2 = t2.tileSize;
-                                                      t3 = $.$add$ns($.JSNull_methods.get$x(t1), t2);
-                                                      if (typeof t3 !== "number")
-                                                        throw $.iae(t3);
-                                                      t3 = i * t2 + t2 / 2 - t3;
-                                                      t2 = Math.pow(t3, 2);
-                                                      t3 = $.game.tileSize;
-                                                      t4 = $.$add$ns($.JSNull_methods.get$y(t1), t3);
-                                                      if (typeof t4 !== "number")
-                                                        throw $.iae(t4);
-                                                      t4 = j * t3 + t3 / 2 - t4;
-                                                      t3 = Math.pow(t4, 2);
-                                                      t4 = $.game.tileSize * 3;
+                                                      t2 = Math.floor($.$div$n(t1.y, $.game.tileSize));
+                                                      if (isNaN(t2))
+                                                        $.throwExpression(new $.UnsupportedError("NaN"));
+                                                      if (t2 == Infinity || t2 == -Infinity)
+                                                        $.throwExpression(new $.UnsupportedError("Infinity"));
+                                                      truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
+                                                      if (!(j < (truncated == -0.0 ? 0 : truncated) + 5))
+                                                        break L1;
+                                                      t2 = $.game;
                                                     default:
-                                                      if (state0 === 4 || state0 === 3 || state0 === 2 || state0 === 0 && t2 + t3 < Math.pow(t4, 2))
+                                                      if (state0 === 4 || state0 === 3 || state0 === 2 || state0 === 0 && t2.withinWorld$2(i, j))
                                                         switch (state0) {
                                                           case 0:
-                                                            t2 = $.game.world.tiles;
-                                                            if (i >>> 0 !== i || i >= t2.length)
-                                                              throw $.ioore(i);
-                                                            t2 = t2[i];
-                                                          case 2:
-                                                            state0 = 0;
-                                                            t2 = $.$index$asx($.$index$asx(t2, j), 0);
-                                                            t2.set$creep($.$sub$n(t2.get$creep(), 5));
-                                                            t2 = $.game.world.tiles;
-                                                            if (i >= t2.length)
-                                                              throw $.ioore(i);
-                                                            t2 = t2[i];
-                                                          case 3:
-                                                            state0 = 0;
-                                                          case 4:
-                                                            if (state0 === 4 || state0 === 0 && $.$lt$n($.$index$asx($.$index$asx(t2, j), 0).get$creep(), 0))
+                                                            t2 = t2.tileSize;
+                                                            t3 = $.$add$ns(t1.x, t2);
+                                                            if (typeof t3 !== "number")
+                                                              throw $.iae(t3);
+                                                            t3 = i * t2 + t2 / 2 - t3;
+                                                            t2 = Math.pow(t3, 2);
+                                                            t3 = $.game.tileSize;
+                                                            t4 = $.$add$ns(t1.y, t3);
+                                                            if (typeof t4 !== "number")
+                                                              throw $.iae(t4);
+                                                            t4 = j * t3 + t3 / 2 - t4;
+                                                            t3 = Math.pow(t4, 2);
+                                                            t4 = $.game.tileSize * 3;
+                                                          default:
+                                                            if (state0 === 4 || state0 === 3 || state0 === 2 || state0 === 0 && t2 + t3 < Math.pow(t4, 2))
                                                               switch (state0) {
                                                                 case 0:
+                                                                  t2 = $.game.world.tiles;
+                                                                  if (i >>> 0 !== i || i >= t2.length)
+                                                                    throw $.ioore(i);
+                                                                  t2 = t2[i];
+                                                                case 2:
+                                                                  state0 = 0;
+                                                                  t2 = $.$index$asx($.$index$asx(t2, j), 0);
+                                                                  t2.set$creep($.$sub$n(t2.get$creep(), 5));
                                                                   t2 = $.game.world.tiles;
                                                                   if (i >= t2.length)
                                                                     throw $.ioore(i);
                                                                   t2 = t2[i];
-                                                                case 4:
+                                                                case 3:
                                                                   state0 = 0;
-                                                                  $.$index$asx($.$index$asx(t2, j), 0).set$creep(0);
+                                                                case 4:
+                                                                  if (state0 === 4 || state0 === 0 && $.$lt$n($.$index$asx($.$index$asx(t2, j), 0).get$creep(), 0))
+                                                                    switch (state0) {
+                                                                      case 0:
+                                                                        t2 = $.game.world.tiles;
+                                                                        if (i >= t2.length)
+                                                                          throw $.ioore(i);
+                                                                        t2 = t2[i];
+                                                                      case 4:
+                                                                        state0 = 0;
+                                                                        $.$index$asx($.$index$asx(t2, j), 0).set$creep(0);
+                                                                    }
                                                               }
                                                         }
+                                                      ++j;
                                                   }
-                                                ++j;
-                                            }
-                                        ++i;
-                                    }
-                                if (this.energy === 0) {
-                                  this.status = 2;
-                                  t2 = this.home;
-                                  t3 = $.getInterceptor$x(t2);
-                                  $.JSNull_methods.set$x(t1, $.$mul$n($.get$x$x(t3.get$position(t2)), $.game.tileSize));
-                                  $.JSNull_methods.set$y(t1, $.$mul$n($.get$y$x(t3.get$position(t2)), $.game.tileSize));
-                                }
+                                              ++i;
+                                          }
+                                      if (this.energy === 0) {
+                                        this.status = "RETURNING";
+                                        t2 = this.home;
+                                        t3 = $.getInterceptor$x(t2);
+                                        t1.x = $.$mul$n($.get$x$x(t3.get$position(t2)), $.game.tileSize);
+                                        t1.y = $.$mul$n($.get$y$x(t3.get$position(t2)), $.game.tileSize);
+                                      }
+                                  }
                             }
                       }
-                    else if (t2 === 2) {
-                      this.status = 0;
-                      t2 = this.home;
-                      t3 = $.getInterceptor$x(t2);
-                      this.position.x = $.$mul$n($.get$x$x(t3.get$position(t2)), $.game.tileSize);
-                      this.position.y = $.$mul$n($.get$y$x(t3.get$position(t2)), $.game.tileSize);
-                      $.JSNull_methods.set$x(t1, 0);
-                      $.JSNull_methods.set$y(t1, 0);
-                      this.energy = 5;
+                    else if (t1 === "RETURNING") {
+                      this.turnToTarget$0();
+                      this.calculateVector$0();
+                      t1 = this.position;
+                      t2 = this.speed;
+                      this.position = new $.Vector($.$add$ns(t1.x, t2.x), $.$add$ns(t1.y, t2.y));
+                      t1 = this.targetPosition;
+                      if ($.$gt$n(this.position.x, $.$sub$n(t1.x, 2)) && $.$lt$n(this.position.x, $.$add$ns(t1.x, 2)) && $.$gt$n(this.position.y, $.$sub$n(t1.y, 2)) && $.$lt$n(this.position.y, $.$add$ns(t1.y, 2)))
+                        this.status = "FALLING";
                     }
                 }
           }
@@ -12859,7 +12938,7 @@ Ship: {"": "Object;position>,speed,targetPosition,imageID<,type,remove*,hovered<
     t1 = $.engine.canvas;
     context = t1.$index(t1, "buffer").get$context();
     position = $.Helper_real2screen(this.position);
-    if (this.hovered === true) {
+    if (this.hovered) {
       t1 = $.getInterceptor$x(context);
       t1.set$strokeStyle(context, "#f00");
       t1.beginPath$0(context);
@@ -12876,11 +12955,11 @@ Ship: {"": "Object;position>,speed,targetPosition,imageID<,type,remove*,hovered<
       t2 = $.game.zoom;
       if (typeof t2 !== "number")
         throw $.iae(t2);
-      t1.arc$6(context, t3, t4, 24 * t2, 0, 6.283185307179586, true);
+      t1.arc$6(context, t3, t4, 24 * t2 * this.scale, 0, 6.283185307179586, true);
       t1.closePath$0(context);
       t1.stroke$0(context);
     }
-    if (this.selected === true) {
+    if (this.selected) {
       t1 = $.getInterceptor$x(context);
       t1.set$strokeStyle(context, "#fff");
       t1.beginPath$0(context);
@@ -12897,10 +12976,11 @@ Ship: {"": "Object;position>,speed,targetPosition,imageID<,type,remove*,hovered<
       t2 = $.game.zoom;
       if (typeof t2 !== "number")
         throw $.iae(t2);
-      t1.arc$6(context, t3, t4, 24 * t2, 0, 6.283185307179586, true);
+      t1.arc$6(context, t3, t4, 24 * t2 * this.scale, 0, 6.283185307179586, true);
       t1.closePath$0(context);
       t1.stroke$0(context);
-      if (this.status === 1) {
+      t2 = this.status;
+      if (t2 === "ATTACKING" || t2 === "IDLE") {
         cursorPosition = $.Helper_real2screen(this.targetPosition);
         t1.save$0(context);
         t1.set$globalAlpha(context, 0.5);
@@ -12944,22 +13024,23 @@ Ship: {"": "Object;position>,speed,targetPosition,imageID<,type,remove*,hovered<
       if (typeof t4 !== "number")
         throw $.iae(t4);
       t1.translate$2(context, t3, $.$add$ns(t2, 24 * t4));
-      t1.rotate$1(context, $.$mul$n($.$add$ns(this.angle, 90), 0.017453292519943295));
+      t1.rotate$1(context, (this.angle + 90) * 0.017453292519943295);
       t4 = $.engine.images;
       t4 = t4.$index(t4, this.imageID);
       t2 = $.game.zoom;
       if (typeof t2 !== "number")
         throw $.iae(t2);
-      t3 = 48 * t2;
-      t1.drawImageScaled$5(context, t4, -24 * t2, -24 * t2, t3, t3);
+      t3 = this.scale;
+      t5 = 48 * t2 * t3;
+      t1.drawImageScaled$5(context, t4, -24 * t2 * t3, -24 * t2 * t3, t5, t5);
       t1.restore$0(context);
       t1.set$fillStyle(context, "#f00");
-      t3 = $.$add$ns(position.x, 2);
-      t2 = $.$add$ns(position.y, 1);
-      t4 = $.game.zoom;
-      if (typeof t4 !== "number")
-        throw $.iae(t4);
-      t1.fillRect$4(context, t3, t2, 44 * t4 / this.maxEnergy * this.energy, 3);
+      t5 = $.$add$ns(position.x, 2);
+      t3 = $.$add$ns(position.y, 1);
+      t2 = $.game.zoom;
+      if (typeof t2 !== "number")
+        throw $.iae(t2);
+      t1.fillRect$4(context, t5, t3, 44 * t2 / this.maxEnergy * this.energy, 3);
     }
   }
 },
@@ -13400,6 +13481,8 @@ onKeyDown: function(evt) {
       t1[i].set$active(false);
     for (i = 0; t1 = $.game.buildings, i < t1.length; ++i)
       $.set$selected$x(t1[i], false);
+    for (i = 0; t1 = $.game.ships, i < t1.length; ++i)
+      $.set$selected$x(t1[i], false);
     t1 = $.engine.canvas;
     t1 = t1.$index(t1, "main").get$element().style;
     t1.set$cursor;
@@ -13519,7 +13602,7 @@ onClickGUI: function(evt) {
 onDoubleClick: function(evt) {
   var t1, i, t2, selectShips;
   for (t1 = $.game, i = 0; t2 = t1.ships, selectShips = false, i < t2.length; ++i)
-    if (t2[i].get$hovered() === true) {
+    if (t2[i].get$hovered()) {
       selectShips = true;
       break;
     }
@@ -17882,9 +17965,8 @@ Isolate.makeConstantList = function(list) {
 $.List_empty = Isolate.makeConstantList([]);
 $.EventStreamProvider_keydown = new $.EventStreamProvider("keydown");
 $.Window_methods = $.Window.prototype;
-$.JSDouble_methods = $.JSDouble.prototype;
-$.C__Random = new $._Random();
 $.HtmlDocument_methods = $.HtmlDocument.prototype;
+$.C__Random = new $._Random();
 $.EventStreamProvider_keyup = new $.EventStreamProvider("keyup");
 $.JSArray_methods = $.JSArray.prototype;
 $._CustomEventStreamProvider__determineMouseWheelEventType = new $._CustomEventStreamProvider($.Element__determineMouseWheelEventType$closure);
@@ -17900,10 +17982,10 @@ $.EventStreamProvider_load = new $.EventStreamProvider("load");
 $.EventStreamProvider_mousedown = new $.EventStreamProvider("mousedown");
 $.EventStreamProvider_contextmenu = new $.EventStreamProvider("contextmenu");
 $.C_CloseToken = new $.CloseToken();
+$.EventStreamProvider_mouseup = new $.EventStreamProvider("mouseup");
 $.JSNumber_methods = $.JSNumber.prototype;
 $.JSString_methods = $.JSString.prototype;
 $.EventStreamProvider_mousemove = new $.EventStreamProvider("mousemove");
-$.EventStreamProvider_mouseup = new $.EventStreamProvider("mouseup");
 $.EventStreamProvider_resize = new $.EventStreamProvider("resize");
 $.dispatchPropertyName = null;
 $.lazyPort = null;

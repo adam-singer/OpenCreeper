@@ -62,6 +62,9 @@ void onKeyDown(KeyboardEvent evt) {
     for (int i = 0; i < game.buildings.length; i++) {
       game.buildings[i].selected = false;
     }
+    for (int i = 0; i < game.ships.length; i++) {
+      game.ships[i].selected = false;
+    }
     engine.canvas["main"].element.style.cursor = "default";
   }
 

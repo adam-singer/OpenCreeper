@@ -1,10 +1,10 @@
 part of creeper;
 
 class Ship {
-  Vector position, speed, targetPosition;
-  String imageID, type;
-  bool remove = false, hovered, selected;
-  num angle, maxEnergy = 15, energy = 0, status = 0, trailTimer = 0, weaponTimer = 0;
+  Vector position, speed = new Vector(0, 0), targetPosition = new Vector(0, 0);
+  String imageID, type, status = "IDLE"; // ATTACKING, RETURNING, RISING, FALLING
+  bool remove = false, hovered = false, selected = false;
+  num angle = 0, maxEnergy = 15, energy = 0, trailTimer = 0, weaponTimer = 0, scale = 1, flightCounter = 0;
   Building home;
 
   Ship(this.position, this.imageID, this.type, this.home);
@@ -21,7 +21,7 @@ class Ship {
 
   void turnToTarget() {
     Vector delta = new Vector(this.targetPosition.x - this.position.x, this.targetPosition.y - this.position.y);
-    int angleToTarget = Helper.rad2deg(atan2(delta.y, delta.x));
+    double angleToTarget = Helper.rad2deg(atan2(delta.y, delta.x));
 
     num turnRate = 1.5;
     num absoluteDelta = (angleToTarget - this.angle).abs();
@@ -56,23 +56,37 @@ class Ship {
   
   void control(Vector position) {
     // select ship
-    this.selected = this.hovered;
+    if (this.hovered)
+      this.selected = true;
     
     // control if selected
     if (this.selected) {
       game.mode = "SHIP_SELECTED";
-      // return home
-      if (position.x - 1 == this.home.position.x && position.y - 1 == this.home.position.y) {
-        this.targetPosition.x = (position.x - 1) * game.tileSize;
-        this.targetPosition.y = (position.y - 1) * game.tileSize;
-        this.status = 2;
-      } else {
-        // leave home
-        this.energy = this.home.energy;
-        this.home.energy = 0;
-        this.targetPosition.x = position.x * game.tileSize;
-        this.targetPosition.y = position.y * game.tileSize;
-        this.status = 1;
+
+      if (this.status == "IDLE") {
+        if (position.x - 1 != this.home.position.x && position.y - 1 != this.home.position.y) {         
+          // leave home
+          this.energy = this.home.energy;
+          this.home.energy = 0;
+          this.targetPosition.x = position.x * game.tileSize;
+          this.targetPosition.y = position.y * game.tileSize;
+          this.status = "RISING"; 
+        }
+      }
+      
+      if (this.status == "ATTACKING" || this.status == "RETURNING") {      
+        if (position.x - 1 == this.home.position.x && position.y - 1 == this.home.position.y) {
+          // return home
+          this.targetPosition.x = (position.x - 1) * game.tileSize;
+          this.targetPosition.y = (position.y - 1) * game.tileSize;
+          this.status = "RETURNING";
+        }
+        else {
+          // attack again
+          this.targetPosition.x = (position.x - 1) * game.tileSize;
+          this.targetPosition.y = (position.y - 1) * game.tileSize;
+          this.status = "ATTACKING";
+        }
       }
 
     }
@@ -80,13 +94,41 @@ class Ship {
 
   void move() {
 
-    if (this.status != 0) {
+    if (this.status == "ATTACKING" || this.status == "RETURNING") {
       this.trailTimer++;
       if (this.trailTimer == 10) {
         this.trailTimer = 0;
         game.smokes.add(new Smoke(this.getCenter()));
       }
+    }
 
+    if (this.status == "RISING") {
+      if (this.flightCounter < 25) {
+        this.flightCounter++;
+        this.scale *= 1.01;
+      }
+      if (this.flightCounter == 25) {
+        this.status = "ATTACKING";
+      }
+    }
+    
+    else if (this.status == "FALLING") {
+      if (this.flightCounter > 0) {
+        this.flightCounter--;
+        this.scale /= 1.01;
+      }
+      if (this.flightCounter == 0) {
+        this.status = "IDLE";
+        this.position.x = this.home.position.x * game.tileSize;
+        this.position.y = this.home.position.y * game.tileSize;
+        this.targetPosition.x = 0;
+        this.targetPosition.y = 0;
+        this.energy = 5;
+        this.scale = 1;
+      }
+    }
+    
+    else if (this.status == "ATTACKING") {
       this.weaponTimer++;
 
       this.turnToTarget();
@@ -95,46 +137,46 @@ class Ship {
       this.position += this.speed;
 
       if (this.position.x > this.targetPosition.x - 2 && this.position.x < this.targetPosition.x + 2 && this.position.y > this.targetPosition.y - 2 && this.position.y < this.targetPosition.y + 2) {
-        if (this.status == 1) {
-          // attacking
-          if (this.weaponTimer >= 10) {
-            this.weaponTimer = 0;
-            game.explosions.add(new Explosion(this.targetPosition));
-            this.energy -= 1;
+        if (this.weaponTimer >= 10) {
+          this.weaponTimer = 0;
+          game.explosions.add(new Explosion(this.targetPosition));
+          this.energy -= 1;
 
-            for (int i = (this.targetPosition.x / game.tileSize).floor() - 3; i < (this.targetPosition.x / game.tileSize).floor() + 5; i++) {
-              for (int j = (this.targetPosition.y / game.tileSize).floor() - 3; j < (this.targetPosition.y / game.tileSize).floor() + 5; j++)
-                if (game.withinWorld(i, j)) {
-                  {
-                    num distance = pow((i * game.tileSize + game.tileSize / 2) - (this.targetPosition.x + game.tileSize), 2) + pow((j * game.tileSize + game.tileSize / 2) - (this.targetPosition.y + game.tileSize), 2);
-                    if (distance < pow(game.tileSize * 3, 2)) {
-                      game.world.tiles[i][j][0].creep -= 5;
-                      if (game.world.tiles[i][j][0].creep < 0) {
-                        game.world.tiles[i][j][0].creep = 0;
-                      }
-                    }
+          for (int i = (this.targetPosition.x / game.tileSize).floor() - 3; i < (this.targetPosition.x / game.tileSize).floor() + 5; i++) {
+            for (int j = (this.targetPosition.y / game.tileSize).floor() - 3; j < (this.targetPosition.y / game.tileSize).floor() + 5; j++) {
+              if (game.withinWorld(i, j)) {
+                num distance = pow((i * game.tileSize + game.tileSize / 2) - (this.targetPosition.x + game.tileSize), 2) + pow((j * game.tileSize + game.tileSize / 2) - (this.targetPosition.y + game.tileSize), 2);
+                if (distance < pow(game.tileSize * 3, 2)) {
+                  game.world.tiles[i][j][0].creep -= 5;
+                  if (game.world.tiles[i][j][0].creep < 0) {
+                    game.world.tiles[i][j][0].creep = 0;
                   }
                 }
-            }
-
-            if (this.energy == 0) {
-              // return to base
-              this.status = 2;
-              this.targetPosition.x = this.home.position.x * game.tileSize;
-              this.targetPosition.y = this.home.position.y * game.tileSize;
+              }
             }
           }
-        } else if (this.status == 2) {
-          // if returning set to idle
-          this.status = 0;
-          this.position.x = this.home.position.x * game.tileSize;
-          this.position.y = this.home.position.y * game.tileSize;
-          this.targetPosition.x = 0;
-          this.targetPosition.y = 0;
-          this.energy = 5;
+
+          if (this.energy == 0) {
+            // return to base
+            this.status = "RETURNING";
+            this.targetPosition.x = this.home.position.x * game.tileSize;
+            this.targetPosition.y = this.home.position.y * game.tileSize;
+          }
         }
       }
     }
+    
+    else if (this.status == "RETURNING") {
+      this.turnToTarget();
+      this.calculateVector();
+
+      this.position += this.speed;
+
+      if (this.position.x > this.targetPosition.x - 2 && this.position.x < this.targetPosition.x + 2 && this.position.y > this.targetPosition.y - 2 && this.position.y < this.targetPosition.y + 2) {
+        this.status = "FALLING";
+      }
+    }
+    
   }
 
   void draw() {
@@ -146,7 +188,7 @@ class Ship {
       context
         ..strokeStyle = "#f00"
         ..beginPath()
-        ..arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, PI * 2, true)
+        ..arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom * this.scale, 0, PI * 2, true)
         ..closePath()
         ..stroke();
     }
@@ -155,11 +197,11 @@ class Ship {
       context
         ..strokeStyle = "#fff"
         ..beginPath()
-        ..arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom, 0, PI * 2, true)
+        ..arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom * this.scale, 0, PI * 2, true)
         ..closePath()
         ..stroke();
 
-      if (this.status == 1) {
+      if (this.status == "ATTACKING" || this.status == "IDLE") {
         Vector cursorPosition = Helper.real2screen(this.targetPosition);
         context
           ..save()
@@ -175,7 +217,7 @@ class Ship {
         ..save()
         ..translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom)
         ..rotate(Helper.deg2rad(this.angle + 90))
-        ..drawImageScaled(engine.images[this.imageID], -24 * game.zoom, -24 * game.zoom, 48 * game.zoom, 48 * game.zoom)
+        ..drawImageScaled(engine.images[this.imageID], -24 * game.zoom * this.scale, -24 * game.zoom * this.scale, 48 * game.zoom * this.scale, 48 * game.zoom * this.scale)
         ..restore();
 
       // draw energy bar

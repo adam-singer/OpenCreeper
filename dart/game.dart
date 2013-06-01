@@ -375,7 +375,7 @@ class Game {
       building.needsEnergy = true;
     }
     if (building.imageID == "bomber") {
-      building.maxHealth = 75;
+      building.maxHealth = 5; // 75
       building.maxEnergy = 15;
       building.energy = 0;
       building.size = 3;
@@ -1903,7 +1903,7 @@ class Game {
   void drawAttackSymbol() {
     if (this.mode == "SHIP_SELECTED") {
       Vector position = Helper.tiled2screen(this.getHoveredTilePosition());
-      engine.canvas["buffer"].context.drawImage(engine.images["targetcursor"], position.x - this.tileSize, position.y - this.tileSize);
+      engine.canvas["buffer"].context.drawImageScaled(engine.images["targetcursor"], position.x - this.tileSize * this.zoom, position.y - this.tileSize * this.zoom, 48 * this.zoom, 48 * this.zoom);
     }
   }
 
