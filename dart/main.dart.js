@@ -5100,8 +5100,7 @@ Engine_init_closure2: {"": "Closure;",
 
 Engine_init_closure3: {"": "Closure;",
   call$1: function($event) {
-    $.engine.updateMouse$1($event);
-    return;
+    return $.onMouseMove($event);
   }
 },
 
@@ -13497,6 +13496,22 @@ UISymbol: {"": "Object;position>,imageID<,key>,width*,height*,size>,packets,radi
 
 Vector$: function(x, y) {
   return new $.Vector(x, y);
+},
+
+onMouseMove: function(evt) {
+  var t1, t2;
+  $.engine.updateMouse$1(evt);
+  t1 = $.game;
+  if (t1 != null) {
+    t1.scrollingLeft = $.$eq($.engine.mouse.x, 0);
+    t1 = $.game;
+    t2 = $.engine;
+    t1.scrollingRight = $.$eq(t2.mouse.x, $.$sub$n(t2.width, 1));
+    $.game.scrollingUp = $.$eq($.engine.mouse.y, 0);
+    t2 = $.game;
+    t1 = $.engine;
+    t2.scrollingDown = $.$eq(t1.mouse.y, $.$sub$n(t1.height, 1));
+  }
 },
 
 onMouseMoveGUI: function(evt) {

@@ -2,6 +2,13 @@ part of creeper;
 
 void onMouseMove(MouseEvent evt) {
   engine.updateMouse(evt);
+  
+  if (game != null) {
+    game.scrollingLeft = (engine.mouse.x == 0);
+    game.scrollingRight = (engine.mouse.x == engine.width -1);  
+    game.scrollingUp = (engine.mouse.y == 0);
+    game.scrollingDown = (engine.mouse.y == engine.height -1);
+  }
 }
 
 void onMouseMoveGUI(MouseEvent evt) {
