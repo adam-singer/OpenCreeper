@@ -1779,13 +1779,20 @@ class Game {
       Vector end = engine.mouse.dragEnd;
       Vector delta = new Vector(end.x - start.x, end.y - start.y);
       num distance = Helper.distance(start, end);
-      num times = (distance / 10).floor() + 1;
+      
+      num buildingDistance = 3;
+      if (this.symbols[this.activeSymbol].imageID == "collector")
+        buildingDistance = 9;
+      else if (this.symbols[this.activeSymbol].imageID == "relay")
+        buildingDistance = 18;
+    
+      num times = (distance / buildingDistance).floor() + 1;
 
       this.ghosts.add(start);
 
       for (int i = 1; i < times; i++) {
-        num newX = (start.x + (delta.x / distance) * i * 10).floor();
-        num newY = (start.y + (delta.y / distance) * i * 10).floor();
+        num newX = (start.x + (delta.x / distance) * i * buildingDistance).floor();
+        num newY = (start.y + (delta.y / distance) * i * buildingDistance).floor();
 
         if (this.withinWorld(newX, newY)) {
           Vector ghost = new Vector(newX, newY);
@@ -1805,7 +1812,7 @@ class Game {
     }
 
     for (int j = 0; j < this.ghosts.length; j++) {
-      Vector positionScrolled = new Vector(this.ghosts[j].x, this.ghosts[j].y); //this.getHoveredTilePosition();
+      Vector positionScrolled = new Vector(this.ghosts[j].x, this.ghosts[j].y);
       Vector drawPosition = Helper.tiled2screen(positionScrolled);
       Vector positionScrolledCenter = new Vector(positionScrolled.x * this.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size, positionScrolled.y * this.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size);
 
