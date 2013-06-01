@@ -165,18 +165,23 @@ class Canvas {
   num top, left, bottom, right;
 
   Canvas(this.element, width, height) {
-    this.element.attributes['width'] = width.toString();
-    this.element.attributes['height'] = height.toString();
+    this.updateRect(width, height);
     this.element.style.position = "absolute";
     this.context = this.element.getContext('2d');
-    this.top = this.element.offset.top;
-    this.left = this.element.offset.left;
-    this.bottom = this.element.offset.top + this.element.offset.height;
-    this.right = this.element.offset.left + this.element.offset.width;
-    this.context.imageSmoothingEnabled = false;
   }
 
   void clear() {
     this.context.clearRect(0, 0, this.element.width, this.element.height);
+  }
+  
+  void updateRect(int width, int height) {
+    //this.element.attributes['width'] = width.toString();
+    //this.element.attributes['height'] = height.toString();
+    this.element.width = width;
+    this.element.height = height;
+    this.top = this.element.offset.top;
+    this.left = this.element.offset.left;
+    this.bottom = this.element.offset.top + this.element.offset.height;
+    this.right = this.element.offset.left + this.element.offset.width;
   }
 }

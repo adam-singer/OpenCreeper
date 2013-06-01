@@ -232,6 +232,7 @@ void onMouseUp(MouseEvent evt) {
       if (game.buildings[i].built && game.buildings[i].selected && game.buildings[i].canMove) {
         // check if it can be placed
         if (game.canBePlaced(position, game.buildings[i].size, game.buildings[i])) {
+          game.buildings[i].operating = false;
           game.buildings[i].weaponTargetPosition = null;
           game.buildings[i].status = "RISING";
           game.buildings[i].moveTargetPosition = position;
@@ -311,10 +312,10 @@ void onMouseScroll(WheelEvent evt) {
 }
 
 void onResize(evt) {
-  // FIXME
-  /*clearTimeout(this.id);
-  this.id = setTimeout(doneResizing, 100);*/
-  doneResizing();
+  // delay the resizing to avoid it being called multiple times
+  if (engine.resizeTimer != null)
+    engine.resizeTimer.cancel();
+  engine.resizeTimer = new Timer(new Duration(milliseconds: 250), doneResizing);
 }
 
 void doneResizing() {
@@ -325,14 +326,11 @@ void doneResizing() {
   engine.halfWidth = (width / 2).floor();
   engine.halfHeight = (height / 2).floor();
 
-  engine.canvas["main"].element.height = height;
-  engine.canvas["main"].element.width = width;
-  engine.canvas["buffer"].element.height = height;
-  engine.canvas["buffer"].element.width = width;
-  engine.canvas["collection"].element.height = height;
-  engine.canvas["collection"].element.width = width;
-  engine.canvas["creeper"].element.height = height;
-  engine.canvas["creeper"].element.width = width;
+  engine.canvas["main"].updateRect(width, height);
+  engine.canvas["levelfinal"].updateRect(width, height);
+  engine.canvas["buffer"].updateRect(width, height);
+  engine.canvas["collection"].updateRect(width, height);
+  engine.canvas["creeper"].updateRect(width, height);
 
   engine.canvas["gui"].top = engine.canvas["gui"].element.offsetTop;
   engine.canvas["gui"].left = engine.canvas["gui"].element.offsetLeft;

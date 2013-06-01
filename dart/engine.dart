@@ -15,6 +15,7 @@ class Engine {
   Mouse mouse = new Mouse();
   Mouse mouseGUI = new Mouse();
   Map canvas, sounds, images;
+  Timer resizeTimer;
 
   Engine() {
     this.canvas = new Map();

@@ -236,7 +236,7 @@ class Building {
         context.lineTo(targetPosition.x, targetPosition.y);
         context.stroke();
       }
-      if (this.imageID == "analyzer") {
+      else if (this.imageID == "analyzer") {
         Vector targetPosition = Helper.tiled2screen(this.weaponTargetPosition);
         context.strokeStyle = '#00f';
         context.lineWidth = 4;
@@ -252,7 +252,7 @@ class Building {
         context.lineTo(targetPosition.x, targetPosition.y);
         context.stroke();
       }
-      if (this.imageID == "beam") {
+      else if (this.imageID == "beam") {
         Vector targetPosition = Helper.real2screen(this.weaponTargetPosition);
         context.strokeStyle = '#f00';
         context.lineWidth = 4;
@@ -268,10 +268,10 @@ class Building {
         context.lineTo(targetPosition.x, targetPosition.y);
         context.stroke();
       }
-      if (this.imageID == "shield") {
+      else if (this.imageID == "shield") {
         context.drawImageScaled(engine.images["forcefield"], center.x - 168 * game.zoom, center.y - 168 * game.zoom, 336 * game.zoom, 336 * game.zoom);
       }
-      if (this.imageID == "terp") {
+      else if (this.imageID == "terp") {
         Vector targetPosition = Helper.tiled2screen(this.weaponTargetPosition);
 
         context

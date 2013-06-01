@@ -371,7 +371,7 @@ class Game {
       building.needsEnergy = true;
     }
     if (building.imageID == "bomber") {
-      building.maxHealth = 75; // 75
+      building.maxHealth = 75;
       building.maxEnergy = 15;
       building.energy = 0;
       building.size = 3;
@@ -394,7 +394,7 @@ class Game {
       building.size = 3;
     }
     if (building.imageID == "cannon") {
-      building.maxHealth = 5; //25
+      building.maxHealth = 25;
       building.maxEnergy = 40;
       building.energy = 0;
       building.weaponRadius = 8;
@@ -442,7 +442,8 @@ class Game {
       this.stop();
     }
     if (building.imageID == "collector") {
-      this.updateCollection(building, "remove");
+      if (building.built)
+        this.updateCollection(building, "remove");
     }
     if (building.imageID == "storage") {
       this.maxEnergy -= 10;
