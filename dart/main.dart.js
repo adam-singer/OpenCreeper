@@ -67,7 +67,7 @@ $$.CanvasPattern = {"": "Interceptor;"};
 
 $$.CanvasRenderingContext = {"": "Interceptor;"};
 
-$$.CanvasRenderingContext2D = {"": "CanvasRenderingContext;fillStyle},font},globalAlpha},globalCompositeOperation},lineWidth},strokeStyle},textAlign},imageSmoothingEnabled:webkitImageSmoothingEnabled}",
+$$.CanvasRenderingContext2D = {"": "CanvasRenderingContext;fillStyle},font},globalAlpha},globalCompositeOperation},lineWidth},strokeStyle},textAlign}",
   beginPath$0: function(receiver) {
     return receiver.beginPath();
   },
@@ -422,7 +422,7 @@ $$.MediaController = {"": "EventTarget;currentTime=,volume}",
   }
 };
 
-$$.MediaElement = {"": "Element;currentTime=,ended=,src},volume}",
+$$.MediaElement = {"": "Element;currentTime=,ended=,loop},src},volume}",
   play$0: function(receiver) {
     return receiver.play();
   }
@@ -1260,6 +1260,8 @@ $$.Closure$typeNameInFirefox = {"": "Closure;call$1,$name"};
 $$.Closure$typeNameInIE = {"": "Closure;call$1,$name"};
 
 $$.Closure$constructorNameFallback = {"": "Closure;call$1,$name"};
+
+$$.Closure$doneResizing = {"": "Closure;call$0,$name"};
 
 $$.Closure$main = {"": "Closure;call$0,$name"};
 
@@ -4147,7 +4149,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
         t1.stroke$0(context);
       }
     }
-    if (this.operating) {
+    if (this.operating)
       if ($.$eq(this.imageID, "cannon")) {
         targetPosition = $.Helper_tiled2screen(this.weaponTargetPosition);
         t1 = $.getInterceptor$x(context);
@@ -4156,8 +4158,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
         t1.moveTo$2(context, center.x, center.y);
         t1.lineTo$2(context, targetPosition.x, targetPosition.y);
         t1.stroke$0(context);
-      }
-      if ($.$eq(this.imageID, "analyzer")) {
+      } else if ($.$eq(this.imageID, "analyzer")) {
         targetPosition = $.Helper_tiled2screen(this.weaponTargetPosition);
         t1 = $.getInterceptor$x(context);
         t1.set$strokeStyle(context, "#00f");
@@ -4172,8 +4173,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
         t1.moveTo$2(context, center.x, center.y);
         t1.lineTo$2(context, targetPosition.x, targetPosition.y);
         t1.stroke$0(context);
-      }
-      if ($.$eq(this.imageID, "beam")) {
+      } else if ($.$eq(this.imageID, "beam")) {
         targetPosition = $.Helper_real2screen(this.weaponTargetPosition);
         t1 = $.getInterceptor$x(context);
         t1.set$strokeStyle(context, "#f00");
@@ -4188,8 +4188,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
         t1.moveTo$2(context, center.x, center.y);
         t1.lineTo$2(context, targetPosition.x, targetPosition.y);
         t1.stroke$0(context);
-      }
-      if ($.$eq(this.imageID, "shield")) {
+      } else if ($.$eq(this.imageID, "shield")) {
         t1 = $.engine.images;
         t1 = t1.$index(t1, "forcefield");
         t2 = center.x;
@@ -4206,8 +4205,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
         if (typeof t2 !== "number")
           throw $.iae(t2);
         $.drawImageScaled$5$x(context, t1, t3, t4, 336 * t2, 336 * t2);
-      }
-      if ($.$eq(this.imageID, "terp")) {
+      } else if ($.$eq(this.imageID, "terp")) {
         targetPosition = $.Helper_tiled2screen(this.weaponTargetPosition);
         t1 = $.getInterceptor$x(context);
         t1.set$strokeStyle(context, "#f00");
@@ -4223,7 +4221,6 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
         t1.lineTo$2(context, $.$add$ns(targetPosition.x, 8), $.$add$ns(targetPosition.y, 8));
         t1.stroke$0(context);
       }
-    }
   }
 },
 
@@ -4450,17 +4447,12 @@ Canvas: {"": "Object;element<,context<,top*,left*,bottom*,right*",
     t2 = $.getInterceptor$x(t1);
     $.clearRect$4$x(this.context, 0, 0, t2.get$width(t1), t2.get$height(t1));
   },
-  Canvas$3: function(element, width, height) {
+  updateRect$2: function(width, height) {
     var t1, t2, t3, t4, t5;
     t1 = this.element;
-    t1.get$attributes;
-    new $._ElementAttributeMap(t1)._element.setAttribute("width", $.toString$0(width));
-    t1.get$attributes;
-    new $._ElementAttributeMap(t1)._element.setAttribute("height", $.toString$0(height));
-    t2 = t1.style;
-    t2.set$position;
-    $.setProperty$3$x(t2, "position", "absolute", "");
-    this.context = $.getContext$1$x(t1, "2d");
+    t2 = $.getInterceptor$x(t1);
+    t2.set$width(t1, width);
+    t2.set$height(t1, height);
     t1.get$offset;
     this.top = new $.Rect(t1.offsetLeft, t1.offsetTop, t1.offsetWidth, t1.offsetHeight).top;
     t1.get$offset;
@@ -4477,15 +4469,23 @@ Canvas: {"": "Object;element<,context<,top*,left*,bottom*,right*",
     t3 = t1.offsetWidth;
     t1 = t1.offsetHeight;
     this.right = $.$add$ns(new $.Rect(t5, t4, t3, t1).left, new $.Rect(t5, t4, t3, t1).width);
-    $.set$imageSmoothingEnabled$x(this.context, false);
+  },
+  Canvas$3: function(element, width, height) {
+    var t1, t2;
+    this.updateRect$2(width, height);
+    t1 = this.element;
+    t2 = t1.style;
+    t2.set$position;
+    $.setProperty$3$x(t2, "position", "absolute", "");
+    this.context = $.getContext$1$x(t1, "2d");
   }
 },
 
 Mouse: {"": "Object;x*,y*,active@,dragStart,dragEnd"},
 
-Engine: {"": "Object;FPS,delta,fps_delta,fps_frames,fps_totalTime,fps_updateTime,fps_updateFrames,animationRequest,width*,height*,halfWidth,halfHeight,fps_lastTime,imageSrcs,mouse,mouseGUI,canvas,sounds,images",
+Engine: {"": "Object;FPS,delta,fps_delta,fps_frames,fps_totalTime,fps_updateTime,fps_updateFrames,animationRequest,width*,height*,halfWidth,halfHeight,fps_lastTime,imageSrcs,mouse,mouseGUI,canvas,sounds,images,resizeTimer",
   init$0: function() {
-    var width, height, t1, truncated, t2, i, mainCanvas, guiCanvas, t3;
+    var width, height, t1, truncated, t2, t3, t4, i, t5, mainCanvas, guiCanvas;
     width = window.innerWidth;
     height = window.innerHeight;
     this.width = width;
@@ -4505,72 +4505,129 @@ Engine: {"": "Object;FPS,delta,fps_delta,fps_frames,fps_totalTime,fps_updateTime
     truncated = t1 < 0 ? Math.ceil(t1) : Math.floor(t1);
     this.halfHeight = truncated == -0.0 ? 0 : truncated;
     t1 = this.canvas;
-    t1.$indexSet(t1, "main", $.Canvas$($.CanvasElement_CanvasElement(null, null), width, height));
-    t1 = $.get$children$x(document.querySelector("#canvasContainer"));
-    t2 = this.canvas;
-    t1.add$1(t1, t2.$index(t2, "main").get$element());
-    t2 = this.canvas;
-    t2 = t2.$index(t2, "main");
+    t2 = new $.Canvas($.CanvasElement_CanvasElement(null, null), null, null, null, null, null);
+    t2.updateRect$2(width, height);
+    t3 = t2.element;
+    t4 = t3.style;
+    t4.set$position;
+    $.setProperty$3$x(t4, "position", "absolute", "");
+    t2.context = $.getContext$1$x(t3, "2d");
+    t1.$indexSet(t1, "main", t2);
+    t2 = $.get$children$x(document.querySelector("#canvasContainer"));
     t1 = this.canvas;
-    $.set$top$x(t2, t1.$index(t1, "main").get$element().offsetTop);
+    t2.add$1(t2, t1.$index(t1, "main").get$element());
     t1 = this.canvas;
     t1 = t1.$index(t1, "main");
     t2 = this.canvas;
-    $.set$left$x(t1, t2.$index(t2, "main").get$element().offsetLeft);
+    $.set$top$x(t1, t2.$index(t2, "main").get$element().offsetTop);
     t2 = this.canvas;
     t2 = t2.$index(t2, "main");
     t1 = this.canvas;
-    t1 = t1.$index(t1, "main").get$element();
-    t1.get$offset;
-    t1 = new $.Rect(t1.offsetLeft, t1.offsetTop, t1.offsetWidth, t1.offsetHeight);
-    $.set$right$x(t2, $.$add$ns(t1.left, t1.width));
+    $.set$left$x(t2, t1.$index(t1, "main").get$element().offsetLeft);
     t1 = this.canvas;
     t1 = t1.$index(t1, "main");
     t2 = this.canvas;
     t2 = t2.$index(t2, "main").get$element();
     t2.get$offset;
     t2 = new $.Rect(t2.offsetLeft, t2.offsetTop, t2.offsetWidth, t2.offsetHeight);
-    $.set$bottom$x(t1, $.$add$ns(t2.top, t2.height));
+    $.set$right$x(t1, $.$add$ns(t2.left, t2.width));
     t2 = this.canvas;
-    t2 = t2.$index(t2, "main").get$element().style;
-    t2.set$zIndex;
-    $.setProperty$3$x(t2, "z-index", "1", "");
-    t2 = this.canvas;
-    t2.$indexSet(t2, "buffer", $.Canvas$($.CanvasElement_CanvasElement(null, null), width, height));
-    t2 = this.canvas;
-    t2.$indexSet(t2, "gui", $.Canvas$($.CanvasElement_CanvasElement(null, null), 780, 110));
-    t2 = $.get$children$x(document.querySelector("#gui"));
+    t2 = t2.$index(t2, "main");
     t1 = this.canvas;
-    t2.add$1(t2, t1.$index(t1, "gui").get$element());
+    t1 = t1.$index(t1, "main").get$element();
+    t1.get$offset;
+    t1 = new $.Rect(t1.offsetLeft, t1.offsetTop, t1.offsetWidth, t1.offsetHeight);
+    $.set$bottom$x(t2, $.$add$ns(t1.top, t1.height));
     t1 = this.canvas;
-    t1 = t1.$index(t1, "gui");
+    t1 = t1.$index(t1, "main").get$element().style;
+    t1.set$zIndex;
+    $.setProperty$3$x(t1, "z-index", "1", "");
+    t1 = this.canvas;
+    t2 = new $.Canvas($.CanvasElement_CanvasElement(null, null), null, null, null, null, null);
+    t2.updateRect$2(width, height);
+    t3 = t2.element;
+    t4 = t3.style;
+    t4.set$position;
+    $.setProperty$3$x(t4, "position", "absolute", "");
+    t2.context = $.getContext$1$x(t3, "2d");
+    t1.$indexSet(t1, "buffer", t2);
     t2 = this.canvas;
-    $.set$top$x(t1, t2.$index(t2, "gui").get$element().offsetTop);
+    t1 = new $.Canvas($.CanvasElement_CanvasElement(null, null), null, null, null, null, null);
+    t1.updateRect$2(780, 110);
+    t3 = t1.element;
+    t4 = t3.style;
+    t4.set$position;
+    $.setProperty$3$x(t4, "position", "absolute", "");
+    t1.context = $.getContext$1$x(t3, "2d");
+    t2.$indexSet(t2, "gui", t1);
+    t1 = $.get$children$x(document.querySelector("#gui"));
+    t2 = this.canvas;
+    t1.add$1(t1, t2.$index(t2, "gui").get$element());
     t2 = this.canvas;
     t2 = t2.$index(t2, "gui");
     t1 = this.canvas;
-    $.set$left$x(t2, t1.$index(t1, "gui").get$element().offsetLeft);
-    for (i = 0; t1 = this.canvas, i < 10; ++i)
-      t1.$indexSet(t1, "level" + i, $.Canvas$($.CanvasElement_CanvasElement(null, null), 2048, 2048));
-    t1.$indexSet(t1, "levelbuffer", $.Canvas$($.CanvasElement_CanvasElement(null, null), 2048, 2048));
+    $.set$top$x(t2, t1.$index(t1, "gui").get$element().offsetTop);
     t1 = this.canvas;
-    t1.$indexSet(t1, "levelfinal", $.Canvas$($.CanvasElement_CanvasElement(null, null), width, height));
+    t1 = t1.$index(t1, "gui");
+    t2 = this.canvas;
+    $.set$left$x(t1, t2.$index(t2, "gui").get$element().offsetLeft);
+    for (i = 0; t1 = this.canvas, i < 10; ++i) {
+      t2 = "level" + i;
+      t3 = new $.Canvas($.CanvasElement_CanvasElement(null, null), null, null, null, null, null);
+      t3.updateRect$2(2048, 2048);
+      t4 = t3.element;
+      t5 = t4.style;
+      t5.set$position;
+      $.setProperty$3$x(t5, "position", "absolute", "");
+      t3.context = $.getContext$1$x(t4, "2d");
+      t1.$indexSet(t1, t2, t3);
+    }
+    t2 = new $.Canvas($.CanvasElement_CanvasElement(null, null), null, null, null, null, null);
+    t2.updateRect$2(2048, 2048);
+    t3 = t2.element;
+    t4 = t3.style;
+    t4.set$position;
+    $.setProperty$3$x(t4, "position", "absolute", "");
+    t2.context = $.getContext$1$x(t3, "2d");
+    t1.$indexSet(t1, "levelbuffer", t2);
+    t2 = this.canvas;
+    t1 = new $.Canvas($.CanvasElement_CanvasElement(null, null), null, null, null, null, null);
+    t1.updateRect$2(width, height);
+    t3 = t1.element;
+    t4 = t3.style;
+    t4.set$position;
+    $.setProperty$3$x(t4, "position", "absolute", "");
+    t1.context = $.getContext$1$x(t3, "2d");
+    t2.$indexSet(t2, "levelfinal", t1);
     t1 = $.get$children$x(document.querySelector("#canvasContainer"));
     t2 = this.canvas;
     t1.add$1(t1, t2.$index(t2, "levelfinal").get$element());
     t2 = this.canvas;
-    t2.$indexSet(t2, "collection", $.Canvas$($.CanvasElement_CanvasElement(null, null), width, height));
-    t2 = $.get$children$x(document.querySelector("#canvasContainer"));
-    t1 = this.canvas;
-    t2.add$1(t2, t1.$index(t1, "collection").get$element());
-    t1 = this.canvas;
-    t1.$indexSet(t1, "creeper", $.Canvas$($.CanvasElement_CanvasElement(null, null), width, height));
+    t1 = new $.Canvas($.CanvasElement_CanvasElement(null, null), null, null, null, null, null);
+    t1.updateRect$2(width, height);
+    t3 = t1.element;
+    t4 = t3.style;
+    t4.set$position;
+    $.setProperty$3$x(t4, "position", "absolute", "");
+    t1.context = $.getContext$1$x(t3, "2d");
+    t2.$indexSet(t2, "collection", t1);
+    t1 = $.get$children$x(document.querySelector("#canvasContainer"));
+    t2 = this.canvas;
+    t1.add$1(t1, t2.$index(t2, "collection").get$element());
+    t2 = this.canvas;
+    t1 = new $.Canvas($.CanvasElement_CanvasElement(null, null), null, null, null, null, null);
+    t1.updateRect$2(width, height);
+    t3 = t1.element;
+    t4 = t3.style;
+    t4.set$position;
+    $.setProperty$3$x(t4, "position", "absolute", "");
+    t1.context = $.getContext$1$x(t3, "2d");
+    t2.$indexSet(t2, "creeper", t1);
     t1 = $.get$children$x(document.querySelector("#canvasContainer"));
     t2 = this.canvas;
     t1.add$1(t1, t2.$index(t2, "creeper").get$element());
     this.addSound$2("shot", "wav");
     this.addSound$2("click", "wav");
-    this.addSound$2("music", "ogg");
     this.addSound$2("explosion", "wav");
     this.addSound$2("failure", "wav");
     this.addSound$2("energy", "wav");
@@ -5113,7 +5170,13 @@ Engine_init_closure12: {"": "Closure;",
 
 Engine_init_closure13: {"": "Closure;",
   call$1: function($event) {
-    $.doneResizing();
+    var t1, milliseconds;
+    t1 = $.engine.resizeTimer;
+    if (t1 != null)
+      t1.cancel$0();
+    t1 = $.engine;
+    milliseconds = $.JSNumber_methods.$tdiv($.Duration$(0, 0, 0, 250, 0, 0)._duration, 1000);
+    t1.resizeTimer = $.TimerImpl$(milliseconds < 0 ? 0 : milliseconds, $.doneResizing$closure);
     return;
   }
 },
@@ -5141,6 +5204,7 @@ World: {"": "Object;tiles,size>,terraform",
 
 Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymbol,terraformingHeight,speed,zoom,creeperTimer,energyTimer@,spawnTimer,damageTimer,smokeTimer,explosionTimer,shieldTimer,packetSpeed,shellSpeed,sporeSpeed,buildingSpeed,shipSpeed,running,mode,paused,scrollingUp,scrollingDown,scrollingLeft,scrollingRight,ghosts,packetQueue,sporetowers,emitters,symbols,explosions,smokes,spores,buildings,packets,shells,ships,world,scroll,base,keyMap,stopwatch",
   init$0: function() {
+    var music, t1, t2;
     this.buildings = [];
     this.packets = [];
     this.shells = [];
@@ -5154,6 +5218,15 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     this.packetQueue = [];
     this.reset$0(this);
     this.setupUI$0();
+    music = $.AudioElement_AudioElement("sounds/music.ogg");
+    t1 = $.getInterceptor$x(music);
+    t1.set$loop(music, true);
+    t1.set$volume(music, 0.25);
+    t1 = $.EventStreamProvider_canplay.forTarget$1(music);
+    t1 = new $._EventStreamSubscription(0, t1._target, t1._eventType, new $.Game_init_closure(music), t1._useCapture);
+    t2 = t1._onData;
+    if (t2 != null && !t1.get$isPaused())
+      $.$$dom_addEventListener$3$x(t1._target, t1._eventType, t2, t1._useCapture);
   },
   reset$0: function(_) {
     var t1, oneSecond, milliseconds;
@@ -5715,7 +5788,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     if (typeof t1 !== "string")
       return this.addBuilding$2$bailout(9, building, t1);
     if (t1 === "cannon") {
-      building.maxHealth = 5;
+      building.maxHealth = 25;
       building.maxEnergy = 40;
       building.energy = 0;
       building.weaponRadius = 8;
@@ -5831,7 +5904,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       case 9:
         state0 = 0;
         if ($.$eq(t1, "cannon")) {
-          building.maxHealth = 5;
+          building.maxHealth = 25;
           building.maxEnergy = 40;
           building.energy = 0;
           building.weaponRadius = 8;
@@ -5893,7 +5966,8 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     if (typeof t1 !== "string")
       return this.removeBuilding$1$bailout(2, building, t1);
     if (t1 === "collector")
-      this.updateCollection$2(building, "remove");
+      if (building.get$built())
+        this.updateCollection$2(building, "remove");
     t1 = building.get$imageID();
     if (typeof t1 !== "string")
       return this.removeBuilding$1$bailout(3, building, t1);
@@ -5966,7 +6040,8 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       case 2:
         state0 = 0;
         if ($.$eq(t1, "collector"))
-          this.updateCollection$2(building, "remove");
+          if (building.get$built())
+            this.updateCollection$2(building, "remove");
         t1 = building.get$imageID();
       case 3:
         state0 = 0;
@@ -11580,6 +11655,12 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
   }
 },
 
+Game_init_closure: {"": "Closure;music_0",
+  call$1: function($event) {
+    return this.music_0.play();
+  }
+},
+
 Game_run_closure: {"": "Closure;this_0",
   call$1: function(timer) {
     $.game.update$0();
@@ -13418,12 +13499,6 @@ Vector$: function(x, y) {
   return new $.Vector(x, y);
 },
 
-Canvas$: function(element, width, height) {
-  var t1 = new $.Canvas(element, null, null, null, null, null);
-  t1.Canvas$3(element, width, height);
-  return t1;
-},
-
 onMouseMoveGUI: function(evt) {
   var i, t1;
   $.engine.updateMouseGUI$1(evt);
@@ -13670,6 +13745,10 @@ onMouseUp: function(evt) {
           t1 = $.game.buildings;
           if (i >= t1.length)
             throw $.ioore(i);
+          t1[i].set$operating(false);
+          t1 = $.game.buildings;
+          if (i >= t1.length)
+            throw $.ioore(i);
           t1[i].set$weaponTargetPosition(null);
           t1 = $.game.buildings;
           if (i >= t1.length)
@@ -13805,21 +13884,15 @@ doneResizing: function() {
   truncated = t2 < 0 ? Math.ceil(t2) : Math.floor(t2);
   t1.halfHeight = truncated == -0.0 ? 0 : truncated;
   t1 = $.engine.canvas;
-  $.set$height$x(t1.$index(t1, "main").get$element(), height);
+  t1.$index(t1, "main").updateRect$2(width, height);
   t1 = $.engine.canvas;
-  $.set$width$x(t1.$index(t1, "main").get$element(), width);
+  t1.$index(t1, "levelfinal").updateRect$2(width, height);
   t1 = $.engine.canvas;
-  $.set$height$x(t1.$index(t1, "buffer").get$element(), height);
+  t1.$index(t1, "buffer").updateRect$2(width, height);
   t1 = $.engine.canvas;
-  $.set$width$x(t1.$index(t1, "buffer").get$element(), width);
+  t1.$index(t1, "collection").updateRect$2(width, height);
   t1 = $.engine.canvas;
-  $.set$height$x(t1.$index(t1, "collection").get$element(), height);
-  t1 = $.engine.canvas;
-  $.set$width$x(t1.$index(t1, "collection").get$element(), width);
-  t1 = $.engine.canvas;
-  $.set$height$x(t1.$index(t1, "creeper").get$element(), height);
-  t1 = $.engine.canvas;
-  $.set$width$x(t1.$index(t1, "creeper").get$element(), width);
+  t1.$index(t1, "creeper").updateRect$2(width, height);
   t1 = $.engine.canvas;
   t1 = t1.$index(t1, "gui");
   t2 = $.engine.canvas;
@@ -14043,7 +14116,7 @@ Helper_shuffle: function(list) {
 },
 
 main: function() {
-  var t1 = new $.Engine(60, 16.666666666666668, null, null, null, null, null, null, null, null, null, null, null, [], new $.Mouse(0, 0, true, null, null), new $.Mouse(0, 0, true, null, null), null, null, null);
+  var t1 = new $.Engine(60, 16.666666666666668, null, null, null, null, null, null, null, null, null, null, null, [], new $.Mouse(0, 0, true, null, null), new $.Mouse(0, 0, true, null, null), null, null, null, null);
   t1.canvas = new $.HashMap(0, null, null, null, null);
   t1.sounds = new $.HashMap(0, null, null, null, null);
   t1.images = new $.HashMap(0, null, null, null, null);
@@ -17968,6 +18041,7 @@ $.typeNameInOpera$closure = new $.Closure$typeNameInOpera($.typeNameInOpera, "ty
 $.typeNameInFirefox$closure = new $.Closure$typeNameInFirefox($.typeNameInFirefox, "typeNameInFirefox$closure");
 $.typeNameInIE$closure = new $.Closure$typeNameInIE($.typeNameInIE, "typeNameInIE$closure");
 $.constructorNameFallback$closure = new $.Closure$constructorNameFallback($.constructorNameFallback, "constructorNameFallback$closure");
+$.doneResizing$closure = new $.Closure$doneResizing($.doneResizing, "doneResizing$closure");
 $.main$closure = new $.Closure$main($.main, "main$closure");
 $._asyncRunCallback$closure = new $.Closure$_asyncRunCallback($._asyncRunCallback, "_asyncRunCallback$closure");
 $._nullDataHandler$closure = new $.Closure$_nullDataHandler($._nullDataHandler, "_nullDataHandler$closure");
@@ -17981,6 +18055,7 @@ Isolate.makeConstantList = function(list) {
   return list;
 };
 $.List_empty = Isolate.makeConstantList([]);
+$.EventStreamProvider_canplay = new $.EventStreamProvider("canplay");
 $.EventStreamProvider_keydown = new $.EventStreamProvider("keydown");
 $.Window_methods = $.Window.prototype;
 $.HtmlDocument_methods = $.HtmlDocument.prototype;
@@ -18000,10 +18075,10 @@ $.EventStreamProvider_load = new $.EventStreamProvider("load");
 $.EventStreamProvider_mousedown = new $.EventStreamProvider("mousedown");
 $.EventStreamProvider_contextmenu = new $.EventStreamProvider("contextmenu");
 $.C_CloseToken = new $.CloseToken();
-$.EventStreamProvider_mouseup = new $.EventStreamProvider("mouseup");
 $.JSNumber_methods = $.JSNumber.prototype;
 $.JSString_methods = $.JSString.prototype;
 $.EventStreamProvider_mousemove = new $.EventStreamProvider("mousemove");
+$.EventStreamProvider_mouseup = new $.EventStreamProvider("mouseup");
 $.EventStreamProvider_resize = new $.EventStreamProvider("resize");
 $.dispatchPropertyName = null;
 $.lazyPort = null;
@@ -18278,9 +18353,6 @@ $.set$globalCompositeOperation$x = function(receiver, value) {
 };
 $.set$height$x = function(receiver, value) {
   return $.getInterceptor$x(receiver).set$height(receiver, value);
-};
-$.set$imageSmoothingEnabled$x = function(receiver, value) {
-  return $.getInterceptor$x(receiver).set$imageSmoothingEnabled(receiver, value);
 };
 $.set$index$x = function(receiver, value) {
   return $.getInterceptor$x(receiver).set$index(receiver, value);

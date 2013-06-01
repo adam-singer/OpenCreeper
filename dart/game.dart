@@ -58,8 +58,12 @@ class Game {
     this.packetQueue = [];
     this.reset();
     this.setupUI();
-    //engine.sounds["music"].loop = true;
-    //engine.sounds["music"].play();
+    
+    // Music won't play in Chromium
+    var music = new AudioElement("sounds/music.ogg");
+    music.loop = true;
+    music.volume = 0.25;
+    music.onCanPlay.listen((event) => music.play());
   }
 
   void reset() {

@@ -73,7 +73,6 @@ class Engine {
     // load sounds
     this.addSound("shot", "wav");
     this.addSound("click", "wav");
-    this.addSound("music", "ogg");
     this.addSound("explosion", "wav");
     this.addSound("failure", "wav");
     this.addSound("energy", "wav");
