@@ -7,23 +7,23 @@ class Emitter {
   Building building;
 
   Emitter(this.position, this.strength) {
-    this.imageID = "emitter";
+    imageID = "emitter";
   }
   
   Vector getCenter() {
-    return new Vector(this.position.x * game.tileSize + 24, this.position.y * game.tileSize + 24);
+    return new Vector(position.x * game.tileSize + 24, position.y * game.tileSize + 24);
   }
 
   void spawn() {
     // only spawn creeper if not targeted by an analyzer
-    if (this.building == null)
-      game.world.tiles[this.position.x + 1][this.position.y + 1][0].creep += this.strength;
+    if (building == null)
+      game.world.tiles[position.x + 1][position.y + 1][0].creep += strength;
   }
   
   void draw() {
-    Vector position = Helper.tiled2screen(this.position);
-    if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
-      engine.canvas["buffer"].context.drawImageScaled(engine.images[this.imageID], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
+    Vector realPosition = Helper.tiled2screen(position);
+    if (engine.isVisible(realPosition, new Vector(48 * game.zoom, 48 * game.zoom))) {
+      engine.canvas["buffer"].context.drawImageScaled(engine.images[imageID], realPosition.x, realPosition.y, 48 * game.zoom, 48 * game.zoom);
     }
   }
 }
@@ -38,23 +38,23 @@ class Sporetower {
   num health = 100, sporeTimer = 0;
 
   Sporetower(this.position) {
-    this.imageID = "sporetower";
-    this.reset();
+    imageID = "sporetower";
+    reset();
   }
 
   void reset() {
-    this.sporeTimer = Helper.randomInt(7500, 12500);
+    sporeTimer = Helper.randomInt(7500, 12500);
   }
 
   Vector getCenter() {
-    return new Vector(this.position.x * game.tileSize + 24, this.position.y * game.tileSize + 24);
+    return new Vector(position.x * game.tileSize + 24, position.y * game.tileSize + 24);
   }
 
   void update() {
-    this.sporeTimer -= 1;
-    if (this.sporeTimer <= 0) {
-      this.reset();
-      this.spawn();
+    sporeTimer -= 1;
+    if (sporeTimer <= 0) {
+      reset();
+      spawn();
     }
   }
 
@@ -63,15 +63,15 @@ class Sporetower {
     do {
       target = game.buildings[Helper.randomInt(0, game.buildings.length)];
     } while (!target.built);
-    Spore spore = new Spore(this.getCenter(), target.getCenter());
+    Spore spore = new Spore(getCenter(), target.getCenter());
     spore.init();
     game.spores.add(spore);
   }
   
   void draw() {
-    Vector position = Helper.tiled2screen(this.position);
-    if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
-      engine.canvas["buffer"].context.drawImageScaled(engine.images[this.imageID], position.x, position.y, 48 * game.zoom, 48 * game.zoom);
+    Vector realPosition = Helper.tiled2screen(position);
+    if (engine.isVisible(realPosition, new Vector(48 * game.zoom, 48 * game.zoom))) {
+      engine.canvas["buffer"].context.drawImageScaled(engine.images[imageID], realPosition.x, realPosition.y, 48 * game.zoom, 48 * game.zoom);
     }
   }
 }
@@ -82,15 +82,15 @@ class Smoke {
   String imageID;
 
   Smoke(Vector position) {
-    this.position = new Vector(position.x, position.y);
-    this.frame = 0;
-    this.imageID = "smoke";
+    position = new Vector(position.x, position.y);
+    frame = 0;
+    imageID = "smoke";
   }
 
   void draw() {
-    Vector position = Helper.real2screen(this.position);
-    if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
-      engine.canvas["buffer"].context.drawImageScaledFromSource(engine.images[this.imageID], (this.frame % 8) * 128, (this.frame / 8).floor() * 128, 128, 128, position.x - 24 * game.zoom, position.y - 24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
+    Vector realPosition = Helper.real2screen(position);
+    if (engine.isVisible(realPosition, new Vector(48 * game.zoom, 48 * game.zoom))) {
+      engine.canvas["buffer"].context.drawImageScaledFromSource(engine.images[imageID], (frame % 8) * 128, (frame / 8).floor() * 128, 128, 128, realPosition.x - 24 * game.zoom, realPosition.y - 24 * game.zoom, 48 * game.zoom, 48 * game.zoom);
     }
   }
 }
@@ -101,15 +101,15 @@ class Explosion {
   String imageID;
 
   Explosion(Vector position) {
-    this.position = new Vector(position.x, position.y);
-    this.frame = 0;
-    this.imageID = "explosion";
+    position = new Vector(position.x, position.y);
+    frame = 0;
+    imageID = "explosion";
   }
 
   void draw() {
-    Vector position = Helper.real2screen(this.position);
-    if (engine.isVisible(position, new Vector(64 * game.zoom, 64 * game.zoom))) {
-      engine.canvas["buffer"].context.drawImageScaledFromSource(engine.images[this.imageID], (this.frame % 8) * 64, (this.frame / 8).floor() * 64, 64, 64, position.x - 32 * game.zoom, position.y - 32 * game.zoom, 64 * game.zoom, 64 * game.zoom);
+    Vector realPosition = Helper.real2screen(position);
+    if (engine.isVisible(realPosition, new Vector(64 * game.zoom, 64 * game.zoom))) {
+      engine.canvas["buffer"].context.drawImageScaledFromSource(engine.images[imageID], (frame % 8) * 64, (frame / 8).floor() * 64, 64, 64, realPosition.x - 32 * game.zoom, realPosition.y - 32 * game.zoom, 64 * game.zoom, 64 * game.zoom);
     }
   }
 }
@@ -120,11 +120,11 @@ class Tile {
   Building collector;
 
   Tile() {
-    this.index = -1;
-    this.full = false;
-    this.creep = 0;
-    this.newcreep = 0;
-    this.collector = null;
+    index = -1;
+    full = false;
+    creep = 0;
+    newcreep = 0;
+    collector = null;
   }
 }
 
@@ -166,23 +166,23 @@ class Canvas {
   num top, left, bottom, right;
 
   Canvas(this.element, width, height) {
-    this.updateRect(width, height);
-    this.element.style.position = "absolute";
-    this.context = this.element.getContext('2d');
+    updateRect(width, height);
+    element.style.position = "absolute";
+    context = element.getContext('2d');
   }
 
   void clear() {
-    this.context.clearRect(0, 0, this.element.width, this.element.height);
+    context.clearRect(0, 0, element.width, element.height);
   }
   
   void updateRect(int width, int height) {
-    //this.element.attributes['width'] = width.toString();
-    //this.element.attributes['height'] = height.toString();
-    this.element.width = width;
-    this.element.height = height;
-    this.top = this.element.offset.top;
-    this.left = this.element.offset.left;
-    this.bottom = this.element.offset.top + this.element.offset.height;
-    this.right = this.element.offset.left + this.element.offset.width;
+    //element.attributes['width'] = width.toString();
+    //element.attributes['height'] = height.toString();
+    element.width = width;
+    element.height = height;
+    top = element.offset.top;
+    left = element.offset.left;
+    bottom = element.offset.top + element.offset.height;
+    right = element.offset.left + element.offset.width;
   }
 }

@@ -6,7 +6,7 @@ class World {
   List terraform;
   
   World(int seed) {
-    this.size = new Vector(Helper.randomInt(64, 127, seed), Helper.randomInt(64, 127, seed));
+    size = new Vector(Helper.randomInt(64, 127, seed), Helper.randomInt(64, 127, seed));
   }
 }
 
@@ -37,27 +37,27 @@ class Game {
   Stopwatch stopwatch = new Stopwatch();
 
   Game() {
-    this.seed = Helper.randomInt(0, 10000);
-    this.world = new World(this.seed);
-    this.init();
-    this.drawTerrain();
-    this.copyTerrain();
+    seed = Helper.randomInt(0, 10000);
+    world = new World(seed);
+    init();
+    drawTerrain();
+    copyTerrain();
   }
 
   void init() {
-    this.buildings = [];
-    this.packets = [];
-    this.shells = [];
-    this.spores = [];
-    this.ships = [];
-    this.smokes = [];
-    this.explosions = [];
-    this.symbols = [];
-    this.emitters = [];
-    this.sporetowers = [];
-    this.packetQueue = [];
-    this.reset();
-    this.setupUI();
+    buildings = [];
+    packets = [];
+    shells = [];
+    spores = [];
+    ships = [];
+    smokes = [];
+    explosions = [];
+    symbols = [];
+    emitters = [];
+    sporetowers = [];
+    packetQueue = [];
+    reset();
+    setupUI();
     
     // Music won't play in Chromium
     var music = new AudioElement("sounds/music.ogg");
@@ -67,51 +67,51 @@ class Game {
   }
 
   void reset() {
-    this.stopwatch.reset();
-    this.stopwatch.start();
+    stopwatch.reset();
+    stopwatch.start();
     var oneSecond = new Duration(seconds:1);
-    new Timer.periodic(oneSecond, this.updateTime);
+    new Timer.periodic(oneSecond, updateTime);
     query('#lose').style.display = 'none';
     query('#win').style.display = 'none';
 
-    this.mode = "DEFAULT";
-    this.buildings.clear();
-    this.packets.clear();
-    this.shells.clear();
-    this.spores.clear();
-    this.ships.clear();
-    this.smokes.clear();
-    this.explosions.clear();
-    //this.symbols.length = 0;
-    this.emitters.clear();
-    this.sporetowers.clear();
-    this.packetQueue.clear();
+    mode = "DEFAULT";
+    buildings.clear();
+    packets.clear();
+    shells.clear();
+    spores.clear();
+    ships.clear();
+    smokes.clear();
+    explosions.clear();
+    //symbols.length = 0;
+    emitters.clear();
+    sporetowers.clear();
+    packetQueue.clear();
 
-    this.maxEnergy = 20;
-    this.currentEnergy = 20;
-    this.collection = 0;
+    maxEnergy = 20;
+    currentEnergy = 20;
+    collection = 0;
 
-    this.creeperTimer = 0;
-    this.energyTimer = 0;
-    this.spawnTimer = 0;
-    this.damageTimer = 0;
-    this.smokeTimer = 0;
-    this.explosionTimer = 0;
-    this.shieldTimer = 0;
+    creeperTimer = 0;
+    energyTimer = 0;
+    spawnTimer = 0;
+    damageTimer = 0;
+    smokeTimer = 0;
+    explosionTimer = 0;
+    shieldTimer = 0;
 
-    this.packetSpeed = 3;
-    this.shellSpeed = 1;
-    this.sporeSpeed = 1;
-    this.buildingSpeed = .5;
-    this.shipSpeed = 1;
-    this.speed = 1;
-    this.activeSymbol = -1;
-    this.updateEnergyElement();
-    this.updateSpeedElement();
-    this.updateZoomElement();
-    this.updateCollectionElement();
-    this.clearSymbols();
-    this.createWorld();
+    packetSpeed = 3;
+    shellSpeed = 1;
+    sporeSpeed = 1;
+    buildingSpeed = .5;
+    shipSpeed = 1;
+    speed = 1;
+    activeSymbol = -1;
+    updateEnergyElement();
+    updateSpeedElement();
+    updateZoomElement();
+    updateCollectionElement();
+    clearSymbols();
+    createWorld();
   }
   
   void updateTime(Timer _) {
@@ -130,12 +130,12 @@ class Game {
    *
    */
   bool withinWorld(int x, int y) {
-    return (x > -1 && x < this.world.size.x && y > -1 && y < this.world.size.y);
+    return (x > -1 && x < world.size.x && y > -1 && y < world.size.y);
   }
 
   // Returns the position of the tile the mouse is hovering above
   Vector getHoveredTilePosition() {
-    return new Vector(((engine.mouse.x - engine.halfWidth) / (this.tileSize * this.zoom)).floor() + this.scroll.x, ((engine.mouse.y - engine.halfHeight) / (this.tileSize * this.zoom)).floor() + this.scroll.y);
+    return new Vector(((engine.mouse.x - engine.halfWidth) / (tileSize * zoom)).floor() + scroll.x, ((engine.mouse.y - engine.halfHeight) / (tileSize * zoom)).floor() + scroll.y);
   }
 
   /**
@@ -144,7 +144,7 @@ class Game {
   int getHighestTerrain(Vector pVector) {
     int height = -1;
     for (int i = 9; i > -1; i--) {
-      if (this.world.tiles[pVector.x][pVector.y][i].full) {
+      if (world.tiles[pVector.x][pVector.y][i].full) {
         height = i;
         break;
       }
@@ -154,23 +154,23 @@ class Game {
 
   void pause() {
     query('#paused').style.display = 'block';
-    this.paused = true;
-    this.stopwatch.stop();
+    paused = true;
+    stopwatch.stop();
   }
 
   void resume() {
     query('#paused').style.display = 'none';
-    this.paused = false;
-    this.stopwatch.start();
+    paused = false;
+    stopwatch.start();
   }
 
   void stop() {
-    this.running.cancel();
+    running.cancel();
   }
 
   void run() {
-    this.running = new Timer.periodic(new Duration(milliseconds: (1000 / this.speed / engine.FPS).floor()), (Timer timer) => this.updateAll());
-    engine.animationRequest = window.requestAnimationFrame(this.draw);
+    running = new Timer.periodic(new Duration(milliseconds: (1000 / speed / engine.FPS).floor()), (Timer timer) => updateAll());
+    engine.animationRequest = window.requestAnimationFrame(draw);
   }
   
   void updateAll() {
@@ -179,17 +179,17 @@ class Game {
   }
 
   void restart() {
-    this.stop();
-    this.reset();
-    this.run();
+    stop();
+    reset();
+    run();
   }
 
   void toggleTerraform() {
-    if (this.mode == "TERRAFORM") {
-      this.mode = "DEFAULT";
+    if (mode == "TERRAFORM") {
+      mode = "DEFAULT";
       query("#terraform").attributes['value'] = "Terraform Off";
     } else {
-      this.mode = "TERRAFORM";
+      mode = "TERRAFORM";
       query("#terraform").attributes['value'] = "Terraform On";
     }
   }
@@ -197,85 +197,85 @@ class Game {
   void faster() {
     query('#slower').style.display = 'inline';
     query('#faster').style.display = 'none';
-    if (this.speed < 2) {
-      this.speed *= 2;
-      this.stop();
-      this.run();
-      this.updateSpeedElement();
+    if (speed < 2) {
+      speed *= 2;
+      stop();
+      run();
+      updateSpeedElement();
     }
   }
 
   void slower() {
     query('#slower').style.display = 'none';
     query('#faster').style.display = 'inline';
-    if (this.speed > 1) {
-      this.speed /= 2;
-      this.stop();
-      this.run();
-      this.updateSpeedElement();
+    if (speed > 1) {
+      speed /= 2;
+      stop();
+      run();
+      updateSpeedElement();
     }
   }
 
   void zoomIn() {
-    if (this.zoom < 1.6) {
-      this.zoom += .2;
-      this.zoom = double.parse(this.zoom.toStringAsFixed(2));
-      this.copyTerrain();
-      this.drawCollection();
-      this.drawCreeper();
-      this.updateZoomElement();
+    if (zoom < 1.6) {
+      zoom += .2;
+      zoom = double.parse(zoom.toStringAsFixed(2));
+      copyTerrain();
+      drawCollection();
+      drawCreeper();
+      updateZoomElement();
     }
   }
 
   void zoomOut() {
-    if (this.zoom > .4) {
-      this.zoom -= .2;
-      this.zoom = double.parse(this.zoom.toStringAsFixed(2));
-      this.copyTerrain();
-      this.drawCollection();
-      this.drawCreeper();
-      this.updateZoomElement();
+    if (zoom > .4) {
+      zoom -= .2;
+      zoom = double.parse(zoom.toStringAsFixed(2));
+      copyTerrain();
+      drawCollection();
+      drawCreeper();
+      updateZoomElement();
     }
   }
 
   void createWorld() {
-    this.world.tiles = new List(this.world.size.x);
-    this.world.terraform = new List(this.world.size.x);
-    for (int i = 0; i < this.world. size.x; i++) {
-      this.world.tiles[i] = new List(this.world.size.y);
-      this.world.terraform[i] = new List(this.world.size.y);
-      for (int j = 0; j < this.world.size.y; j++) {
-        this.world.tiles[i][j] = [];
+    world.tiles = new List(world.size.x);
+    world.terraform = new List(world.size.x);
+    for (int i = 0; i < world. size.x; i++) {
+      world.tiles[i] = new List(world.size.y);
+      world.terraform[i] = new List(world.size.y);
+      for (int j = 0; j < world.size.y; j++) {
+        world.tiles[i][j] = [];
         for (int k = 0; k < 10; k++) {
-          this.world.tiles[i][j].add(new Tile());
+          world.tiles[i][j].add(new Tile());
         }
-        this.world.terraform[i][j] = {
+        world.terraform[i][j] = {
             "target": -1, "progress": 0
         };
       }
     }
 
-    var heightmap = new HeightMap(this.seed, 129, 0, 90);
+    var heightmap = new HeightMap(seed, 129, 0, 90);
     heightmap.run();
 
-    for (int i = 0; i < this.world.size.x; i++) {
-      for (int j = 0; j < this.world.size.y; j++) {
+    for (int i = 0; i < world.size.x; i++) {
+      for (int j = 0; j < world.size.y; j++) {
         int height = (heightmap.map[i][j] / 10).round();
         if (height > 10)
           height = 10;
         for (int k = 0; k < height; k++) {
-          this.world.tiles[i][j][k].full = true;
+          world.tiles[i][j][k].full = true;
         }
       }
     }
 
     // create base
     Vector randomPosition = new Vector(
-        Helper.randomInt(0, this.world.size.x - 9, this.seed + 1),
-        Helper.randomInt(0, this.world.size.y - 9, this.seed + 1));
+        Helper.randomInt(0, world.size.x - 9, seed + 1),
+        Helper.randomInt(0, world.size.y - 9, seed + 1));
 
-    this.scroll.x = randomPosition.x + 4;
-    this.scroll.y = randomPosition.y + 4;
+    scroll.x = randomPosition.x + 4;
+    scroll.y = randomPosition.y + 4;
 
     Building building = new Building(randomPosition, "base");
     building.health = 40;
@@ -283,40 +283,40 @@ class Game {
     building.built = true;
     building.size = 9;
     building.canMove = true;
-    this.buildings.add(building);
-    this.base = building;
+    buildings.add(building);
+    base = building;
 
-    int height = this.getHighestTerrain(new Vector(building.position.x + 4, building.position.y + 4));
+    int height = getHighestTerrain(new Vector(building.position.x + 4, building.position.y + 4));
     if (height < 0)
       height = 0;
     for (int i = 0; i < 9; i++) {
       for (int j = 0; j < 9; j++) {
         for (int k = 0; k <= height; k++) {
-          this.world.tiles[building.position.x + i][building.position.y + j][k].full = true;
+          world.tiles[building.position.x + i][building.position.y + j][k].full = true;
         }
       }
     }
 
-    this.calculateCollection();
+    calculateCollection();
 
     int number = Helper.randomInt(2, 3, seed);
     for (var l = 0; l < number; l++) {
       // create emitter
       
       randomPosition = new Vector(
-          Helper.randomInt(0, this.world.size.x - 3, this.seed + Helper.randomInt(1, 1000, seed + l)),
-          Helper.randomInt(0, this.world.size.y - 3, this.seed + Helper.randomInt(1, 1000, seed + 1 + l)));
+          Helper.randomInt(0, world.size.x - 3, seed + Helper.randomInt(1, 1000, seed + l)),
+          Helper.randomInt(0, world.size.y - 3, seed + Helper.randomInt(1, 1000, seed + 1 + l)));
   
       Emitter emitter = new Emitter(randomPosition, 5);
-      this.emitters.add(emitter);
+      emitters.add(emitter);
   
-      height = this.getHighestTerrain(new Vector(emitter.position.x + 1, emitter.position.y + 1));
+      height = getHighestTerrain(new Vector(emitter.position.x + 1, emitter.position.y + 1));
       if (height < 0)
         height = 0;
       for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
           for (int k = 0; k < height; k++) {
-            this.world.tiles[emitter.position.x + i][emitter.position.y + j][k].full = true;
+            world.tiles[emitter.position.x + i][emitter.position.y + j][k].full = true;
           }
         }
       }
@@ -326,19 +326,19 @@ class Game {
     for (var l = 0; l < number; l++) {
       // create sporetower
       randomPosition = new Vector(
-          Helper.randomInt(0, this.world.size.x - 3, this.seed + 3 + Helper.randomInt(1, 1000, seed + 2 + l)),
-          Helper.randomInt(0, this.world.size.y - 3, this.seed + 3 + Helper.randomInt(1, 1000, seed + 3 + l)));
+          Helper.randomInt(0, world.size.x - 3, seed + 3 + Helper.randomInt(1, 1000, seed + 2 + l)),
+          Helper.randomInt(0, world.size.y - 3, seed + 3 + Helper.randomInt(1, 1000, seed + 3 + l)));
   
       Sporetower sporetower = new Sporetower(randomPosition);
-      this.sporetowers.add(sporetower);
+      sporetowers.add(sporetower);
   
-      height = this.getHighestTerrain(new Vector(sporetower.position.x + 1, sporetower.position.y + 1));
+      height = getHighestTerrain(new Vector(sporetower.position.x + 1, sporetower.position.y + 1));
       if (height < 0)
         height = 0;
       for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
           for (int k = 0; k < height; k++) {
-            this.world.tiles[sporetower.position.x + i][sporetower.position.y + j][k].full = true;
+            world.tiles[sporetower.position.x + i][sporetower.position.y + j][k].full = true;
           }
         }
       }
@@ -432,7 +432,7 @@ class Game {
       building.size = 3;
     }
 
-    this.buildings.add(building);
+    buildings.add(building);
   }
 
   /**
@@ -443,93 +443,93 @@ class Game {
 
     // only explode building when it has been built
     if (building.built) {
-      this.explosions.add(new Explosion(building.getCenter()));
+      explosions.add(new Explosion(building.getCenter()));
       engine.playSound("explosion", building.position);
     }
 
     if (building.imageID == "base") {
       query('#lose').style.display = "block";
-      this.stopwatch.stop();
-      this.stop();
+      stopwatch.stop();
+      stop();
     }
     if (building.imageID == "collector") {
       if (building.built)
-        this.updateCollection(building, "remove");
+        updateCollection(building, "remove");
     }
     if (building.imageID == "storage") {
-      this.maxEnergy -= 10;
-      this.updateEnergyElement();
+      maxEnergy -= 10;
+      updateEnergyElement();
     }
     if (building.imageID == "speed") {
-      this.packetSpeed /= 1.01;
+      packetSpeed /= 1.01;
     }
 
     // find all packets with this building as target and remove them
-    for (int i = this.packets.length - 1; i >= 0; i--) {
-      if (this.packets[i].currentTarget == building || this.packets[i].target == building) {
-        this.packets.removeAt(i);
+    for (int i = packets.length - 1; i >= 0; i--) {
+      if (packets[i].currentTarget == building || packets[i].target == building) {
+        packets.removeAt(i);
       }
     }
-    for (int i = this.packetQueue.length - 1; i >= 0; i--) {
-      if (this.packetQueue[i].currentTarget == building || this.packetQueue[i].target == building) {
-        this.packetQueue.removeAt(i);
+    for (int i = packetQueue.length - 1; i >= 0; i--) {
+      if (packetQueue[i].currentTarget == building || packetQueue[i].target == building) {
+        packetQueue.removeAt(i);
       }
     }
 
-    int index = this.buildings.indexOf(building);
-    this.buildings.removeAt(index);
+    int index = buildings.indexOf(building);
+    buildings.removeAt(index);
   }
 
   void activateBuilding() {
-    for (int i = 0; i < this.buildings.length; i++) {
-      if (this.buildings[i].selected)
-        this.buildings[i].active = true;
+    for (int i = 0; i < buildings.length; i++) {
+      if (buildings[i].selected)
+        buildings[i].active = true;
     }
   }
 
   void deactivateBuilding() {
-    for (int i = 0; i < this.buildings.length; i++) {
-      if (this.buildings[i].selected)
-        this.buildings[i].active = false;
+    for (int i = 0; i < buildings.length; i++) {
+      if (buildings[i].selected)
+        buildings[i].active = false;
     }
   }
 
   void updateEnergyElement() {
-    query('#energy').innerHtml = "Energy: ${this.currentEnergy.toString()}/${this.maxEnergy.toString()}";
+    query('#energy').innerHtml = "Energy: ${currentEnergy.toString()}/${maxEnergy.toString()}";
   }
 
   void updateSpeedElement() {
-    query("#speed").innerHtml = "Speed: ${this.speed.toString()}x";
+    query("#speed").innerHtml = "Speed: ${speed.toString()}x";
   }
 
   void updateZoomElement() {
-    query("#speed").innerHtml = "Zoom: ${this.zoom.toString()}x";
+    query("#speed").innerHtml = "Zoom: ${zoom.toString()}x";
   }
 
   void updateCollectionElement() {
-    //query('#collection').innerHtml = "Collection: ${this.collection.toString()}";
+    //query('#collection').innerHtml = "Collection: ${collection.toString()}";
   }
 
   void clearSymbols() {
-    this.activeSymbol = -1;
-    for (int i = 0; i < this.symbols.length; i++)
-      this.symbols[i].active = false;
+    activeSymbol = -1;
+    for (int i = 0; i < symbols.length; i++)
+      symbols[i].active = false;
     engine.canvas["main"].element.style.cursor = "url('images/Normal.cur') 2 2, pointer";
   }
 
   void setupUI() {
-    this.symbols.add(new UISymbol(new Vector(0, 0), "cannon", "Q", 3, 25, 8));
-    this.symbols.add(new UISymbol(new Vector(81, 0), "collector", "W", 3, 5, 6));
-    this.symbols.add(new UISymbol(new Vector(2 * 81, 0), "reactor", "E", 3, 50, 0));
-    this.symbols.add(new UISymbol(new Vector(3 * 81, 0), "storage", "R", 3, 8, 0));
-    this.symbols.add(new UISymbol(new Vector(4 * 81, 0), "shield", "T", 3, 75, 10));
-    this.symbols.add(new UISymbol(new Vector(5 * 81, 0), "analyzer", "Z", 3, 80, 10));
+    symbols.add(new UISymbol(new Vector(0, 0), "cannon", "Q", 3, 25, 8));
+    symbols.add(new UISymbol(new Vector(81, 0), "collector", "W", 3, 5, 6));
+    symbols.add(new UISymbol(new Vector(2 * 81, 0), "reactor", "E", 3, 50, 0));
+    symbols.add(new UISymbol(new Vector(3 * 81, 0), "storage", "R", 3, 8, 0));
+    symbols.add(new UISymbol(new Vector(4 * 81, 0), "shield", "T", 3, 75, 10));
+    symbols.add(new UISymbol(new Vector(5 * 81, 0), "analyzer", "Z", 3, 80, 10));
 
-    this.symbols.add(new UISymbol(new Vector(0, 56), "relay", "A", 3, 10, 8));
-    this.symbols.add(new UISymbol(new Vector(81, 56), "mortar", "S", 3, 40, 12));
-    this.symbols.add(new UISymbol(new Vector(2 * 81, 56), "beam", "D", 3, 20, 12));
-    this.symbols.add(new UISymbol(new Vector(3 * 81, 56), "bomber", "F", 3, 75, 0));
-    this.symbols.add(new UISymbol(new Vector(4 * 81, 56), "terp", "G", 3, 60, 12));
+    symbols.add(new UISymbol(new Vector(0, 56), "relay", "A", 3, 10, 8));
+    symbols.add(new UISymbol(new Vector(81, 56), "mortar", "S", 3, 40, 12));
+    symbols.add(new UISymbol(new Vector(2 * 81, 56), "beam", "D", 3, 20, 12));
+    symbols.add(new UISymbol(new Vector(3 * 81, 56), "bomber", "F", 3, 75, 0));
+    symbols.add(new UISymbol(new Vector(4 * 81, 56), "terp", "G", 3, 60, 12));
   }
 
   void drawTerrain() {
@@ -538,29 +538,29 @@ class Game {
     }
 
     // 1st pass - draw masks
-    for (int i = 0; i < this.world.size.x; i++) {
-      for (int j = 0; j < this.world.size.y; j++) {
+    for (int i = 0; i < world.size.x; i++) {
+      for (int j = 0; j < world.size.y; j++) {
         for (int k = 9; k > -1; k--) {
 
-          if (this.world.tiles[i][j][k].full) {
+          if (world.tiles[i][j][k].full) {
 
             // calculate index
             int up = 0, down = 0, left = 0, right = 0;
-            if (j - 1 < 0)up = 0; else if (this.world.tiles[i][j - 1][k].full)up = 1;
-            if (j + 1 > this.world.size.y - 1)down = 0; else if (this.world.tiles[i][j + 1][k].full)down = 1;
-            if (i - 1 < 0)left = 0; else if (this.world.tiles[i - 1][j][k].full)left = 1;
-            if (i + 1 > this.world.size.x - 1)right = 0; else if (this.world.tiles[i + 1][j][k].full)right = 1;
+            if (j - 1 < 0)up = 0; else if (world.tiles[i][j - 1][k].full)up = 1;
+            if (j + 1 > world.size.y - 1)down = 0; else if (world.tiles[i][j + 1][k].full)down = 1;
+            if (i - 1 < 0)left = 0; else if (world.tiles[i - 1][j][k].full)left = 1;
+            if (i + 1 > world.size.x - 1)right = 0; else if (world.tiles[i + 1][j][k].full)right = 1;
 
             // save index for later use
-            this.world.tiles[i][j][k].index = (8 * down) + (4 * left) + (2 * up) + right;
+            world.tiles[i][j][k].index = (8 * down) + (4 * left) + (2 * up) + right;
 
-            int index = this.world.tiles[i][j][k].index;
+            int index = world.tiles[i][j][k].index;
 
             // skip tiles that are identical to the one above
-            if (k + 1 < 10 && index == this.world.tiles[i][j][k + 1].index)
+            if (k + 1 < 10 && index == world.tiles[i][j][k + 1].index)
               continue;
 
-            engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, i * this.tileSize, j * this.tileSize, this.tileSize, this.tileSize);
+            engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["mask"], index * (tileSize + 6) + 3, (tileSize + 6) + 3, tileSize, tileSize, i * tileSize, j * tileSize, tileSize, tileSize);
 
             // don't draw anymore under tiles that don't have transparent parts
             //if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)break;
@@ -579,17 +579,17 @@ class Game {
     }
 
     // 3rd pass - draw borders
-    for (int i = 0; i < this.world.size.x; i++) {
-      for (int j = 0; j < this.world.size.y; j++) {
+    for (int i = 0; i < world.size.x; i++) {
+      for (int j = 0; j < world.size.y; j++) {
         for (int k = 9; k > -1; k--) {
 
-          if (this.world.tiles[i][j][k].full) {
+          if (world.tiles[i][j][k].full) {
 
-            int index = this.world.tiles[i][j][k].index;
+            int index = world.tiles[i][j][k].index;
 
-            if (k + 1 < 10 && index == this.world.tiles[i][j][k + 1].index)continue;
+            if (k + 1 < 10 && index == world.tiles[i][j][k + 1].index)continue;
 
-            engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, i * this.tileSize, j * this.tileSize, (this.tileSize + 2), (this.tileSize + 2));
+            engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["borders"], index * (tileSize + 6) + 2, 2, tileSize + 2, tileSize + 2, i * tileSize, j * tileSize, (tileSize + 2), (tileSize + 2));
 
             if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)break;
           }
@@ -608,27 +608,27 @@ class Game {
     engine.canvas["levelfinal"].clear();
 
     Vector delta = new Vector(0,0);
-    var left = this.scroll.x * this.tileSize - (engine.width / 2) * (1 / this.zoom);
-    var top = this.scroll.y * this.tileSize - (engine.height / 2) * (1 / this.zoom);
+    var left = scroll.x * tileSize - (engine.width / 2) * (1 / zoom);
+    var top = scroll.y * tileSize - (engine.height / 2) * (1 / zoom);
     if (left < 0) {
-      delta.x = -left * this.zoom;
+      delta.x = -left * zoom;
       left = 0;
     }
     if (top < 0) {
-      delta.y = -top * this.zoom;
+      delta.y = -top * zoom;
       top = 0;
     }
 
     Vector delta2 = new Vector(0, 0);
-    var width = engine.width * (1 / this.zoom);
-    var height = engine.height * (1 / this.zoom);
-    if (left + width > this.world.size.x * this.tileSize) {
-      delta2.x = (left + width - this.world.size.x * this.tileSize) * this.zoom;
-      width = this.world.size.x * this.tileSize - left;
+    var width = engine.width * (1 / zoom);
+    var height = engine.height * (1 / zoom);
+    if (left + width > world.size.x * tileSize) {
+      delta2.x = (left + width - world.size.x * tileSize) * zoom;
+      width = world.size.x * tileSize - left;
     }
-    if (top + height > this.world.size.y * this.tileSize) {
-      delta2.y = (top + height - this.world.size.y * this.tileSize) * this.zoom;
-      height = this.world.size.y * this.tileSize - top ;
+    if (top + height > world.size.y * tileSize) {
+      delta2.y = (top + height - world.size.y * tileSize) * zoom;
+      height = world.size.y * tileSize - top ;
     }
 
     engine.canvas["levelfinal"].context.drawImageScaledFromSource(engine.canvas["levelbuffer"].element, left, top, width, height, delta.x, delta.y, engine.width - delta2.x, engine.height - delta2.y);
@@ -643,8 +643,8 @@ class Game {
     List tempContext = [];
     for (int t = 0; t < 10; t++) {
       tempCanvas.add(new CanvasElement());
-      tempCanvas[t].width = this.tileSize;
-      tempCanvas[t].height = this.tileSize;
+      tempCanvas[t].width = tileSize;
+      tempCanvas[t].height = tileSize;
       tempContext.add(tempCanvas[t].getContext('2d'));
     }
 
@@ -655,31 +655,31 @@ class Game {
       int k = tilesToRedraw[i].z;
 
       // recalculate index
-      if (this.world.tiles[iS][jS][k].full) {
+      if (world.tiles[iS][jS][k].full) {
 
         int up = 0, down = 0, left = 0, right = 0;
-        if (jS - 1 < 0)up = 0; else if (this.world.tiles[iS][jS - 1][k].full)up = 1;
-        if (jS + 1 > this.world.size.y - 1)down = 0; else if (this.world.tiles[iS][jS + 1][k].full)down = 1;
-        if (iS - 1 < 0)left = 0; else if (this.world.tiles[iS - 1][jS][k].full)left = 1;
-        if (iS + 1 > this.world.size.x - 1)right = 0; else if (this.world.tiles[iS + 1][jS][k].full)right = 1;
+        if (jS - 1 < 0)up = 0; else if (world.tiles[iS][jS - 1][k].full)up = 1;
+        if (jS + 1 > world.size.y - 1)down = 0; else if (world.tiles[iS][jS + 1][k].full)down = 1;
+        if (iS - 1 < 0)left = 0; else if (world.tiles[iS - 1][jS][k].full)left = 1;
+        if (iS + 1 > world.size.x - 1)right = 0; else if (world.tiles[iS + 1][jS][k].full)right = 1;
 
         // save index for later use
-        this.world.tiles[iS][jS][k].index = (8 * down) + (4 * left) + (2 * up) + right;
+        world.tiles[iS][jS][k].index = (8 * down) + (4 * left) + (2 * up) + right;
       } else
-        this.world.tiles[iS][jS][k].index = -1;
+        world.tiles[iS][jS][k].index = -1;
 
       // redraw mask
       for (int t = 9; t > -1; t--) {
-        tempContext[t].clearRect(0, 0, this.tileSize, this.tileSize);
+        tempContext[t].clearRect(0, 0, tileSize, tileSize);
 
-        if (this.world.tiles[iS][jS][t].full) {
-          int index = this.world.tiles[iS][jS][t].index;
+        if (world.tiles[iS][jS][t].full) {
+          int index = world.tiles[iS][jS][t].index;
 
           // skip tiles that are identical to the one above
-          if (t + 1 < 10 && index == this.world.tiles[iS][jS][t + 1].index)
+          if (t + 1 < 10 && index == world.tiles[iS][jS][t + 1].index)
             continue;
 
-          tempContext[t].drawImageScaledFromSource(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, 0, 0, this.tileSize, this.tileSize);
+          tempContext[t].drawImageScaledFromSource(engine.images["mask"], index * (tileSize + 6) + 3, (tileSize + 6) + 3, tileSize, tileSize, 0, 0, tileSize, tileSize);
 
           // don't draw anymore under tiles that don't have transparent parts
           if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)break;
@@ -689,18 +689,18 @@ class Game {
       // redraw pattern
       for (int t = 9; t > -1; t--) {
 
-        if (this.world.tiles[iS][jS][t].full) {
+        if (world.tiles[iS][jS][t].full) {
           var pattern = tempContext[t].createPattern(engine.images["level$t"], 'repeat');
 
           tempContext[t].globalCompositeOperation = 'source-in';
           tempContext[t].fillStyle = pattern;
 
           tempContext[t].save();
-          Vector translation = new Vector((iS * this.tileSize).floor(), (jS * this.tileSize).floor());
+          Vector translation = new Vector((iS * tileSize).floor(), (jS * tileSize).floor());
           tempContext[t].translate(-translation.x, -translation.y);
 
           //tempContext[t].fill();
-          tempContext[t].fillRect(translation.x, translation.y, this.tileSize, this.tileSize);
+          tempContext[t].fillRect(translation.x, translation.y, tileSize, tileSize);
           tempContext[t].restore();
 
           tempContext[t].globalCompositeOperation = 'source-over';
@@ -709,46 +709,46 @@ class Game {
 
       // redraw borders
       for (int t = 9; t > -1; t--) {
-        if (this.world.tiles[iS][jS][t].full) {
-          int index = this.world.tiles[iS][jS][t].index;
+        if (world.tiles[iS][jS][t].full) {
+          int index = world.tiles[iS][jS][t].index;
 
-          if (index < 0 || (t + 1 < 10 && index == this.world.tiles[iS][jS][t + 1].index))continue;
+          if (index < 0 || (t + 1 < 10 && index == world.tiles[iS][jS][t + 1].index))continue;
 
-          tempContext[t].drawImageScaledFromSource(engine.images["borders"], index * (this.tileSize + 6) + 2, 2, this.tileSize + 2, this.tileSize + 2, 0, 0, (this.tileSize + 2), (this.tileSize + 2));
+          tempContext[t].drawImageScaledFromSource(engine.images["borders"], index * (tileSize + 6) + 2, 2, tileSize + 2, tileSize + 2, 0, 0, (tileSize + 2), (tileSize + 2));
 
           if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)break;
         }
       }
 
-      engine.canvas["levelbuffer"].context.clearRect(iS * this.tileSize, jS * this.tileSize, this.tileSize, this.tileSize);
+      engine.canvas["levelbuffer"].context.clearRect(iS * tileSize, jS * tileSize, tileSize, tileSize);
       for (int t = 0; t < 10; t++) {
-        engine.canvas["levelbuffer"].context.drawImageScaledFromSource(tempCanvas[t], 0, 0, this.tileSize, this.tileSize, iS * this.tileSize, jS * this.tileSize, this.tileSize, this.tileSize);
+        engine.canvas["levelbuffer"].context.drawImageScaledFromSource(tempCanvas[t], 0, 0, tileSize, tileSize, iS * tileSize, jS * tileSize, tileSize, tileSize);
       }
     }
-    this.copyTerrain();
+    copyTerrain();
   }
 
   void checkOperating() {
-    for (int t = 0; t < this.buildings.length; t++) {
-      this.buildings[t].operating = false;
-      if (this.buildings[t].needsEnergy && this.buildings[t].active && this.buildings[t].status == "IDLE") {
+    for (int t = 0; t < buildings.length; t++) {
+      buildings[t].operating = false;
+      if (buildings[t].needsEnergy && buildings[t].active && buildings[t].status == "IDLE") {
 
-        this.buildings[t].energyTimer++;
-        Vector position = this.buildings[t].position;
-        Vector center = this.buildings[t].getCenter();
+        buildings[t].energyTimer++;
+        Vector position = buildings[t].position;
+        Vector center = buildings[t].getCenter();
 
-        if (this.buildings[t].imageID == "analyzer" && this.buildings[t].energy > 0) {
+        if (buildings[t].imageID == "analyzer" && buildings[t].energy > 0) {
           // find emitter
-          if (this.buildings[t].weaponTargetPosition == null) {
-            for (int i = 0; i < this.emitters.length; i++) {
-              Vector emitterCenter = this.emitters[i].getCenter();
+          if (buildings[t].weaponTargetPosition == null) {
+            for (int i = 0; i < emitters.length; i++) {
+              Vector emitterCenter = emitters[i].getCenter();
               
               num distance = pow(emitterCenter.x - center.x, 2) + pow(emitterCenter.y - center.y, 2);
 
-              if (distance <= pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
-                if (this.emitters[i].building == null) {
-                  this.emitters[i].building = this.buildings[t];
-                  this.buildings[t].weaponTargetPosition = this.emitters[i].position;
+              if (distance <= pow(buildings[t].weaponRadius * tileSize, 2)) {
+                if (emitters[i].building == null) {
+                  emitters[i].building = buildings[t];
+                  buildings[t].weaponTargetPosition = emitters[i].position;
                   break;
                 }
               }
@@ -756,30 +756,30 @@ class Game {
             }
           }
           else {
-            if (this.buildings[t].energyTimer > 20) {
-              this.buildings[t].energyTimer = 0;
-              this.buildings[t].energy -= 1;
+            if (buildings[t].energyTimer > 20) {
+              buildings[t].energyTimer = 0;
+              buildings[t].energy -= 1;
             }
   
-            this.buildings[t].operating = true;
+            buildings[t].operating = true;
           }
         }
         
-        if (this.buildings[t].imageID == "terp" && this.buildings[t].energy > 0) {
+        if (buildings[t].imageID == "terp" && buildings[t].energy > 0) {
           // find lowest target
-          if (this.buildings[t].weaponTargetPosition == null) {
+          if (buildings[t].weaponTargetPosition == null) {
 
             // find lowest tile
             Vector target = null;
             int lowestTile = 10;
-            for (int i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
-              for (int j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
+            for (int i = position.x - buildings[t].weaponRadius; i <= position.x + buildings[t].weaponRadius; i++) {
+              for (int j = position.y - buildings[t].weaponRadius; j <= position.y + buildings[t].weaponRadius; j++) {
 
-                if (this.withinWorld(i, j)) {
-                  var distance = pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
-                  var tileHeight = this.getHighestTerrain(new Vector(i, j));
+                if (withinWorld(i, j)) {
+                  var distance = pow((i * tileSize + tileSize / 2) - center.x, 2) + pow((j * tileSize + tileSize / 2) - center.y, 2);
+                  var tileHeight = getHighestTerrain(new Vector(i, j));
 
-                  if (distance <= pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.terraform[i][j]["target"] > -1 && tileHeight <= lowestTile) {
+                  if (distance <= pow(buildings[t].weaponRadius * tileSize, 2) && world.terraform[i][j]["target"] > -1 && tileHeight <= lowestTile) {
                     lowestTile = tileHeight;
                     target = new Vector(i, j);
                   }
@@ -787,84 +787,84 @@ class Game {
               }
             }
             if (target != null) {
-              this.buildings[t].weaponTargetPosition = target;
+              buildings[t].weaponTargetPosition = target;
             }
           } else {
-            if (this.buildings[t].energyTimer > 20) {
-              this.buildings[t].energyTimer = 0;
-              this.buildings[t].energy -= 1;
+            if (buildings[t].energyTimer > 20) {
+              buildings[t].energyTimer = 0;
+              buildings[t].energy -= 1;
             }
 
-            this.buildings[t].operating = true;
-            var terraformElement = this.world.terraform[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y];
+            buildings[t].operating = true;
+            var terraformElement = world.terraform[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y];
             terraformElement["progress"] += 1;
             if (terraformElement["progress"] == 100) {
               terraformElement["progress"] = 0;
 
-              int height = this.getHighestTerrain(this.buildings[t].weaponTargetPosition);
+              int height = getHighestTerrain(buildings[t].weaponTargetPosition);
               List tilesToRedraw = new List();
 
               if (height < terraformElement["target"]) {
-                this.world.tiles[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y][height + 1].full = true;
+                world.tiles[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y][height + 1].full = true;
                 // reset index around tile
-                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x, this.buildings[t].weaponTargetPosition.y, height + 1));
-                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x - 1, this.buildings[t].weaponTargetPosition.y, height + 1));
-                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x, this.buildings[t].weaponTargetPosition.y - 1, height + 1));
-                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x + 1, this.buildings[t].weaponTargetPosition.y, height + 1));
-                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x, this.buildings[t].weaponTargetPosition.y + 1, height + 1));
+                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x, buildings[t].weaponTargetPosition.y, height + 1));
+                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x - 1, buildings[t].weaponTargetPosition.y, height + 1));
+                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x, buildings[t].weaponTargetPosition.y - 1, height + 1));
+                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x + 1, buildings[t].weaponTargetPosition.y, height + 1));
+                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x, buildings[t].weaponTargetPosition.y + 1, height + 1));
               } else {
-                this.world.tiles[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y][height].full = false;
+                world.tiles[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y][height].full = false;
                 // reset index around tile
-                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x, this.buildings[t].weaponTargetPosition.y, height));
-                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x - 1, this.buildings[t].weaponTargetPosition.y, height));
-                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x, this.buildings[t].weaponTargetPosition.y - 1, height));
-                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x + 1, this.buildings[t].weaponTargetPosition.y, height));
-                tilesToRedraw.add(new Vector3(this.buildings[t].weaponTargetPosition.x, this.buildings[t].weaponTargetPosition.y + 1, height));
+                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x, buildings[t].weaponTargetPosition.y, height));
+                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x - 1, buildings[t].weaponTargetPosition.y, height));
+                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x, buildings[t].weaponTargetPosition.y - 1, height));
+                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x + 1, buildings[t].weaponTargetPosition.y, height));
+                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x, buildings[t].weaponTargetPosition.y + 1, height));
               }
 
-              this.redrawTile(tilesToRedraw);
+              redrawTile(tilesToRedraw);
 
-              height = this.getHighestTerrain(this.buildings[t].weaponTargetPosition);
+              height = getHighestTerrain(buildings[t].weaponTargetPosition);
               if (height == terraformElement["target"]) {
-                this.world.terraform[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y]["progress"] = 0;
-                this.world.terraform[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y]["target"] = -1;
+                world.terraform[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y]["progress"] = 0;
+                world.terraform[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y]["target"] = -1;
               }
 
-              this.buildings[t].weaponTargetPosition = null;
-              this.buildings[t].operating = false;
+              buildings[t].weaponTargetPosition = null;
+              buildings[t].operating = false;
             }
           }
         }
 
-        else if (this.buildings[t].imageID == "shield" && this.buildings[t].energy > 0) {
-          if (this.buildings[t].energyTimer > 20) {
-            this.buildings[t].energyTimer = 0;
-            this.buildings[t].energy -= 1;
+        else if (buildings[t].imageID == "shield" && buildings[t].energy > 0) {
+          if (buildings[t].energyTimer > 20) {
+            buildings[t].energyTimer = 0;
+            buildings[t].energy -= 1;
           }
-          this.buildings[t].operating = true;
+          buildings[t].operating = true;
         }
 
-        else if (this.buildings[t].imageID == "cannon" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 10) {
-          if (!this.buildings[t].rotating) {  
+        else if (buildings[t].imageID == "cannon" && buildings[t].energy > 0 && buildings[t].energyTimer > 10) {
+          if (!buildings[t].rotating) {
           
-            this.buildings[t].energyTimer = 0;
+            buildings[t].energyTimer = 0;
 
-            int height = this.getHighestTerrain(this.buildings[t].position);
+            int height = getHighestTerrain(buildings[t].position);
 
             List targets = new List();            
             // find closest random target
-            for (int r = 0; r < this.buildings[t].weaponRadius + 1; r++) {  
-              int radius = r * this.tileSize;
-              for (int i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
-                for (int j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
+            for (int r = 0; r < buildings[t].weaponRadius + 1; r++) {
+              int radius = r * tileSize;
+              for (int i = position.x - buildings[t].weaponRadius; i <= position.x + buildings[t].weaponRadius; i++) {
+                for (int j = position.y - buildings[t].weaponRadius; j <= position.y + buildings[t].weaponRadius; j++) {
 
                   // cannons can only shoot at tiles not higher than themselves
-                  if (this.withinWorld(i, j)) {
-                    int tileHeight = this.getHighestTerrain(new Vector(i, j));
+                  if (withinWorld(i, j)) {
+                    int tileHeight = getHighestTerrain(new Vector(i, j));
                     if (tileHeight <= height) {
-                      var distance = pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
+                      var distance = pow((i * tileSize + tileSize / 2) - center.x, 2) + pow((j * tileSize + tileSize / 2) - center.y, 2);
 
-                      if (distance <= pow(radius, 2) && this.world.tiles[i][j][0].creep > 0) {
+                      if (distance <= pow(radius, 2) && world.tiles[i][j][0].creep > 0) {
                         targets.add(new Vector(i, j));
                       }
                     }
@@ -876,69 +876,69 @@ class Game {
             if (targets.length > 0) {
               Helper.shuffle(targets);
               
-              var dx = targets[0].x * this.tileSize + this.tileSize / 2 - center.x;
-              var dy = targets[0].y * this.tileSize + this.tileSize / 2 - center.y;
+              var dx = targets[0].x * tileSize + tileSize / 2 - center.x;
+              var dy = targets[0].y * tileSize + tileSize / 2 - center.y;
               
-              this.buildings[t].targetAngle = Helper.rad2deg(atan2(dy, dx) + PI / 2).floor();
-              this.buildings[t].weaponTargetPosition = new Vector(targets[0].x, targets[0].y);
-              this.buildings[t].rotating = true;
+              buildings[t].targetAngle = Helper.rad2deg(atan2(dy, dx) + PI / 2).floor();
+              buildings[t].weaponTargetPosition = new Vector(targets[0].x, targets[0].y);
+              buildings[t].rotating = true;
             }
           }
           else {
-            if (this.buildings[t].angle != this.buildings[t].targetAngle) {
+            if (buildings[t].angle != buildings[t].targetAngle) {
               // rotate to target
-              int angleToTarget = this.buildings[t].targetAngle;
+              int angleToTarget = buildings[t].targetAngle;
 
               int turnRate = 5;
-              int absoluteDelta = (angleToTarget - this.buildings[t].angle).abs();
+              int absoluteDelta = (angleToTarget - buildings[t].angle).abs();
 
               if (absoluteDelta < turnRate)
                 turnRate = absoluteDelta;
 
               if (absoluteDelta <= 180)
-                if (angleToTarget < this.buildings[t].angle)
-                  this.buildings[t].angle -= turnRate;
+                if (angleToTarget < buildings[t].angle)
+                  buildings[t].angle -= turnRate;
                 else
-                  this.buildings[t].angle += turnRate;
+                  buildings[t].angle += turnRate;
               else
-                if (angleToTarget < this.buildings[t].angle)
-                  this.buildings[t].angle += turnRate;
+                if (angleToTarget < buildings[t].angle)
+                  buildings[t].angle += turnRate;
                 else
-                  this.buildings[t].angle -= turnRate;
+                  buildings[t].angle -= turnRate;
 
-              if (this.buildings[t].angle > 180)
-                this.buildings[t].angle -= 360;
-              if (this.buildings[t].angle < -180)
-                this.buildings[t].angle += 360;
+              if (buildings[t].angle > 180)
+                buildings[t].angle -= 360;
+              if (buildings[t].angle < -180)
+                buildings[t].angle += 360;
             }
             else {
               // shoot it
-              this.world.tiles[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y][0].creep -= 10;
-              if (this.world.tiles[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y][0].creep < 0)
-                this.world.tiles[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y][0].creep = 0;
+              world.tiles[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y][0].creep -= 10;
+              if (world.tiles[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y][0].creep < 0)
+                world.tiles[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y][0].creep = 0;
                            
-              this.buildings[t].rotating = false;
-              this.buildings[t].energy -= 1;
-              this.buildings[t].operating = true;
-              this.smokes.add(new Smoke(new Vector(this.buildings[t].weaponTargetPosition.x * this.tileSize + this.tileSize / 2, this.buildings[t].weaponTargetPosition.y * this.tileSize + this.tileSize / 2)));
+              buildings[t].rotating = false;
+              buildings[t].energy -= 1;
+              buildings[t].operating = true;
+              smokes.add(new Smoke(new Vector(buildings[t].weaponTargetPosition.x * tileSize + tileSize / 2, buildings[t].weaponTargetPosition.y * tileSize + tileSize / 2)));
               engine.playSound("laser", position);
             }          
           }
         }
 
-        else if (this.buildings[t].imageID == "mortar" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 200) {
-          this.buildings[t].energyTimer = 0;
+        else if (buildings[t].imageID == "mortar" && buildings[t].energy > 0 && buildings[t].energyTimer > 200) {
+          buildings[t].energyTimer = 0;
 
           // find most creep in range
           Vector target = null;
           var highestCreep = 0;
-          for (int i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
-            for (int j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
-              if (this.withinWorld(i, j)) {
-                var distance = pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
+          for (int i = position.x - buildings[t].weaponRadius; i <= position.x + buildings[t].weaponRadius; i++) {
+            for (int j = position.y - buildings[t].weaponRadius; j <= position.y + buildings[t].weaponRadius; j++) {
+              if (withinWorld(i, j)) {
+                var distance = pow((i * tileSize + tileSize / 2) - center.x, 2) + pow((j * tileSize + tileSize / 2) - center.y, 2);
 
-                if (distance <= pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][0].creep > 0 && this.world.tiles[i][j][0].creep >= highestCreep) {
-                  highestCreep = this.world.tiles[i][j][0].creep;
+                if (distance <= pow(buildings[t].weaponRadius * tileSize, 2) && world.tiles[i][j][0].creep > 0 && world.tiles[i][j][0].creep >= highestCreep) {
+                  highestCreep = world.tiles[i][j][0].creep;
                   target = new Vector(i, j);
                 }
               }
@@ -946,30 +946,30 @@ class Game {
           }
           if (target != null) {
             engine.playSound("shot", position);
-            Shell shell = new Shell(center, "shell", new Vector(target.x * this.tileSize + this.tileSize / 2, target.y * this.tileSize + this.tileSize / 2));
+            Shell shell = new Shell(center, "shell", new Vector(target.x * tileSize + tileSize / 2, target.y * tileSize + tileSize / 2));
             shell.init();
-            this.shells.add(shell);
-            this.buildings[t].energy -= 1;
+            shells.add(shell);
+            buildings[t].energy -= 1;
           }
         }
 
-        else if (this.buildings[t].imageID == "beam" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 0) {
-          this.buildings[t].energyTimer = 0;
+        else if (buildings[t].imageID == "beam" && buildings[t].energy > 0 && buildings[t].energyTimer > 0) {
+          buildings[t].energyTimer = 0;
 
           // find spore in range
-          for (int i = 0; i < this.spores.length; i++) {
-            Vector sporeCenter = this.spores[i].getCenter();
+          for (int i = 0; i < spores.length; i++) {
+            Vector sporeCenter = spores[i].getCenter();
             var distance = pow(sporeCenter.x - center.x, 2) + pow(sporeCenter.y - center.y, 2);
 
-            if (distance <= pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
-              this.buildings[t].weaponTargetPosition = sporeCenter;
-              this.buildings[t].energy -= .1;
-              this.buildings[t].operating = true;
-              this.spores[i].health -= 2;
-              if (this.spores[i].health <= 0) {
-                this.spores[i].remove = true;
-                engine.playSound("explosion", Helper.real2tiled(this.spores[i].position));
-                this.explosions.add(new Explosion(sporeCenter));
+            if (distance <= pow(buildings[t].weaponRadius * tileSize, 2)) {
+              buildings[t].weaponTargetPosition = sporeCenter;
+              buildings[t].energy -= .1;
+              buildings[t].operating = true;
+              spores[i].health -= 2;
+              if (spores[i].health <= 0) {
+                spores[i].remove = true;
+                engine.playSound("explosion", Helper.real2tiled(spores[i].position));
+                explosions.add(new Explosion(sporeCenter));
               }
             }
           }
@@ -985,7 +985,7 @@ class Game {
      */
 
   void updateCollection(Building building, String action) {
-    int height = this.getHighestTerrain(building.position);
+    int height = getHighestTerrain(building.position);
     Vector centerBuilding = building.getCenter();
 
     for (int i = -5; i < 7; i++) {
@@ -993,31 +993,31 @@ class Game {
 
         Vector positionCurrent = new Vector(building.position.x + i, building.position.y + j);
 
-        if (this.withinWorld(positionCurrent.x, positionCurrent.y)) {
-          Vector positionCurrentCenter = new Vector(positionCurrent.x * this.tileSize + (this.tileSize / 2), positionCurrent.y * this.tileSize + (this.tileSize / 2));
-          int tileHeight = this.getHighestTerrain(positionCurrent);
+        if (withinWorld(positionCurrent.x, positionCurrent.y)) {
+          Vector positionCurrentCenter = new Vector(positionCurrent.x * tileSize + (tileSize / 2), positionCurrent.y * tileSize + (tileSize / 2));
+          int tileHeight = getHighestTerrain(positionCurrent);
 
           if (action == "add") {
-            if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(this.tileSize * 6, 2)) {
+            if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(tileSize * 6, 2)) {
               if (tileHeight == height) {
-                this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = building;
+                world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = building;
               }
             }
           } else if (action == "remove") {
 
-            if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(this.tileSize * 6, 2)) {
+            if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(tileSize * 6, 2)) {
               if (tileHeight == height) {
-                this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = null;
+                world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = null;
               }
             }
 
-            for (int k = 0; k < this.buildings.length; k++) {
-              if (this.buildings[k] != building && this.buildings[k].imageID == "collector") {
-                int heightK = this.getHighestTerrain(new Vector(this.buildings[k].position.x, this.buildings[k].position.y));
-                Vector centerBuildingK = this.buildings[k].getCenter();
-                if (pow(positionCurrentCenter.x - centerBuildingK.x, 2) + pow(positionCurrentCenter.y - centerBuildingK.y, 2) < pow(this.tileSize * 6, 2)) {
+            for (int k = 0; k < buildings.length; k++) {
+              if (buildings[k] != building && buildings[k].imageID == "collector") {
+                int heightK = getHighestTerrain(new Vector(buildings[k].position.x, buildings[k].position.y));
+                Vector centerBuildingK = buildings[k].getCenter();
+                if (pow(positionCurrentCenter.x - centerBuildingK.x, 2) + pow(positionCurrentCenter.y - centerBuildingK.y, 2) < pow(tileSize * 6, 2)) {
                   if (tileHeight == heightK) {
-                    this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = this.buildings[k];
+                    world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = buildings[k];
                   }
                 }
               }
@@ -1029,97 +1029,99 @@ class Game {
       }
     }
 
-    this.drawCollection();
+    drawCollection();
 
-    this.calculateCollection();
+    calculateCollection();
   }
 
   void calculateCollection() {
-    this.collection = 0;
+    collection = 0;
 
-    for (int i = 0; i < this.world.size.x; i++) {
-      for (int j = 0; j < this.world.size.y; j++) {
+    for (int i = 0; i < world.size.x; i++) {
+      for (int j = 0; j < world.size.y; j++) {
         for (int k = 0; k < 10; k++) {
-          if (this.world.tiles[i][j][k].collector != null)this.collection += 1;
+          if (world.tiles[i][j][k].collector != null)collection += 1;
         }
       }
     }
 
     // decrease collection of collectors
-    this.collection = (this.collection * .1).floor();
+    collection = (collection * .1).floor();
 
-    for (int t = 0; t < this.buildings.length; t++) {
-      if (this.buildings[t].imageID == "reactor" || this.buildings[t].imageID == "base") {
-        this.collection += 1;
+    for (int t = 0; t < buildings.length; t++) {
+      if (buildings[t].imageID == "reactor" || buildings[t].imageID == "base") {
+        collection += 1;
       }
     }
 
-    this.updateCollectionElement();
+    updateCollectionElement();
   }
 
   void updateCreeper() {
-    for (int i = 0; i < this.sporetowers.length; i++)
-      this.sporetowers[i].update();
+    for (int i = 0; i < sporetowers.length; i++)
+      sporetowers[i].update();
 
-    this.spawnTimer++;
-    if (this.spawnTimer >= (25 / this.speed)) { // 125
-      for (int i = 0; i < this.emitters.length; i++)
-        this.emitters[i].spawn();
-      this.spawnTimer = 0;
+    spawnTimer++;
+    if (spawnTimer >= (25 / speed)) { // 125
+      for (int i = 0; i < emitters.length; i++)
+        emitters[i].spawn();
+      spawnTimer = 0;
     }
 
     num minimum = .01;
 
-    this.creeperTimer++;
-    if (this.creeperTimer > (25 / this.speed)) {
-      this.creeperTimer -= (25 / this.speed);
+    creeperTimer++;
+    if (creeperTimer > (25 / speed)) {
+      creeperTimer -= (25 / speed);
 
-      for (int i = 0; i < this.world.size.x; i++) {
-        for (int j = 0; j < this.world.size.y; j++) {
-          this.world.tiles[i][j][0].newcreep = this.world.tiles[i][j][0].creep;
+      for (int i = 0; i < world.size.x; i++) {
+        for (int j = 0; j < world.size.y; j++) {
+          world.tiles[i][j][0].newcreep = world.tiles[i][j][0].creep;
         }
       }
 
-      for (int i = 0; i < this.world.size.x; i++) {
-        for (int j = 0; j < this.world.size.y; j++) {
+      for (int i = 0; i < world.size.x; i++) {
+        for (int j = 0; j < world.size.y; j++) {
 
-          int height = this.getHighestTerrain(new Vector(i, j));
-          //if (i - 1 > -1 && i + 1 < this.world.size.x && j - 1 > -1 && j + 1 < this.world.size.y) {
+          int height = getHighestTerrain(new Vector(i, j));
+          //if (i - 1 > -1 && i + 1 < world.size.x && j - 1 > -1 && j + 1 < world.size.y) {
             //if (height >= 0) {
             // right neighbour
-            if (i + 1 < this.world.size.x) {
-              int height2 = this.getHighestTerrain(new Vector(i + 1, j));
-              this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i + 1][j][0]);
+            if (i + 1 < world.size.x) {
+              int height2 = getHighestTerrain(new Vector(i + 1, j));
+              transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i + 1][j][0]);
             }
             // bottom right neighbour
             if (i - 1 > -1) {
-              int height2 = this.getHighestTerrain(new Vector(i - 1, j));
-              this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i - 1][j][0]);
+              int height2 = getHighestTerrain(new Vector(i - 1, j));
+              transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i - 1][j][0]);
             }
             // bottom neighbour
-            if (j + 1 < this.world.size.y) {
-              int height2 = this.getHighestTerrain(new Vector(i, j + 1));
-              this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j + 1][0]);
+            if (j + 1 < world.size.y) {
+              int height2 = getHighestTerrain(new Vector(i, j + 1));
+              transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i][j + 1][0]);
             }
             // bottom left neighbour
             if (j - 1 > -1) {
-              int height2 = this.getHighestTerrain(new Vector(i, j - 1));
-              this.transferCreeper(height, height2, this.world.tiles[i][j][0], this.world.tiles[i][j - 1][0]);
+              int height2 = getHighestTerrain(new Vector(i, j - 1));
+              transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i][j - 1][0]);
             }
           //}
 
         }
       }
 
-      for (int i = 0; i < this.world.size.x; i++) {
-        for (int j = 0; j < this.world.size.y; j++) {
-          this.world.tiles[i][j][0].creep = this.world.tiles[i][j][0].newcreep;
-          if (this.world.tiles[i][j][0].creep > 10)this.world.tiles[i][j][0].creep = 10;
-          if (this.world.tiles[i][j][0].creep < minimum)this.world.tiles[i][j][0].creep = 0;
+      for (int i = 0; i < world.size.x; i++) {
+        for (int j = 0; j < world.size.y; j++) {
+          world.tiles[i][j][0].creep = world.tiles[i][j][0].newcreep;
+          if (world.tiles[i][j][0].creep > 10)
+            world.tiles[i][j][0].creep = 10;
+          if (world.tiles[i][j][0].creep < minimum)
+            world.tiles[i][j][0].creep = 0;
         }
       }
 
-      this.drawCreeper();
+      drawCreeper();
 
     }
   }
@@ -1165,41 +1167,41 @@ class Game {
     List neighbours = new List();
     Vector centerI, centerNode;
     //if (node.built) {
-    for (int i = 0; i < this.buildings.length; i++) {
-      if (this.buildings[i].position.x == node.position.x && this.buildings[i].position.y == node.position.y) {
+    for (int i = 0; i < buildings.length; i++) {
+      if (buildings[i].position.x == node.position.x && buildings[i].position.y == node.position.y) {
         // console.log("is me");
       } else {
         // if the node is not the target AND built it is a valid neighbour
         // also the neighbour must not be moving
-        if (this.buildings[i].status == "IDLE") {
-          // && this.buildings[i].imageID != "base") {
-          if (this.buildings[i] != target) {
-            if (this.buildings[i].built) {
-              centerI = this.buildings[i].getCenter();
+        if (buildings[i].status == "IDLE") {
+          // && buildings[i].imageID != "base") {
+          if (buildings[i] != target) {
+            if (buildings[i].built) {
+              centerI = buildings[i].getCenter();
               centerNode = node.getCenter();
               num distance = Helper.distance(centerI, centerNode);
 
-              int allowedDistance = 10 * this.tileSize;
-              if (node.imageID == "relay" && this.buildings[i].imageID == "relay") {
-                allowedDistance = 20 * this.tileSize;
+              int allowedDistance = 10 * tileSize;
+              if (node.imageID == "relay" && buildings[i].imageID == "relay") {
+                allowedDistance = 20 * tileSize;
               }
               if (distance <= allowedDistance) {
-                neighbours.add(this.buildings[i]);
+                neighbours.add(buildings[i]);
               }
             }
           }
           // if it is the target it is a valid neighbour
           else {
-            centerI = this.buildings[i].getCenter();
+            centerI = buildings[i].getCenter();
             centerNode = node.getCenter();
             num distance = Helper.distance(centerI, centerNode);
 
-            int allowedDistance = 10 * this.tileSize;
-            if (node.imageID == "relay" && this.buildings[i].imageID == "relay") {
-              allowedDistance = 20 * this.tileSize;
+            int allowedDistance = 10 * tileSize;
+            if (node.imageID == "relay" && buildings[i].imageID == "relay") {
+              allowedDistance = 20 * tileSize;
             }
             if (distance <= allowedDistance) {
-              neighbours.add(this.buildings[i]);
+              neighbours.add(buildings[i]);
             }
           }
         }
@@ -1265,7 +1267,7 @@ class Game {
       //console.log("1) currently at: " + lastNode.type + ": " + lastNode.x + "/" + lastNode.y + ", route length: " + oldRoute.nodes.length);
 
       // find all neighbours of this node
-      List neighbours = this.getNeighbours(lastNode, packet.target);
+      List neighbours = getNeighbours(lastNode, packet.target);
       //console.log("2) neighbours found: " + neighbours.length);
 
       int newRoutes = 0;
@@ -1273,7 +1275,7 @@ class Game {
       for (int i = 0; i < neighbours.length; i++) {
 
         // if the neighbour is not already in the list..
-        if (!this.inRoute(neighbours[i], oldRoute.nodes)) {
+        if (!inRoute(neighbours[i], oldRoute.nodes)) {
 
           newRoutes++;
 
@@ -1364,15 +1366,15 @@ class Game {
 
   void queuePacket(Building building, String type) {
     String img = "packet_" + type;
-    Vector center = this.base.getCenter();
+    Vector center = base.getCenter();
     Packet packet = new Packet(center, img, type);
     packet.target = building;
-    packet.currentTarget = this.base;
-    this.findRoute(packet);
+    packet.currentTarget = base;
+    findRoute(packet);
     if (packet.currentTarget != null) {
       if (packet.type == "health")packet.target.healthRequests++;
       if (packet.type == "energy")packet.target.energyRequests += 4;
-      this.packetQueue.add(packet);
+      packetQueue.add(packet);
     }
   }
 
@@ -1387,25 +1389,25 @@ class Game {
   bool canBePlaced(Vector position, num size, [Building building]) {
     bool collision = false;
 
-    if (position.x > -1 && position.x < this.world.size.x - size + 1 && position.y > -1 && position.y < this.world.size.y - size + 1) {
-      int height = this.getHighestTerrain(position);
+    if (position.x > -1 && position.x < world.size.x - size + 1 && position.y > -1 && position.y < world.size.y - size + 1) {
+      int height = getHighestTerrain(position);
 
       // 1. check for collision with another building
-      for (int i = 0; i < this.buildings.length; i++) {
+      for (int i = 0; i < buildings.length; i++) {
         // don't check for collision with moving buildings
-        if (this.buildings[i].status != "IDLE")
+        if (buildings[i].status != "IDLE")
           continue;
-        if (building != null && building == this.buildings[i])
+        if (building != null && building == buildings[i])
           continue;
-        int x1 = this.buildings[i].position.x * this.tileSize;
-        int x2 = this.buildings[i].position.x * this.tileSize + this.buildings[i].size * this.tileSize - 1;
-        int y1 = this.buildings[i].position.y * this.tileSize;
-        int y2 = this.buildings[i].position.y * this.tileSize + this.buildings[i].size * this.tileSize - 1;
+        int x1 = buildings[i].position.x * tileSize;
+        int x2 = buildings[i].position.x * tileSize + buildings[i].size * tileSize - 1;
+        int y1 = buildings[i].position.y * tileSize;
+        int y2 = buildings[i].position.y * tileSize + buildings[i].size * tileSize - 1;
 
-        int cx1 = position.x * this.tileSize;
-        int cx2 = position.x * this.tileSize + size * this.tileSize - 1;
-        int cy1 = position.y * this.tileSize;
-        int cy2 = position.y * this.tileSize + size * this.tileSize - 1;
+        int cx1 = position.x * tileSize;
+        int cx2 = position.x * tileSize + size * tileSize - 1;
+        int cy1 = position.y * tileSize;
+        int cy2 = position.y * tileSize + size * tileSize - 1;
 
         if (((cx1 >= x1 && cx1 <= x2) || (cx2 >= x1 && cx2 <= x2)) && ((cy1 >= y1 && cy1 <= y2) || (cy2 >= y1 && cy2 <= y2))) {
           collision = true;
@@ -1417,8 +1419,8 @@ class Game {
       if (!collision) {
         for (int i = position.x; i < position.x + size; i++) {
           for (int j = position.y; j < position.y + size; j++) {
-            if (this.withinWorld(i, j)) {
-              int tileHeight = this.getHighestTerrain(new Vector(i, j));
+            if (withinWorld(i, j)) {
+              int tileHeight = getHighestTerrain(new Vector(i, j));
               if (tileHeight < 0) {
                 collision = true;
                 break;
@@ -1427,7 +1429,7 @@ class Game {
                 collision = true;
                 break;
               }
-              if (!(this.world.tiles[i][j][tileHeight].index == 7 || this.world.tiles[i][j][tileHeight].index == 11 || this.world.tiles[i][j][tileHeight].index == 13 || this.world.tiles[i][j][tileHeight].index == 14 || this.world.tiles[i][j][tileHeight].index == 15)) {
+              if (!(world.tiles[i][j][tileHeight].index == 7 || world.tiles[i][j][tileHeight].index == 11 || world.tiles[i][j][tileHeight].index == 13 || world.tiles[i][j][tileHeight].index == 14 || world.tiles[i][j][tileHeight].index == 15)) {
                 collision = true;
                 break;
               }
@@ -1443,56 +1445,56 @@ class Game {
   }
 
   void updatePacketQueue() {
-    for (int i = this.packetQueue.length - 1; i >= 0; i--) {
-      if (this.currentEnergy > 0) {
-        this.currentEnergy--;
-        this.updateEnergyElement();
-        Packet packet = this.packetQueue.removeAt(0);
-        this.packets.add(packet);
+    for (int i = packetQueue.length - 1; i >= 0; i--) {
+      if (currentEnergy > 0) {
+        currentEnergy--;
+        updateEnergyElement();
+        Packet packet = packetQueue.removeAt(0);
+        packets.add(packet);
       }
     }
   }
 
   void updateBuildings() {
-    this.checkOperating();
+    checkOperating();
 
     // move
-    for (int i = 0; i < this.buildings.length; i++) {
-      this.buildings[i].move();
+    for (int i = 0; i < buildings.length; i++) {
+      buildings[i].move();
     }
 
     // push away creeper (shield)
-    for (int i = 0; i < this.buildings.length; i++) {
-      this.buildings[i].shield();
+    for (int i = 0; i < buildings.length; i++) {
+      buildings[i].shield();
     }
 
     // take damage
-    this.damageTimer++;
-    if (this.damageTimer > 100) {
-      this.damageTimer = 0;
-      for (int i = 0; i < this.buildings.length; i++) {
-        this.buildings[i].takeDamage();
+    damageTimer++;
+    if (damageTimer > 100) {
+      damageTimer = 0;
+      for (int i = 0; i < buildings.length; i++) {
+        buildings[i].takeDamage();
       }
     }
 
     // request packets
-    for (int i = 0; i < this.buildings.length; i++) {
-      if (this.buildings[i].active && this.buildings[i].status == "IDLE") {
-        this.buildings[i].requestTimer++;
+    for (int i = 0; i < buildings.length; i++) {
+      if (buildings[i].active && buildings[i].status == "IDLE") {
+        buildings[i].requestTimer++;
         // request health
-        if (this.buildings[i].imageID != "base") {
-          num healthAndRequestDelta = this.buildings[i].maxHealth - this.buildings[i].health - this.buildings[i].healthRequests;
-          if (healthAndRequestDelta > 0 && this.buildings[i].requestTimer > 50) {
-            this.buildings[i].requestTimer = 0;
-            this.queuePacket(this.buildings[i], "health");
+        if (buildings[i].imageID != "base") {
+          num healthAndRequestDelta = buildings[i].maxHealth - buildings[i].health - buildings[i].healthRequests;
+          if (healthAndRequestDelta > 0 && buildings[i].requestTimer > 50) {
+            buildings[i].requestTimer = 0;
+            queuePacket(buildings[i], "health");
           }
         }
         // request energy
-        if (this.buildings[i].needsEnergy && this.buildings[i].built) {
-          num energyAndRequestDelta = this.buildings[i].maxEnergy - this.buildings[i].energy - this.buildings[i].energyRequests;
-          if (energyAndRequestDelta > 0 && this.buildings[i].requestTimer > 50) {
-            this.buildings[i].requestTimer = 0;
-            this.queuePacket(this.buildings[i], "energy");
+        if (buildings[i].needsEnergy && buildings[i].built) {
+          num energyAndRequestDelta = buildings[i].maxEnergy - buildings[i].energy - buildings[i].energyRequests;
+          if (energyAndRequestDelta > 0 && buildings[i].requestTimer > 50) {
+            buildings[i].requestTimer = 0;
+            queuePacket(buildings[i], "energy");
           }
         }
       }
@@ -1501,25 +1503,26 @@ class Game {
   }
 
   void updateEnergy() {
-    this.energyTimer++;
-    if (this.energyTimer > (250 / this.speed)) {
-      this.energyTimer -= (250 / this.speed);
-      for (int k = 0; k < this.buildings.length; k++) {
-        if (this.buildings[k].imageID == "collector" && this.buildings[k].built) {
-          int height = this.getHighestTerrain(this.buildings[k].position);
-          Vector centerBuilding = this.buildings[k].getCenter();
+    energyTimer++;
+    if (energyTimer > (250 / speed)) {
+      energyTimer -= (250 / speed);
+      for (int k = 0; k < buildings.length; k++) {
+        if (buildings[k].imageID == "collector" && buildings[k].built) {
+          int height = getHighestTerrain(buildings[k].position);
+          Vector centerBuilding = buildings[k].getCenter();
 
           for (int i = -5; i < 7; i++) {
             for (int j = -5; j < 7; j++) {
-              Vector positionCurrent = new Vector(this.buildings[k].position.x + i, this.buildings[k].position.y + j);
+              Vector positionCurrent = new Vector(buildings[k].position.x + i, buildings[k].position.y + j);
 
-              if (this.withinWorld(positionCurrent.x, positionCurrent.y)) {
-                Vector positionCurrentCenter = new Vector(positionCurrent.x * this.tileSize + (this.tileSize / 2), positionCurrent.y * this.tileSize + (this.tileSize / 2));
-                int tileHeight = this.getHighestTerrain(positionCurrent);
+              if (withinWorld(positionCurrent.x, positionCurrent.y)) {
+                Vector positionCurrentCenter = new Vector(positionCurrent.x * tileSize + (tileSize / 2), positionCurrent.y * tileSize + (tileSize / 2));
+                int tileHeight = getHighestTerrain(positionCurrent);
                 
-                if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(this.tileSize * 6, 2)) {
+                if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(tileSize * 6, 2)) {
                   if (tileHeight == height) {
-                    if (this.world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector == this.buildings[k])this.buildings[k].collectedEnergy += 1;
+                    if (world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector == buildings[k])
+                      buildings[k].collectedEnergy += 1;
                   }
                 }
               }
@@ -1529,142 +1532,143 @@ class Game {
       }
     }
 
-    for (int i = 0; i < this.buildings.length; i++) {
-      if (this.buildings[i].collectedEnergy >= 100) {
-        this.buildings[i].collectedEnergy -= 100;
+    for (int i = 0; i < buildings.length; i++) {
+      if (buildings[i].collectedEnergy >= 100) {
+        buildings[i].collectedEnergy -= 100;
         String img = "packet_collection";
-        Vector center = this.buildings[i].getCenter();
+        Vector center = buildings[i].getCenter();
         Packet packet = new Packet(center, img, "collection");
-        packet.target = this.base;
-        packet.currentTarget = this.buildings[i];
-        this.findRoute(packet);
-        if (packet.currentTarget != null)this.packets.add(packet);
+        packet.target = base;
+        packet.currentTarget = buildings[i];
+        findRoute(packet);
+        if (packet.currentTarget != null)
+          packets.add(packet);
       }
     }
   }
 
   void updatePackets() {
-    for (int i = this.packets.length - 1; i >= 0; i--) {
-      if (this.packets[i].remove)
-        this.packets.removeAt(i);
+    for (int i = packets.length - 1; i >= 0; i--) {
+      if (packets[i].remove)
+        packets.removeAt(i);
       else
-        this.packets[i].move();
+        packets[i].move();
     }
   }
 
   void updateShells() {
-    for (int i = this.shells.length - 1; i >= 0; i--) {
-      if (this.shells[i].remove)
-        this.shells.removeAt(i);
+    for (int i = shells.length - 1; i >= 0; i--) {
+      if (shells[i].remove)
+        shells.removeAt(i);
       else
-        this.shells[i].move();
+        shells[i].move();
     }
   }
 
   void updateSpores() {
-    for (int i = this.spores.length - 1; i >= 0; i--) {
-      if (this.spores[i].remove)
-        this.spores.removeAt(i);
+    for (int i = spores.length - 1; i >= 0; i--) {
+      if (spores[i].remove)
+        spores.removeAt(i);
       else
-        this.spores[i].move();
+        spores[i].move();
     }
   }
 
   void updateSmokes() {
-    this.smokeTimer++;
-    if (this.smokeTimer > 3) {
-      this.smokeTimer = 0;
-      for (int i = this.smokes.length - 1; i >= 0; i--) {
-        if (this.smokes[i].frame == 36)
-          this.smokes.removeAt(i);
+    smokeTimer++;
+    if (smokeTimer > 3) {
+      smokeTimer = 0;
+      for (int i = smokes.length - 1; i >= 0; i--) {
+        if (smokes[i].frame == 36)
+          smokes.removeAt(i);
         else
-          this.smokes[i].frame++;
+          smokes[i].frame++;
       }
     }
   }
 
   void updateExplosions() {
-    this.explosionTimer++;
-    if (this.explosionTimer == 1) {
-      this.explosionTimer = 0;
-      for (int i = this.explosions.length - 1; i >= 0; i--) {
-        if (this.explosions[i].frame == 44)
-          this.explosions.removeAt(i);
+    explosionTimer++;
+    if (explosionTimer == 1) {
+      explosionTimer = 0;
+      for (int i = explosions.length - 1; i >= 0; i--) {
+        if (explosions[i].frame == 44)
+          explosions.removeAt(i);
         else
-          this.explosions[i].frame++;
+          explosions[i].frame++;
       }
     }
   }
 
   void updateShips() {
     // move
-    for (int i = 0; i < this.ships.length; i++) {
-      this.ships[i].move();
+    for (int i = 0; i < ships.length; i++) {
+      ships[i].move();
     }
   }
 
   void update() {
     // check for winning condition
     int emittersChecked = 0;
-    for (int i = 0; i < this.emitters.length; i++) {
-      if (this.emitters[i].building != null)
+    for (int i = 0; i < emitters.length; i++) {
+      if (emitters[i].building != null)
         emittersChecked++;
     }
-    if (emittersChecked == this.emitters.length) {
+    if (emittersChecked == emitters.length) {
       // TODO: 10 seconds countdown
       query('#win').style.display = "block";
-      this.stopwatch.stop();
-      this.stop();
+      stopwatch.stop();
+      stop();
     }  
     
-    for (int i = 0; i < this.buildings.length; i++) {
-      this.buildings[i].updateHoverState();
+    for (int i = 0; i < buildings.length; i++) {
+      buildings[i].updateHoverState();
     }
-    for (int i = 0; i < this.ships.length; i++) {
-      this.ships[i].updateHoverState();
+    for (int i = 0; i < ships.length; i++) {
+      ships[i].updateHoverState();
     }
-    if (!this.paused) {
-      this.updatePacketQueue();
-      this.updateShells();
-      this.updateSpores();
-      this.updateCreeper();
-      this.updateBuildings();
-      this.updateEnergy();
-      this.updatePackets();
-      this.updateSmokes();
-      this.updateExplosions();
-      this.updateShips();
+    if (!paused) {
+      updatePacketQueue();
+      updateShells();
+      updateSpores();
+      updateCreeper();
+      updateBuildings();
+      updateEnergy();
+      updatePackets();
+      updateSmokes();
+      updateExplosions();
+      updateShips();
     }
 
     // scroll left
-    if (this.scrollingLeft) {
-      if (this.scroll.x > 0)
-        this.scroll.x -= 1;
+    if (scrollingLeft) {
+      if (scroll.x > 0)
+        scroll.x -= 1;
     }
 
     // scroll right 
-    else if (this.scrollingRight) {
-      if (this.scroll.x < this.world.size.x)
-        this.scroll.x += 1;
+    else if (scrollingRight) {
+      if (scroll.x < world.size.x)
+        scroll.x += 1;
     }
 
     // scroll up
-    if (this.scrollingUp) {
-      if (this.scroll.y > 0)
-        this.scroll.y -= 1;
+    if (scrollingUp) {
+      if (scroll.y > 0)
+        scroll.y -= 1;
     }
 
     // scroll down
-    else if (this.scrollingDown) {
-      if (this.scroll.y < this.world.size.y)
-        this.scroll.y += 1;
+    else if (scrollingDown) {
+      if (scroll.y < world.size.y)
+        scroll.y += 1;
 
     }
 
-    if (this.scrollingLeft || this.scrollingRight || this.scrollingUp || this.scrollingDown) {
-      this.copyTerrain();
-      this.drawCollection();
-      this.drawCreeper();
+    if (scrollingLeft || scrollingRight || scrollingUp || scrollingDown) {
+      copyTerrain();
+      drawCollection();
+      drawCreeper();
     }
   }
 
@@ -1678,26 +1682,26 @@ class Game {
   void drawRangeBoxes(Vector position, String type, num rad, num size) {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;
     
-    Vector positionCenter = new Vector(position.x * this.tileSize + (this.tileSize / 2) * size, position.y * this.tileSize + (this.tileSize / 2) * size);
-    int positionHeight = this.getHighestTerrain(position);
+    Vector positionCenter = new Vector(position.x * tileSize + (tileSize / 2) * size, position.y * tileSize + (tileSize / 2) * size);
+    int positionHeight = getHighestTerrain(position);
 
-    if (this.canBePlaced(position, size, null) && (type == "collector" || type == "cannon" || type == "mortar" || type == "shield" || type == "beam" || type == "terp")) {
+    if (canBePlaced(position, size, null) && (type == "collector" || type == "cannon" || type == "mortar" || type == "shield" || type == "beam" || type == "terp")) {
 
       context.save();
       context.globalAlpha = .25;
 
-      int radius = rad * this.tileSize;
+      int radius = rad * tileSize;
 
       for (int i = -radius; i < radius; i++) {
         for (int j = -radius; j < radius; j++) {
 
           Vector positionCurrent = new Vector(position.x + i, position.y + j);
-          Vector positionCurrentCenter = new Vector(positionCurrent.x * this.tileSize + (this.tileSize / 2), positionCurrent.y * this.tileSize + (this.tileSize / 2));
+          Vector positionCurrentCenter = new Vector(positionCurrent.x * tileSize + (tileSize / 2), positionCurrent.y * tileSize + (tileSize / 2));
 
           Vector drawPositionCurrent = Helper.tiled2screen(positionCurrent);
 
-          if (this.withinWorld(positionCurrent.x, positionCurrent.y)) {
-            int positionCurrentHeight = this.getHighestTerrain(positionCurrent);
+          if (withinWorld(positionCurrent.x, positionCurrent.y)) {
+            int positionCurrentHeight = getHighestTerrain(positionCurrent);
 
             if (pow(positionCurrentCenter.x - positionCenter.x, 2) + pow(positionCurrentCenter.y - positionCenter.y, 2) < pow(radius, 2)) {
               if (type == "collector") {
@@ -1717,7 +1721,7 @@ class Game {
               if (type == "mortar" || type == "shield" || type == "beam" || type == "terp") {
                 context.fillStyle = "#fff";
               }
-              context.fillRect(drawPositionCurrent.x, drawPositionCurrent.y, this.tileSize * this.zoom, this.tileSize * this.zoom);
+              context.fillRect(drawPositionCurrent.x, drawPositionCurrent.y, tileSize * zoom, tileSize * zoom);
             }
 
           }
@@ -1736,39 +1740,39 @@ class Game {
     engine.canvas["collection"].context.save();
     engine.canvas["collection"].context.globalAlpha = .5;
 
-    int timesX = (engine.halfWidth / this.tileSize / this.zoom).ceil();
-    int timesY = (engine.halfHeight / this.tileSize / this.zoom).ceil();
+    int timesX = (engine.halfWidth / tileSize / zoom).ceil();
+    int timesY = (engine.halfHeight / tileSize / zoom).ceil();
 
     for (int i = -timesX; i <= timesX; i++) {
       for (int j = -timesY; j <= timesY; j++) {
 
-        int iS = i + this.scroll.x;
-        int jS = j + this.scroll.y;
+        int iS = i + scroll.x;
+        int jS = j + scroll.y;
 
-        if (this.withinWorld(iS, jS)) {
+        if (withinWorld(iS, jS)) {
 
           for (int k = 0 ; k < 10; k++) {
-            if (this.world.tiles[iS][jS][k].collector != null) {
+            if (world.tiles[iS][jS][k].collector != null) {
               int up = 0, down = 0, left = 0, right = 0;
               if (jS - 1 < 0)
                 up = 0;
               else
-                up = this.world.tiles[iS][jS - 1][k].collector != null ? 1 : 0;
-              if (jS + 1 > this.world.size.y - 1)
+                up = world.tiles[iS][jS - 1][k].collector != null ? 1 : 0;
+              if (jS + 1 > world.size.y - 1)
                 down = 0;
               else
-                down = this.world.tiles[iS][jS + 1][k].collector != null ? 1 : 0;
+                down = world.tiles[iS][jS + 1][k].collector != null ? 1 : 0;
               if (iS - 1 < 0)
                 left = 0;
               else
-                left = this.world.tiles[iS - 1][jS][k].collector != null ? 1 : 0;
-              if (iS + 1 > this.world.size.x - 1)
+                left = world.tiles[iS - 1][jS][k].collector != null ? 1 : 0;
+              if (iS + 1 > world.size.x - 1)
                 right = 0;
               else
-                right = this.world.tiles[iS + 1][jS][k].collector != null ? 1 : 0;
+                right = world.tiles[iS + 1][jS][k].collector != null ? 1 : 0;
 
               int index = (8 * down) + (4 * left) + (2 * up) + right;
-              engine.canvas["collection"].context.drawImageScaledFromSource(engine.images["mask"], index * (this.tileSize + 6) + 3, (this.tileSize + 6) + 3, this.tileSize, this.tileSize, engine.halfWidth + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+              engine.canvas["collection"].context.drawImageScaledFromSource(engine.images["mask"], index * (tileSize + 6) + 3, (tileSize + 6) + 3, tileSize, tileSize, engine.halfWidth + i * tileSize * zoom, engine.halfHeight + j * tileSize * zoom, tileSize * zoom, tileSize * zoom);
             }
           }
         }
@@ -1780,37 +1784,37 @@ class Game {
   void drawCreeper() {
     engine.canvas["creeper"].clear();
 
-    int timesX = (engine.halfWidth / this.tileSize / this.zoom).ceil();
-    int timesY = (engine.halfHeight / this.tileSize / this.zoom).ceil();
+    int timesX = (engine.halfWidth / tileSize / zoom).ceil();
+    int timesY = (engine.halfHeight / tileSize / zoom).ceil();
 
     for (int i = -timesX; i <= timesX; i++) {
       for (int j = -timesY; j <= timesY; j++) {
 
-        int iS = i + this.scroll.x;
-        int jS = j + this.scroll.y;
+        int iS = i + scroll.x;
+        int jS = j + scroll.y;
 
-        if (this.withinWorld(iS, jS)) {
+        if (withinWorld(iS, jS)) {
 
-          if (this.world.tiles[iS][jS][0].creep > 0) {
-            num creep = (this.world.tiles[iS][jS][0].creep).ceil();
+          if (world.tiles[iS][jS][0].creep > 0) {
+            num creep = (world.tiles[iS][jS][0].creep).ceil();
 
             int up = 0, down = 0, left = 0, right = 0;
-            if (jS - 1 < 0)up = 0; else if ((this.world.tiles[iS][jS - 1][0].creep).ceil() >= creep)up = 1;
-            if (jS + 1 > this.world.size.y - 1)down = 0; else if ((this.world.tiles[iS][jS + 1][0].creep).ceil() >= creep)down = 1;
-            if (iS - 1 < 0)left = 0; else if ((this.world.tiles[iS - 1][jS][0].creep).ceil() >= creep)left = 1;
-            if (iS + 1 > this.world.size.x - 1)right = 0; else if ((this.world.tiles[iS + 1][jS][0].creep).ceil() >= creep)right = 1;
+            if (jS - 1 < 0)up = 0; else if ((world.tiles[iS][jS - 1][0].creep).ceil() >= creep)up = 1;
+            if (jS + 1 > world.size.y - 1)down = 0; else if ((world.tiles[iS][jS + 1][0].creep).ceil() >= creep)down = 1;
+            if (iS - 1 < 0)left = 0; else if ((world.tiles[iS - 1][jS][0].creep).ceil() >= creep)left = 1;
+            if (iS + 1 > world.size.x - 1)right = 0; else if ((world.tiles[iS + 1][jS][0].creep).ceil() >= creep)right = 1;
 
             int index = (8 * down) + (4 * left) + (2 * up) + right;
-            engine.canvas["creeper"].context.drawImageScaledFromSource(engine.images["creep"], index * this.tileSize, (creep - 1) * this.tileSize, this.tileSize, this.tileSize, engine.halfWidth + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+            engine.canvas["creeper"].context.drawImageScaledFromSource(engine.images["creep"], index * tileSize, (creep - 1) * tileSize, tileSize, tileSize, engine.halfWidth + i * tileSize * zoom, engine.halfHeight + j * tileSize * zoom, tileSize * zoom, tileSize * zoom);
           }
 
         // creep value
         //engine.canvas["buffer"].context.textAlign = 'left';
-        //engine.canvas["buffer"].context.fillText((this.world.tiles[i][j].creep).floor(), i * this.tileSize + 2, j * this.tileSize + 10);
+        //engine.canvas["buffer"].context.fillText((world.tiles[i][j].creep).floor(), i * tileSize + 2, j * tileSize + 10);
         
         // height value
         //engine.canvas["buffer"].context.textAlign = 'left';
-        //engine.canvas["buffer"].context.fillText(this.world.tiles[i][j].height, i * this.tileSize + 2, j * this.tileSize + 10);
+        //engine.canvas["buffer"].context.fillText(world.tiles[i][j].height, i * tileSize + 2, j * tileSize + 10);
         }
       }
     }
@@ -1822,7 +1826,7 @@ class Game {
      */
 
   void drawPositionInfo() {
-    this.ghosts = new List(); // ghosts are all the placeholders to build
+    ghosts = new List(); // ghosts are all the placeholders to build
     if (engine.mouse.dragStart != null) {
 
       Vector start = engine.mouse.dragStart;
@@ -1831,71 +1835,71 @@ class Game {
       num distance = Helper.distance(start, end);
       
       num buildingDistance = 3;
-      if (this.symbols[this.activeSymbol].imageID == "collector")
+      if (symbols[activeSymbol].imageID == "collector")
         buildingDistance = 9;
-      else if (this.symbols[this.activeSymbol].imageID == "relay")
+      else if (symbols[activeSymbol].imageID == "relay")
         buildingDistance = 18;
     
       num times = (distance / buildingDistance).floor() + 1;
 
-      this.ghosts.add(start);
+      ghosts.add(start);
 
       for (int i = 1; i < times; i++) {
         num newX = (start.x + (delta.x / distance) * i * buildingDistance).floor();
         num newY = (start.y + (delta.y / distance) * i * buildingDistance).floor();
 
-        if (this.withinWorld(newX, newY)) {
+        if (withinWorld(newX, newY)) {
           Vector ghost = new Vector(newX, newY);
-          this.ghosts.add(ghost);
+          ghosts.add(ghost);
         }
       }
-      if (this.withinWorld(end.x, end.y)) {
-        this.ghosts.add(end);
+      if (withinWorld(end.x, end.y)) {
+        ghosts.add(end);
       }
     } else {
       if (engine.mouse.active) {
-        Vector position = this.getHoveredTilePosition();
-        if (this.withinWorld(position.x, position.y)) {
-          this.ghosts.add(position);
+        Vector position = getHoveredTilePosition();
+        if (withinWorld(position.x, position.y)) {
+          ghosts.add(position);
         }
       }
     }
 
-    for (int j = 0; j < this.ghosts.length; j++) {
-      Vector positionScrolled = new Vector(this.ghosts[j].x, this.ghosts[j].y);
+    for (int j = 0; j < ghosts.length; j++) {
+      Vector positionScrolled = new Vector(ghosts[j].x, ghosts[j].y);
       Vector drawPosition = Helper.tiled2screen(positionScrolled);
-      Vector positionScrolledCenter = new Vector(positionScrolled.x * this.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size, positionScrolled.y * this.tileSize + (this.tileSize / 2) * this.symbols[this.activeSymbol].size);
+      Vector positionScrolledCenter = new Vector(positionScrolled.x * tileSize + (tileSize / 2) * symbols[activeSymbol].size, positionScrolled.y * tileSize + (tileSize / 2) * symbols[activeSymbol].size);
 
-      this.drawRangeBoxes(positionScrolled, this.symbols[this.activeSymbol].imageID, this.symbols[this.activeSymbol].radius, this.symbols[this.activeSymbol].size);
+      drawRangeBoxes(positionScrolled, symbols[activeSymbol].imageID, symbols[activeSymbol].radius, symbols[activeSymbol].size);
 
-      if (this.withinWorld(positionScrolled.x, positionScrolled.y)) {
+      if (withinWorld(positionScrolled.x, positionScrolled.y)) {
         engine.canvas["buffer"].context.save();
         engine.canvas["buffer"].context.globalAlpha = .5;
 
         // draw building
-        engine.canvas["buffer"].context.drawImageScaled(engine.images[this.symbols[this.activeSymbol].imageID], drawPosition.x, drawPosition.y, this.symbols[this.activeSymbol].size * this.tileSize * this.zoom, this.symbols[this.activeSymbol].size * this.tileSize * this.zoom);
-        if (this.symbols[this.activeSymbol].imageID == "cannon")engine.canvas["buffer"].context.drawImageScaled(engine.images["cannongun"], drawPosition.x, drawPosition.y, 48 * this.zoom, 48 * this.zoom);
+        engine.canvas["buffer"].context.drawImageScaled(engine.images[symbols[activeSymbol].imageID], drawPosition.x, drawPosition.y, symbols[activeSymbol].size * tileSize * zoom, symbols[activeSymbol].size * tileSize * zoom);
+        if (symbols[activeSymbol].imageID == "cannon")engine.canvas["buffer"].context.drawImageScaled(engine.images["cannongun"], drawPosition.x, drawPosition.y, 48 * zoom, 48 * zoom);
 
         // draw green or red box
         // make sure there isn't a building on this tile yet
-        if (this.canBePlaced(positionScrolled, this.symbols[this.activeSymbol].size, null)) {
+        if (canBePlaced(positionScrolled, symbols[activeSymbol].size, null)) {
           engine.canvas["buffer"].context.strokeStyle = "#0f0";
         } else {
           engine.canvas["buffer"].context.strokeStyle = "#f00";
         }
-        engine.canvas["buffer"].context.lineWidth = 4 * this.zoom;
-        engine.canvas["buffer"].context.strokeRect(drawPosition.x, drawPosition.y, this.tileSize * this.symbols[this.activeSymbol].size * this.zoom, this.tileSize * this.symbols[this.activeSymbol].size * this.zoom);
+        engine.canvas["buffer"].context.lineWidth = 4 * zoom;
+        engine.canvas["buffer"].context.strokeRect(drawPosition.x, drawPosition.y, tileSize * symbols[activeSymbol].size * zoom, tileSize * symbols[activeSymbol].size * zoom);
 
         engine.canvas["buffer"].context.restore();
 
         // draw lines to other buildings
-        for (int i = 0; i < this.buildings.length; i++) {
-          Vector center = this.buildings[i].getCenter();
+        for (int i = 0; i < buildings.length; i++) {
+          Vector center = buildings[i].getCenter();
           Vector drawCenter = Helper.real2screen(center);
 
-          int allowedDistance = 10 * this.tileSize;
-          if (this.buildings[i].imageID == "relay" && this.symbols[this.activeSymbol].imageID == "relay") {
-            allowedDistance = 20 * this.tileSize;
+          int allowedDistance = 10 * tileSize;
+          if (buildings[i].imageID == "relay" && symbols[activeSymbol].imageID == "relay") {
+            allowedDistance = 20 * tileSize;
           }
 
           if (pow(center.x - positionScrolledCenter.x, 2) + pow(center.y - positionScrolledCenter.y, 2) <= pow(allowedDistance, 2)) {
@@ -1916,14 +1920,14 @@ class Game {
           }
         }
         // draw lines to other ghosts
-        for (int k = 0; k < this.ghosts.length; k++) {
+        for (int k = 0; k < ghosts.length; k++) {
           if (k != j) {
-            Vector center = new Vector(this.ghosts[k].x * this.tileSize + (this.tileSize / 2) * 3, this.ghosts[k].y * this.tileSize + (this.tileSize / 2) * 3);
+            Vector center = new Vector(ghosts[k].x * tileSize + (tileSize / 2) * 3, ghosts[k].y * tileSize + (tileSize / 2) * 3);
             Vector drawCenter = Helper.real2screen(center);
 
-            int allowedDistance = 10 * this.tileSize;
-            if (this.symbols[this.activeSymbol].imageID == "relay") {
-              allowedDistance = 20 * this.tileSize;
+            int allowedDistance = 10 * tileSize;
+            if (symbols[activeSymbol].imageID == "relay") {
+              allowedDistance = 20 * tileSize;
             }
 
             if (pow(center.x - positionScrolledCenter.x, 2) + pow(center.y - positionScrolledCenter.y, 2) <= pow(allowedDistance, 2)) {
@@ -1954,9 +1958,9 @@ class Game {
      */
 
   void drawAttackSymbol() {
-    if (this.mode == "SHIP_SELECTED") {
-      Vector position = Helper.tiled2screen(this.getHoveredTilePosition());
-      engine.canvas["buffer"].context.drawImageScaled(engine.images["targetcursor"], position.x - this.tileSize * this.zoom, position.y - this.tileSize * this.zoom, 48 * this.zoom, 48 * this.zoom);
+    if (mode == "SHIP_SELECTED") {
+      Vector position = Helper.tiled2screen(getHoveredTilePosition());
+      engine.canvas["buffer"].context.drawImageScaled(engine.images["targetcursor"], position.x - tileSize * zoom, position.y - tileSize * zoom, 48 * zoom, 48 * zoom);
     }
   }
 
@@ -1967,16 +1971,16 @@ class Game {
   void drawGUI() {
     CanvasRenderingContext2D context = engine.canvas["gui"].context;
     
-    Vector position = this.getHoveredTilePosition();
+    Vector position = getHoveredTilePosition();
 
     engine.canvas["gui"].clear();
-    for (int i = 0; i < this.symbols.length; i++) {
-      this.symbols[i].draw();
+    for (int i = 0; i < symbols.length; i++) {
+      symbols[i].draw();
     }
 
-    if (this.withinWorld(position.x, position.y)) {
+    if (withinWorld(position.x, position.y)) {
 
-      num total = this.world.tiles[position.x][position.y][0].creep;
+      num total = world.tiles[position.x][position.y][0].creep;
 
       // draw height and creep meter
       context.fillStyle = '#fff';
@@ -1985,9 +1989,9 @@ class Game {
       context.strokeStyle = '#fff';
       context.lineWidth = 1;
       context.fillStyle = "rgba(205, 133, 63, 1)";
-      context.fillRect(555, 110, 25, -this.getHighestTerrain(this.getHoveredTilePosition()) * 10 - 10);
+      context.fillRect(555, 110, 25, -getHighestTerrain(getHoveredTilePosition()) * 10 - 10);
       context.fillStyle = "rgba(100, 150, 255, 1)";
-      context.fillRect(555, 110 - this.getHighestTerrain(this.getHoveredTilePosition()) * 10 - 10, 25, -total * 10);
+      context.fillRect(555, 110 - getHighestTerrain(getHoveredTilePosition()) * 10 - 10, 25, -total * 10);
       context.fillStyle = "rgba(255, 255, 255, 1)";
       for (int i = 1; i < 11; i++) {
         context.fillText(i.toString(), 550, 120 - i * 10);
@@ -2004,53 +2008,53 @@ class Game {
   void draw(num _) {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;
     
-    this.drawGUI();
+    drawGUI();
 
     // clear canvas
     engine.canvas["buffer"].clear();
     engine.canvas["main"].clear();
 
     // draw terraform numbers
-    int timesX = (engine.halfWidth / this.tileSize / this.zoom).floor();
-    int timesY = (engine.halfHeight / this.tileSize / this.zoom).floor();
+    int timesX = (engine.halfWidth / tileSize / zoom).floor();
+    int timesY = (engine.halfHeight / tileSize / zoom).floor();
 
     for (int i = -timesX; i <= timesX; i++) {
       for (int j = -timesY; j <= timesY; j++) {
 
-        int iS = i + this.scroll.x;
-        int jS = j + this.scroll.y;
+        int iS = i + scroll.x;
+        int jS = j + scroll.y;
 
-        if (this.withinWorld(iS, jS)) {
-          if (this.world.terraform[iS][jS]["target"] > -1) {
-            context.drawImageScaledFromSource(engine.images["numbers"], this.world.terraform[iS][jS]["target"] * 16, 0, this.tileSize, this.tileSize, engine.halfWidth + i * this.tileSize * this.zoom, engine.halfHeight + j * this.tileSize * this.zoom, this.tileSize * this.zoom, this.tileSize * this.zoom);
+        if (withinWorld(iS, jS)) {
+          if (world.terraform[iS][jS]["target"] > -1) {
+            context.drawImageScaledFromSource(engine.images["numbers"], world.terraform[iS][jS]["target"] * 16, 0, tileSize, tileSize, engine.halfWidth + i * tileSize * zoom, engine.halfHeight + j * tileSize * zoom, tileSize * zoom, tileSize * zoom);
           }
         }
       }
     }
 
     // draw emitters
-    for (int i = 0; i < this.emitters.length; i++) {
-      this.emitters[i].draw();
+    for (int i = 0; i < emitters.length; i++) {
+      emitters[i].draw();
     }
 
     // draw spore towers
-    for (int i = 0; i < this.sporetowers.length; i++) {
-      this.sporetowers[i].draw();
+    for (int i = 0; i < sporetowers.length; i++) {
+      sporetowers[i].draw();
     }
 
     // draw node connections
-    for (int i = 0; i < this.buildings.length; i++) {
-      Vector centerI = this.buildings[i].getCenter();
+    for (int i = 0; i < buildings.length; i++) {
+      Vector centerI = buildings[i].getCenter();
       Vector drawCenterI = Helper.real2screen(centerI);
-      for (int j = 0; j < this.buildings.length; j++) {
+      for (int j = 0; j < buildings.length; j++) {
         if (i != j) {
-          if (this.buildings[i].status == "IDLE" && this.buildings[j].status == "IDLE") {
-            Vector centerJ = this.buildings[j].getCenter();
+          if (buildings[i].status == "IDLE" && buildings[j].status == "IDLE") {
+            Vector centerJ = buildings[j].getCenter();
             Vector drawCenterJ = Helper.real2screen(centerJ);
 
-            num allowedDistance = 10 * this.tileSize;
-            if (this.buildings[i].imageID == "relay" && this.buildings[j].imageID == "relay") {
-              allowedDistance = 20 * this.tileSize;
+            num allowedDistance = 10 * tileSize;
+            if (buildings[i].imageID == "relay" && buildings[j].imageID == "relay") {
+              allowedDistance = 20 * tileSize;
             }
 
             if (pow(centerJ.x - centerI.x, 2) + pow(centerJ.y - centerI.y, 2) <= pow(allowedDistance, 2)) {
@@ -2062,7 +2066,7 @@ class Game {
               context.stroke();
 
               context.strokeStyle = '#fff';
-              if (!this.buildings[i].built || !this.buildings[j].built)
+              if (!buildings[i].built || !buildings[j].built)
                 context.strokeStyle = '#777';
               context.lineWidth = 2;
               context.beginPath();
@@ -2076,53 +2080,53 @@ class Game {
     }
 
     // draw movement indicators
-    for (int i = 0; i < this.buildings.length; i++) {
-      this.buildings[i].drawMovementIndicators();
+    for (int i = 0; i < buildings.length; i++) {
+      buildings[i].drawMovementIndicators();
     }
 
     // draw buildings
-    for (int i = 0; i < this.buildings.length; i++) {
-      this.buildings[i].draw();
+    for (int i = 0; i < buildings.length; i++) {
+      buildings[i].draw();
     }
 
     // draw shells
-    for (int i = 0; i < this.shells.length; i++) {
-      this.shells[i].draw();
+    for (int i = 0; i < shells.length; i++) {
+      shells[i].draw();
     }
 
     // draw smokes
-    for (int i = 0; i < this.smokes.length; i++) {
-      this.smokes[i].draw();
+    for (int i = 0; i < smokes.length; i++) {
+      smokes[i].draw();
     }
 
     // draw explosions
-    for (int i = 0; i < this.explosions.length; i++) {
-      this.explosions[i].draw();
+    for (int i = 0; i < explosions.length; i++) {
+      explosions[i].draw();
     }
 
     // draw spores
-    for (int i = 0; i < this.spores.length; i++) {
-      this.spores[i].draw();
+    for (int i = 0; i < spores.length; i++) {
+      spores[i].draw();
     }
 
     if (engine.mouse.active) {
 
       // if a building is built and selected draw a green box and a line at mouse position as the reposition target
-      for (int i = 0; i < this.buildings.length; i++) {
-        this.buildings[i].drawRepositionInfo();
+      for (int i = 0; i < buildings.length; i++) {
+        buildings[i].drawRepositionInfo();
       }
 
       // draw attack symbol
-      this.drawAttackSymbol();
+      drawAttackSymbol();
 
-      if (this.activeSymbol != -1) {
-        this.drawPositionInfo();
+      if (activeSymbol != -1) {
+        drawPositionInfo();
       }
 
-      if (this.mode == "TERRAFORM") {
-        Vector positionScrolled = this.getHoveredTilePosition();
+      if (mode == "TERRAFORM") {
+        Vector positionScrolled = getHoveredTilePosition();
         Vector drawPosition = Helper.tiled2screen(positionScrolled);
-        context.drawImageScaledFromSource(engine.images["numbers"], this.terraformingHeight * this.tileSize, 0, this.tileSize, this.tileSize, drawPosition.x, drawPosition.y, this.tileSize * this.zoom, this.tileSize * this.zoom);
+        context.drawImageScaledFromSource(engine.images["numbers"], terraformingHeight * tileSize, 0, tileSize, tileSize, drawPosition.x, drawPosition.y, tileSize * zoom, tileSize * zoom);
 
         context.strokeStyle = '#fff';
         context.lineWidth = 1;
@@ -2133,8 +2137,8 @@ class Game {
         context.stroke();
 
         context.beginPath();
-        context.moveTo(0, drawPosition.y + this.tileSize * this.zoom);
-        context.lineTo(engine.width, drawPosition.y + this.tileSize * this.zoom);
+        context.moveTo(0, drawPosition.y + tileSize * zoom);
+        context.lineTo(engine.width, drawPosition.y + tileSize * zoom);
         context.stroke();
 
         context.beginPath();
@@ -2143,8 +2147,8 @@ class Game {
         context.stroke();
 
         context.beginPath();
-        context.moveTo(drawPosition.x + this.tileSize * this.zoom, 0);
-        context.lineTo(drawPosition.x + this.tileSize * this.zoom, engine.halfHeight * 2);
+        context.moveTo(drawPosition.x + tileSize * zoom, 0);
+        context.lineTo(drawPosition.x + tileSize * zoom, engine.halfHeight * 2);
         context.stroke();
 
         context.stroke();
@@ -2153,22 +2157,22 @@ class Game {
     }
 
     // draw packets
-    for (int i = 0; i < this.packets.length; i++) {
-      this.packets[i].draw();
+    for (int i = 0; i < packets.length; i++) {
+      packets[i].draw();
     }
 
     // draw ships
-    for (int i = 0; i < this.ships.length; i++) {
-      this.ships[i].draw();
+    for (int i = 0; i < ships.length; i++) {
+      ships[i].draw();
     }
 
     // draw building hover/selection box
-    for (int i = 0; i < this.buildings.length; i++) {
-      this.buildings[i].drawBox();
+    for (int i = 0; i < buildings.length; i++) {
+      buildings[i].drawBox();
     }
 
     engine.canvas["main"].context.drawImage(engine.canvas["buffer"].element, 0, 0);
 
-    window.requestAnimationFrame(this.draw);
+    window.requestAnimationFrame(draw);
   }
 }

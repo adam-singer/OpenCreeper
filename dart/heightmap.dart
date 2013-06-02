@@ -11,79 +11,79 @@ class HeightMap {
   List map;
   
   HeightMap(this.seed, this.size, this.low_value, this.high_value) {
-    this.mid_value = ((this.low_value + this.high_value) / 2).floor();
-    this.centre_cell = (this.size / 2).floor();
-    this.reset();
+    mid_value = ((low_value + high_value) / 2).floor();
+    centre_cell = (size / 2).floor();
+    reset();
   }
 
   reset() {
-      var random = new Random(this.seed);
+      var random = new Random(seed);
       var x, y,
           _this = this;
       
-      this.queue.clear();
+      queue.clear();
       
-      this.map = new List(size);
+      map = new List(size);
       for (int i = 0; i < size; i++) {
-        this.map[i] = new List(size);
+        map[i] = new List(size);
       }
            
-      this.set_nw(random.nextInt(this.high_value));
-      this.set_ne(random.nextInt(this.high_value));
-      this.set_sw(random.nextInt(this.high_value));
-      this.set_se(random.nextInt(this.high_value));
+      set_nw(random.nextInt(high_value));
+      set_ne(random.nextInt(high_value));
+      set_sw(random.nextInt(high_value));
+      set_se(random.nextInt(high_value));
       
-      return this.push(() {
-          return _this.diamond_square(0, 0, _this.size - 1, _this.size - 1, _this.mid_value, this.seed);
+      return push(() {
+          return diamond_square(0, 0, size - 1, size - 1, mid_value, seed);
       });
   }
 
   get_cell(x, y) {
-      return this.map[y][x];
+      return map[y][x];
   }
 
   set_cell(x, y, v) {
-      return this.map[y][x] = v;
+      return map[y][x] = v;
   }
 
   soft_set_cell(x, y, v) {
-    if (this.map[y][x] == null)
-      this.map[y][x] = v;
+    if (map[y][x] == null)
+      map[y][x] = v;
     
-    return this.map[y][x];
+    return map[y][x];
   }
 
   set_nw(v) {
-      return this.set_cell(0, 0, v);
+      return set_cell(0, 0, v);
   }
 
   set_ne(v) {
-      return this.set_cell(0, this.size - 1, v);
+      return set_cell(0, size - 1, v);
   }
 
   set_sw(v) {
-      return this.set_cell(this.size - 1, 0, v);
+      return set_cell(size - 1, 0, v);
   }
 
   set_se(v) {
-      return this.set_cell(this.size - 1, this.size - 1, v);
+      return set_cell(size - 1, size - 1, v);
   }
 
   set_centre(v) {
-      return this.set_cell(this.centre_cell, this.centre_cell, v);
+      return set_cell(centre_cell, centre_cell, v);
   }
 
   List push(value) {
-    this.queue.add(value);
-    return this.queue;
+    queue.add(value);
+    return queue;
   }
 
   pop() {
-    return this.queue.removeAt(0);
+    return queue.removeAt(0);
   }
 
   remaining() {
-      if ((this.queue != null) && this.queue.length > 0) {
+      if ((queue != null) && queue.length > 0) {
           return true;
       } else {
           return false;
@@ -91,12 +91,12 @@ class HeightMap {
   }
 
   step() {
-      return this.pop()();
+      return pop()();
   }
 
   run() {
-      while (this.remaining()) {
-          this.step();
+      while (remaining()) {
+          step();
       }
       return null;
   }
@@ -110,27 +110,27 @@ class HeightMap {
       x_centre = ((left + right) / 2).floor();
       y_centre = ((top + bottom) / 2).floor();
       
-      centre_point_value = (((this.get_cell(left, top) + this.get_cell(right, top) + this.get_cell(left, bottom) + this.get_cell(right, bottom)) / 4) - (((random.nextDouble() - 0.5) * base_height * 2).floor())).floor();
+      centre_point_value = (((get_cell(left, top) + get_cell(right, top) + get_cell(left, bottom) + get_cell(right, bottom)) / 4) - (((random.nextDouble() - 0.5) * base_height * 2).floor())).floor();
       
-      this.soft_set_cell(x_centre, y_centre, centre_point_value);
-      this.soft_set_cell(x_centre, top, ((this.get_cell(left, top) + this.get_cell(right, top)) / 2 + ((random.nextDouble() - 0.5) * base_height)).floor());
-      this.soft_set_cell(x_centre, bottom, ((this.get_cell(left, bottom) + this.get_cell(right, bottom)) / 2 + ((random.nextDouble() - 0.5) * base_height)).floor());
-      this.soft_set_cell(left, y_centre, ((this.get_cell(left, top) + this.get_cell(left, bottom)) / 2 + ((random.nextDouble() - 0.5) * base_height)).floor());
-      this.soft_set_cell(right, y_centre, ((this.get_cell(right, top) + this.get_cell(right, bottom)) / 2 + ((random.nextDouble() - 0.5) * base_height)).floor());
+      soft_set_cell(x_centre, y_centre, centre_point_value);
+      soft_set_cell(x_centre, top, ((get_cell(left, top) + get_cell(right, top)) / 2 + ((random.nextDouble() - 0.5) * base_height)).floor());
+      soft_set_cell(x_centre, bottom, ((get_cell(left, bottom) + get_cell(right, bottom)) / 2 + ((random.nextDouble() - 0.5) * base_height)).floor());
+      soft_set_cell(left, y_centre, ((get_cell(left, top) + get_cell(left, bottom)) / 2 + ((random.nextDouble() - 0.5) * base_height)).floor());
+      soft_set_cell(right, y_centre, ((get_cell(right, top) + get_cell(right, bottom)) / 2 + ((random.nextDouble() - 0.5) * base_height)).floor());
       
       if ((right - left) > 2) {
           base_height = (base_height * pow(2.0, -0.75)).floor();
-          this.push(() {
-              return _this.diamond_square(left, top, x_centre, y_centre, base_height, random.nextInt(10000));
+          push(() {
+              return diamond_square(left, top, x_centre, y_centre, base_height, random.nextInt(10000));
           });
-          this.push(() {
-              return _this.diamond_square(x_centre, top, right, y_centre, base_height, random.nextInt(10000));
+          push(() {
+              return diamond_square(x_centre, top, right, y_centre, base_height, random.nextInt(10000));
           });
-          this.push(() {
-              return _this.diamond_square(left, y_centre, x_centre, bottom, base_height, random.nextInt(10000));
+          push(() {
+              return diamond_square(left, y_centre, x_centre, bottom, base_height, random.nextInt(10000));
           });
-          return this.push(() {
-              return _this.diamond_square(x_centre, y_centre, right, bottom, base_height, random.nextInt(10000));
+          return push(() {
+              return diamond_square(x_centre, y_centre, right, bottom, base_height, random.nextInt(10000));
           });
       }
   }

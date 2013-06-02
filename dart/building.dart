@@ -11,86 +11,92 @@ class Building {
   Building(this.position, this.imageID);
 
   bool updateHoverState() {
-    Vector position = Helper.tiled2screen(this.position);
-    this.hovered = (engine.mouse.x > position.x && engine.mouse.x < position.x + game.tileSize * this.size * game.zoom - 1 && engine.mouse.y > position.y && engine.mouse.y < position.y + game.tileSize * this.size * game.zoom - 1);
+    Vector realPosition = Helper.tiled2screen(position);
+    hovered = (engine.mouse.x > realPosition.x &&
+              engine.mouse.x < realPosition.x + game.tileSize * size * game.zoom - 1 &&
+              engine.mouse.y > realPosition.y &&
+              engine.mouse.y < realPosition.y + game.tileSize * size * game.zoom - 1);
 
-    return this.hovered;
+    return hovered;
   }
 
   void move() {
-    if (this.status == "RISING") {
-      if (this.flightCounter < 25) {
-        this.flightCounter++;
-        this.scale *= 1.01;
+    if (status == "RISING") {
+      if (flightCounter < 25) {
+        flightCounter++;
+        scale *= 1.01;
       }
-      if (this.flightCounter == 25) {
-        this.status = "MOVING";
+      if (flightCounter == 25) {
+        status = "MOVING";
       }
     }
     
-    else if (this.status == "FALLING") {
-      if (this.flightCounter > 0) {
-        this.flightCounter--;
-        this.scale /= 1.01;
+    else if (status == "FALLING") {
+      if (flightCounter > 0) {
+        flightCounter--;
+        scale /= 1.01;
       }
-      if (this.flightCounter == 0) {
-        this.status = "IDLE";
-        this.position.x = this.moveTargetPosition.x;
-        this.position.y = this.moveTargetPosition.y;
-        this.scale = 1;
+      if (flightCounter == 0) {
+        status = "IDLE";
+        position.x = moveTargetPosition.x;
+        position.y = moveTargetPosition.y;
+        scale = 1;
       }
     }
 
-    if (this.status == "MOVING") {
+    if (status == "MOVING") {
       
-      this.position += this.speed;
+      position += speed;
       
-      if (this.position.x * game.tileSize > this.moveTargetPosition.x * game.tileSize - 2 && this.position.x * game.tileSize < this.moveTargetPosition.x * game.tileSize + 2 && this.position.y * game.tileSize > this.moveTargetPosition.y * game.tileSize - 2 && this.position.y * game.tileSize < this.moveTargetPosition.y * game.tileSize + 2) {
-        this.status = "FALLING";
+      if (position.x * game.tileSize > moveTargetPosition.x * game.tileSize - 2 &&
+          position.x * game.tileSize < moveTargetPosition.x * game.tileSize + 2 &&
+          position.y * game.tileSize > moveTargetPosition.y * game.tileSize - 2 &&
+          position.y * game.tileSize < moveTargetPosition.y * game.tileSize + 2) {
+        status = "FALLING";
       }
     }
   }
 
   void calculateVector() {
-    if (this.moveTargetPosition.x != this.position.x || this.moveTargetPosition.y != this.position.y) {
-      Vector targetPosition = new Vector(this.moveTargetPosition.x * game.tileSize, this.moveTargetPosition.y * game.tileSize);
-      Vector ownPosition = new Vector(this.position.x * game.tileSize, this.position.y * game.tileSize);
+    if (moveTargetPosition.x != position.x || moveTargetPosition.y != position.y) {
+      Vector targetPosition = new Vector(moveTargetPosition.x * game.tileSize, moveTargetPosition.y * game.tileSize);
+      Vector ownPosition = new Vector(position.x * game.tileSize, position.y * game.tileSize);
       Vector delta = new Vector(targetPosition.x - ownPosition.x, targetPosition.y - ownPosition.y);
       num distance = Helper.distance(targetPosition, ownPosition);
 
-      this.speed.x = (delta.x / distance) * game.buildingSpeed * game.speed / game.tileSize;
-      this.speed.y = (delta.y / distance) * game.buildingSpeed * game.speed / game.tileSize;
+      speed.x = (delta.x / distance) * game.buildingSpeed * game.speed / game.tileSize;
+      speed.y = (delta.y / distance) * game.buildingSpeed * game.speed / game.tileSize;
     }
   }
 
   Vector getCenter() {
-    return new Vector(this.position.x * game.tileSize + (game.tileSize / 2) * this.size, this.position.y * game.tileSize + (game.tileSize / 2) * this.size);
+    return new Vector(position.x * game.tileSize + (game.tileSize / 2) * size, position.y * game.tileSize + (game.tileSize / 2) * size);
   }
 
   void takeDamage() {
     // buildings can only be damaged while not moving
-    if (this.status == "IDLE") {
+    if (status == "IDLE") {
 
-      for (int i = 0; i < this.size; i++) {
-        for (int j = 0; j < this.size; j++) {
-          if (game.world.tiles[this.position.x + i][this.position.y + j][0].creep > 0) {
-            this.health -= game.world.tiles[this.position.x + i][this.position.y + j][0].creep;
+      for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+          if (game.world.tiles[position.x + i][position.y + j][0].creep > 0) {
+            health -= game.world.tiles[position.x + i][position.y + j][0].creep;
           }
         }
       }
 
-      if (this.health < 0) {
+      if (health < 0) {
         game.removeBuilding(this);
       }
     }
   }
   
   void shield() {
-    if (this.built && this.imageID == "shield" && this.status == "IDLE") {
-      Vector center = this.getCenter();
+    if (built && imageID == "shield" && status == "IDLE") {
+      Vector center = getCenter();
 
-      for (int i = this.position.x - 9; i < this.position.x + 10; i++) {
-        for (int j = this.position.y - 9; j < this.position.y + 10; j++) {
+      for (int i = position.x - 9; i < position.x + 10; i++) {
+        for (int j = position.y - 9; j < position.y + 10; j++) {
           if (game.withinWorld(i, j)) {
             num distance = pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
             if (distance < pow(game.tileSize * 10, 2)) {
@@ -111,33 +117,33 @@ class Building {
   void drawBox() {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;
     
-    if (this.hovered || this.selected) {
-      Vector position = Helper.tiled2screen(this.position);
+    if (hovered || selected) {
+      Vector realPosition = Helper.tiled2screen(position);
 
       context
         ..lineWidth = 2 * game.zoom
         ..strokeStyle = "#000"
-        ..strokeRect(position.x, position.y, game.tileSize * this.size * game.zoom, game.tileSize * this.size * game.zoom);
+        ..strokeRect(realPosition.x, realPosition.y, game.tileSize * size * game.zoom, game.tileSize * size * game.zoom);
     }
   }
 
   void drawMovementIndicators() {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;
     
-    if (this.status != "IDLE") {
-      Vector center = Helper.real2screen(this.getCenter());
-      Vector target = Helper.tiled2screen(this.moveTargetPosition);
+    if (status != "IDLE") {
+      Vector center = Helper.real2screen(getCenter());
+      Vector target = Helper.tiled2screen(moveTargetPosition);
 
       // draw box
       context
         ..strokeStyle = "rgba(0,255,0,0.5)"
-        ..strokeRect(target.x, target.y, this.size * game.tileSize * game.zoom, this.size * game.tileSize * game.zoom);
+        ..strokeRect(target.x, target.y, size * game.tileSize * game.zoom, size * game.tileSize * game.zoom);
       // draw line
       context
         ..strokeStyle = "rgba(255,255,255,0.5)"
         ..beginPath()
         ..moveTo(center.x, center.y)
-        ..lineTo(target.x + (game.tileSize / 2) * this.size * game.zoom, target.y + (game.tileSize / 2) * this.size * game.zoom)
+        ..lineTo(target.x + (game.tileSize / 2) * size * game.zoom, target.y + (game.tileSize / 2) * size * game.zoom)
         ..stroke();
     }
   }
@@ -145,25 +151,25 @@ class Building {
   void drawRepositionInfo() {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;
     
-    if (this.built && this.selected && this.canMove) {
+    if (built && selected && canMove) {
       engine.canvas["main"].element.style.cursor = "none";
       
       Vector positionScrolled = game.getHoveredTilePosition();
       Vector drawPosition = Helper.tiled2screen(positionScrolled);
-      Vector positionScrolledCenter = new Vector(positionScrolled.x * game.tileSize + (game.tileSize / 2) * this.size, positionScrolled.y * game.tileSize + (game.tileSize / 2) * this.size);
+      Vector positionScrolledCenter = new Vector(positionScrolled.x * game.tileSize + (game.tileSize / 2) * size, positionScrolled.y * game.tileSize + (game.tileSize / 2) * size);
       Vector drawPositionCenter = Helper.real2screen(positionScrolledCenter);
 
-      Vector center = Helper.real2screen(this.getCenter());
+      Vector center = Helper.real2screen(getCenter());
 
-      game.drawRangeBoxes(positionScrolled, this.imageID, this.weaponRadius, this.size);
+      game.drawRangeBoxes(positionScrolled, imageID, weaponRadius, size);
 
-      if (game.canBePlaced(positionScrolled, this.size, this))
+      if (game.canBePlaced(positionScrolled, size, this))
         context.strokeStyle = "rgba(0,255,0,0.5)";
       else
         context.strokeStyle = "rgba(255,0,0,0.5)";
 
       // draw rectangle
-      context.strokeRect(drawPosition.x, drawPosition.y, game.tileSize * this.size * game.zoom, game.tileSize * this.size * game.zoom);
+      context.strokeRect(drawPosition.x, drawPosition.y, game.tileSize * size * game.zoom, game.tileSize * size * game.zoom);
       // draw line
       context
         ..strokeStyle = "rgba(255,255,255,0.5)"
@@ -177,70 +183,70 @@ class Building {
   void draw() {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;
     
-    Vector position = Helper.tiled2screen(this.position);
-    Vector center = Helper.real2screen(this.getCenter());
+    Vector realPosition = Helper.tiled2screen(position);
+    Vector center = Helper.real2screen(getCenter());
 
-    if (engine.isVisible(position, new Vector(engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom))) {
-      if (!this.built) {
+    if (engine.isVisible(realPosition, new Vector(engine.images[imageID].width * game.zoom, engine.images[imageID].height * game.zoom))) {
+      if (!built) {
         context.save();
         context.globalAlpha = .5;
-        context.drawImageScaled(engine.images[this.imageID], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
-        if (this.imageID == "cannon") {
-          context.drawImageScaled(engine.images["cannongun"], position.x, position.y, engine.images[this.imageID].width * game.zoom, engine.images[this.imageID].height * game.zoom);
+        context.drawImageScaled(engine.images[imageID], realPosition.x, realPosition.y, engine.images[imageID].width * game.zoom, engine.images[imageID].height * game.zoom);
+        if (imageID == "cannon") {
+          context.drawImageScaled(engine.images["cannongun"], realPosition.x, realPosition.y, engine.images[imageID].width * game.zoom, engine.images[imageID].height * game.zoom);
         }
         context.restore();
       } else {
-        context.drawImageScaled(engine.images[this.imageID], position.x + this.size * 8 - this.size * 8 * this.scale, position.y + this.size * 8 - this.size * 8 * this.scale, engine.images[this.imageID].width * game.zoom * this.scale, engine.images[this.imageID].height * game.zoom * this.scale);
-        if (this.imageID == "cannon") {
+        context.drawImageScaled(engine.images[imageID], realPosition.x + size * 8 - size * 8 * scale, realPosition.y + size * 8 - size * 8 * scale, engine.images[imageID].width * game.zoom * scale, engine.images[imageID].height * game.zoom * scale);
+        if (imageID == "cannon") {
           context.save();
-          context.translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom);
-          context.rotate(Helper.deg2rad(this.angle));
-          context.drawImageScaled(engine.images["cannongun"], -24 * game.zoom * this.scale, -24 * game.zoom * this.scale, 48 * game.zoom * this.scale, 48 * game.zoom * this.scale);
+          context.translate(realPosition.x + 24 * game.zoom, realPosition.y + 24 * game.zoom);
+          context.rotate(Helper.deg2rad(angle));
+          context.drawImageScaled(engine.images["cannongun"], -24 * game.zoom * scale, -24 * game.zoom * scale, 48 * game.zoom * scale, 48 * game.zoom * scale);
           context.restore();
         }
       }
 
       // draw energy bar
-      if (this.needsEnergy) {
+      if (needsEnergy) {
         context.fillStyle = '#f00';
-        context.fillRect(position.x + 2, position.y + 1, (44 * game.zoom / this.maxEnergy) * this.energy, 3);
+        context.fillRect(realPosition.x + 2, realPosition.y + 1, (44 * game.zoom / maxEnergy) * energy, 3);
       }
 
       // draw health bar (only if health is below maxHealth)
-      if (this.health < this.maxHealth) {
+      if (health < maxHealth) {
         context.fillStyle = '#0f0';
-        context.fillRect(position.x + 2, position.y + game.tileSize * game.zoom * this.size - 3, ((game.tileSize * game.zoom * this.size - 8) / this.maxHealth) * this.health, 3);
+        context.fillRect(realPosition.x + 2, realPosition.y + game.tileSize * game.zoom * size - 3, ((game.tileSize * game.zoom * size - 8) / maxHealth) * health, 3);
       }
 
       // draw inactive sign
-      if (!this.active) {
+      if (!active) {
         context.strokeStyle = "#F00";
         context.lineWidth = 2;
 
         context.beginPath();
-        context.arc(center.x, center.y, (game.tileSize / 2) * this.size, 0, PI * 2, true);
+        context.arc(center.x, center.y, (game.tileSize / 2) * size, 0, PI * 2, true);
         context.closePath();
         context.stroke();
 
         context.beginPath();
-        context.moveTo(position.x, position.y + game.tileSize * this.size);
-        context.lineTo(position.x + game.tileSize * this.size, position.y);
+        context.moveTo(realPosition.x, realPosition.y + game.tileSize * size);
+        context.lineTo(realPosition.x + game.tileSize * size, realPosition.y);
         context.stroke();
       }
     }
 
     // draw shots
-    if (this.operating) {
-      if (this.imageID == "cannon") {
-        Vector targetPosition = Helper.tiled2screen(this.weaponTargetPosition);
+    if (operating) {
+      if (imageID == "cannon") {
+        Vector targetPosition = Helper.tiled2screen(weaponTargetPosition);
         context.strokeStyle = "#f00";
         context.beginPath();
         context.moveTo(center.x, center.y);
         context.lineTo(targetPosition.x, targetPosition.y);
         context.stroke();
       }
-      else if (this.imageID == "analyzer") {
-        Vector targetPosition = Helper.tiled2screen(this.weaponTargetPosition);
+      else if (imageID == "analyzer") {
+        Vector targetPosition = Helper.tiled2screen(weaponTargetPosition);
         context.strokeStyle = '#00f';
         context.lineWidth = 4;
         context.beginPath();
@@ -255,8 +261,8 @@ class Building {
         context.lineTo(targetPosition.x, targetPosition.y);
         context.stroke();
       }
-      else if (this.imageID == "beam") {
-        Vector targetPosition = Helper.real2screen(this.weaponTargetPosition);
+      else if (imageID == "beam") {
+        Vector targetPosition = Helper.real2screen(weaponTargetPosition);
         context.strokeStyle = '#f00';
         context.lineWidth = 4;
         context.beginPath();
@@ -271,11 +277,11 @@ class Building {
         context.lineTo(targetPosition.x, targetPosition.y);
         context.stroke();
       }
-      else if (this.imageID == "shield") {
+      else if (imageID == "shield") {
         context.drawImageScaled(engine.images["forcefield"], center.x - 168 * game.zoom, center.y - 168 * game.zoom, 336 * game.zoom, 336 * game.zoom);
       }
-      else if (this.imageID == "terp") {
-        Vector targetPosition = Helper.tiled2screen(this.weaponTargetPosition);
+      else if (imageID == "terp") {
+        Vector targetPosition = Helper.tiled2screen(weaponTargetPosition);
 
         context
           ..strokeStyle = '#f00'

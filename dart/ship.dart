@@ -10,82 +10,82 @@ class Ship {
   Ship(this.position, this.imageID, this.type, this.home);
 
   Vector getCenter() {
-    return new Vector(this.position.x + 24, this.position.y + 24);
+    return new Vector(position.x + 24, position.y + 24);
   }
 
   bool updateHoverState() {
-    Vector position = Helper.real2screen(this.position);
-    this.hovered = (engine.mouse.x > position.x && engine.mouse.x < position.x + 47 && engine.mouse.y > position.y && engine.mouse.y < position.y + 47);
-    return this.hovered;
+    Vector realPosition = Helper.real2screen(position);
+    hovered = (engine.mouse.x > realPosition.x && engine.mouse.x < realPosition.x + 47 && engine.mouse.y > realPosition.y && engine.mouse.y < realPosition.y + 47);
+    return hovered;
   }
 
   void turnToTarget() {
-    Vector delta = new Vector(this.targetPosition.x - this.position.x, this.targetPosition.y - this.position.y);
+    Vector delta = new Vector(targetPosition.x - position.x, targetPosition.y - position.y);
     double angleToTarget = Helper.rad2deg(atan2(delta.y, delta.x));
 
     num turnRate = 1.5;
-    num absoluteDelta = (angleToTarget - this.angle).abs();
+    num absoluteDelta = (angleToTarget - angle).abs();
 
     if (absoluteDelta < turnRate)
       turnRate = absoluteDelta;
 
     if (absoluteDelta <= 180)
-      if (angleToTarget < this.angle)
-        this.angle -= turnRate;
+      if (angleToTarget < angle)
+        angle -= turnRate;
       else
-        this.angle += turnRate;
+        angle += turnRate;
     else
-      if (angleToTarget < this.angle)
-        this.angle += turnRate;
+      if (angleToTarget < angle)
+        angle += turnRate;
       else
-        this.angle -= turnRate;
+        angle -= turnRate;
 
-    if (this.angle > 180)
-      this.angle -= 360;
-    if (this.angle < -180)
-      this.angle += 360;
+    if (angle > 180)
+      angle -= 360;
+    if (angle < -180)
+      angle += 360;
   }
 
   void calculateVector() {
-    num x = cos(Helper.deg2rad(this.angle));
-    num y = sin(Helper.deg2rad(this.angle));
+    num x = cos(Helper.deg2rad(angle));
+    num y = sin(Helper.deg2rad(angle));
 
-    this.speed.x = x * game.shipSpeed * game.speed;
-    this.speed.y = y * game.shipSpeed * game.speed;
+    speed.x = x * game.shipSpeed * game.speed;
+    speed.y = y * game.shipSpeed * game.speed;
   }
   
   void control(Vector position) {
     // select ship
-    if (this.hovered)
-      this.selected = true;
+    if (hovered)
+      selected = true;
     
     // control if selected
-    if (this.selected) {
+    if (selected) {
       game.mode = "SHIP_SELECTED";
 
-      if (this.status == "IDLE") {
-        if (position.x - 1 != this.home.position.x && position.y - 1 != this.home.position.y) {         
+      if (status == "IDLE") {
+        if (position.x - 1 != home.position.x && position.y - 1 != home.position.y) {         
           // leave home
-          this.energy = this.home.energy;
-          this.home.energy = 0;
-          this.targetPosition.x = position.x * game.tileSize;
-          this.targetPosition.y = position.y * game.tileSize;
-          this.status = "RISING"; 
+          energy = home.energy;
+          home.energy = 0;
+          targetPosition.x = position.x * game.tileSize;
+          targetPosition.y = position.y * game.tileSize;
+          status = "RISING"; 
         }
       }
       
-      if (this.status == "ATTACKING" || this.status == "RETURNING") {      
-        if (position.x - 1 == this.home.position.x && position.y - 1 == this.home.position.y) {
+      if (status == "ATTACKING" || status == "RETURNING") {      
+        if (position.x - 1 == home.position.x && position.y - 1 == home.position.y) {
           // return home
-          this.targetPosition.x = (position.x - 1) * game.tileSize;
-          this.targetPosition.y = (position.y - 1) * game.tileSize;
-          this.status = "RETURNING";
+          targetPosition.x = (position.x - 1) * game.tileSize;
+          targetPosition.y = (position.y - 1) * game.tileSize;
+          status = "RETURNING";
         }
         else {
           // attack again
-          this.targetPosition.x = (position.x - 1) * game.tileSize;
-          this.targetPosition.y = (position.y - 1) * game.tileSize;
-          this.status = "ATTACKING";
+          targetPosition.x = (position.x - 1) * game.tileSize;
+          targetPosition.y = (position.y - 1) * game.tileSize;
+          status = "ATTACKING";
         }
       }
 
@@ -94,58 +94,58 @@ class Ship {
 
   void move() {
 
-    if (this.status == "ATTACKING" || this.status == "RETURNING") {
-      this.trailTimer++;
-      if (this.trailTimer == 10) {
-        this.trailTimer = 0;
-        game.smokes.add(new Smoke(this.getCenter()));
+    if (status == "ATTACKING" || status == "RETURNING") {
+      trailTimer++;
+      if (trailTimer == 10) {
+        trailTimer = 0;
+        game.smokes.add(new Smoke(getCenter()));
       }
     }
 
-    if (this.status == "RISING") {
-      if (this.flightCounter < 25) {
-        this.flightCounter++;
-        this.scale *= 1.01;
+    if (status == "RISING") {
+      if (flightCounter < 25) {
+        flightCounter++;
+        scale *= 1.01;
       }
-      if (this.flightCounter == 25) {
-        this.status = "ATTACKING";
-      }
-    }
-    
-    else if (this.status == "FALLING") {
-      if (this.flightCounter > 0) {
-        this.flightCounter--;
-        this.scale /= 1.01;
-      }
-      if (this.flightCounter == 0) {
-        this.status = "IDLE";
-        this.position.x = this.home.position.x * game.tileSize;
-        this.position.y = this.home.position.y * game.tileSize;
-        this.targetPosition.x = 0;
-        this.targetPosition.y = 0;
-        this.energy = 5;
-        this.scale = 1;
+      if (flightCounter == 25) {
+        status = "ATTACKING";
       }
     }
     
-    else if (this.status == "ATTACKING") {
-      this.weaponTimer++;
+    else if (status == "FALLING") {
+      if (flightCounter > 0) {
+        flightCounter--;
+        scale /= 1.01;
+      }
+      if (flightCounter == 0) {
+        status = "IDLE";
+        position.x = home.position.x * game.tileSize;
+        position.y = home.position.y * game.tileSize;
+        targetPosition.x = 0;
+        targetPosition.y = 0;
+        energy = 5;
+        scale = 1;
+      }
+    }
+    
+    else if (status == "ATTACKING") {
+      weaponTimer++;
 
-      this.turnToTarget();
-      this.calculateVector();
+      turnToTarget();
+      calculateVector();
 
-      this.position += this.speed;
+      position += speed;
 
-      if (this.position.x > this.targetPosition.x - 2 && this.position.x < this.targetPosition.x + 2 && this.position.y > this.targetPosition.y - 2 && this.position.y < this.targetPosition.y + 2) {
-        if (this.weaponTimer >= 10) {
-          this.weaponTimer = 0;
-          game.explosions.add(new Explosion(this.targetPosition));
-          this.energy -= 1;
+      if (position.x > targetPosition.x - 2 && position.x < targetPosition.x + 2 && position.y > targetPosition.y - 2 && position.y < targetPosition.y + 2) {
+        if (weaponTimer >= 10) {
+          weaponTimer = 0;
+          game.explosions.add(new Explosion(targetPosition));
+          energy -= 1;
 
-          for (int i = (this.targetPosition.x / game.tileSize).floor() - 3; i < (this.targetPosition.x / game.tileSize).floor() + 5; i++) {
-            for (int j = (this.targetPosition.y / game.tileSize).floor() - 3; j < (this.targetPosition.y / game.tileSize).floor() + 5; j++) {
+          for (int i = (targetPosition.x / game.tileSize).floor() - 3; i < (targetPosition.x / game.tileSize).floor() + 5; i++) {
+            for (int j = (targetPosition.y / game.tileSize).floor() - 3; j < (targetPosition.y / game.tileSize).floor() + 5; j++) {
               if (game.withinWorld(i, j)) {
-                num distance = pow((i * game.tileSize + game.tileSize / 2) - (this.targetPosition.x + game.tileSize), 2) + pow((j * game.tileSize + game.tileSize / 2) - (this.targetPosition.y + game.tileSize), 2);
+                num distance = pow((i * game.tileSize + game.tileSize / 2) - (targetPosition.x + game.tileSize), 2) + pow((j * game.tileSize + game.tileSize / 2) - (targetPosition.y + game.tileSize), 2);
                 if (distance < pow(game.tileSize * 3, 2)) {
                   game.world.tiles[i][j][0].creep -= 5;
                   if (game.world.tiles[i][j][0].creep < 0) {
@@ -156,24 +156,24 @@ class Ship {
             }
           }
 
-          if (this.energy == 0) {
+          if (energy == 0) {
             // return to base
-            this.status = "RETURNING";
-            this.targetPosition.x = this.home.position.x * game.tileSize;
-            this.targetPosition.y = this.home.position.y * game.tileSize;
+            status = "RETURNING";
+            targetPosition.x = home.position.x * game.tileSize;
+            targetPosition.y = home.position.y * game.tileSize;
           }
         }
       }
     }
     
-    else if (this.status == "RETURNING") {
-      this.turnToTarget();
-      this.calculateVector();
+    else if (status == "RETURNING") {
+      turnToTarget();
+      calculateVector();
 
-      this.position += this.speed;
+      position += speed;
 
-      if (this.position.x > this.targetPosition.x - 2 && this.position.x < this.targetPosition.x + 2 && this.position.y > this.targetPosition.y - 2 && this.position.y < this.targetPosition.y + 2) {
-        this.status = "FALLING";
+      if (position.x > targetPosition.x - 2 && position.x < targetPosition.x + 2 && position.y > targetPosition.y - 2 && position.y < targetPosition.y + 2) {
+        status = "FALLING";
       }
     }
     
@@ -182,27 +182,27 @@ class Ship {
   void draw() {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;
     
-    Vector position = Helper.real2screen(this.position);
+    Vector realPosition = Helper.real2screen(position);
 
-    if (this.hovered) {
+    if (hovered) {
       context
         ..strokeStyle = "#f00"
         ..beginPath()
-        ..arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom * this.scale, 0, PI * 2, true)
+        ..arc(realPosition.x + 24 * game.zoom, realPosition.y + 24 * game.zoom, 24 * game.zoom * scale, 0, PI * 2, true)
         ..closePath()
         ..stroke();
     }
 
-    if (this.selected) {
+    if (selected) {
       context
         ..strokeStyle = "#fff"
         ..beginPath()
-        ..arc(position.x + 24 * game.zoom, position.y + 24 * game.zoom, 24 * game.zoom * this.scale, 0, PI * 2, true)
+        ..arc(realPosition.x + 24 * game.zoom, realPosition.y + 24 * game.zoom, 24 * game.zoom * scale, 0, PI * 2, true)
         ..closePath()
         ..stroke();
 
-      if (this.status == "ATTACKING" || this.status == "IDLE") {
-        Vector cursorPosition = Helper.real2screen(this.targetPosition);
+      if (status == "ATTACKING" || status == "IDLE") {
+        Vector cursorPosition = Helper.real2screen(targetPosition);
         context
           ..save()
           ..globalAlpha = .5
@@ -211,19 +211,19 @@ class Ship {
       }
     }
 
-    if (engine.isVisible(position, new Vector(48 * game.zoom, 48 * game.zoom))) {
+    if (engine.isVisible(realPosition, new Vector(48 * game.zoom, 48 * game.zoom))) {
       // draw ship
       context
         ..save()
-        ..translate(position.x + 24 * game.zoom, position.y + 24 * game.zoom)
-        ..rotate(Helper.deg2rad(this.angle + 90))
-        ..drawImageScaled(engine.images[this.imageID], -24 * game.zoom * this.scale, -24 * game.zoom * this.scale, 48 * game.zoom * this.scale, 48 * game.zoom * this.scale)
+        ..translate(realPosition.x + 24 * game.zoom, realPosition.y + 24 * game.zoom)
+        ..rotate(Helper.deg2rad(angle + 90))
+        ..drawImageScaled(engine.images[imageID], -24 * game.zoom * scale, -24 * game.zoom * scale, 48 * game.zoom * scale, 48 * game.zoom * scale)
         ..restore();
 
       // draw energy bar
       context
         ..fillStyle = '#f00'
-        ..fillRect(position.x + 2, position.y + 1, (44 * game.zoom / this.maxEnergy) * this.energy, 3);
+        ..fillRect(realPosition.x + 2, realPosition.y + 1, (44 * game.zoom / maxEnergy) * energy, 3);
     }
   }
 }

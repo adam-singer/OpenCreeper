@@ -9,40 +9,41 @@ class Shell {
   Shell(this.position, this.imageID, this.targetPosition);
 
   void init() {
-    Vector delta = new Vector(this.targetPosition.x - this.position.x, this.targetPosition.y - this.position.y);
-    num distance = Helper.distance(this.targetPosition, this.position);
+    Vector delta = new Vector(targetPosition.x - position.x, targetPosition.y - position.y);
+    num distance = Helper.distance(targetPosition, position);
 
-    this.speed.x = (delta.x / distance) * game.shellSpeed * game.speed;
-    this.speed.y = (delta.y / distance) * game.shellSpeed * game.speed;
+    speed.x = (delta.x / distance) * game.shellSpeed * game.speed;
+    speed.y = (delta.y / distance) * game.shellSpeed * game.speed;
   }
 
   Vector getCenter() {
-    return new Vector(this.position.x - 8, this.position.y - 8);
+    return new Vector(position.x - 8, position.y - 8);
   }
 
   void move() {
-    this.trailTimer++;
-    if (this.trailTimer == 10) {
-      this.trailTimer = 0;
-      game.smokes.add(new Smoke(this.getCenter()));
+    trailTimer++;
+    if (trailTimer == 10) {
+      trailTimer = 0;
+      game.smokes.add(new Smoke(getCenter()));
     }
 
-    this.rotation += 20;
-    if (this.rotation > 359)this.rotation -= 359;
+    rotation += 20;
+    if (rotation > 359)
+      rotation -= 359;
 
-    this.position += this.speed;
+    position += speed;
 
-    if (this.position.x > this.targetPosition.x - 2 && this.position.x < this.targetPosition.x + 2 && this.position.y > this.targetPosition.y - 2 && this.position.y < this.targetPosition.y + 2) {
+    if (position.x > targetPosition.x - 2 && position.x < targetPosition.x + 2 && position.y > targetPosition.y - 2 && position.y < targetPosition.y + 2) {
       // if the target is reached explode and remove
-      this.remove = true;
+      remove = true;
 
-      game.explosions.add(new Explosion(this.targetPosition));
-      engine.playSound("explosion", Helper.real2tiled(this.targetPosition));
+      game.explosions.add(new Explosion(targetPosition));
+      engine.playSound("explosion", Helper.real2tiled(targetPosition));
 
-      for (int i = (this.targetPosition.x / game.tileSize).floor() - 4; i < (this.targetPosition.x / game.tileSize).floor() + 5; i++) {
-        for (int j = (this.targetPosition.y / game.tileSize).floor() - 4; j < (this.targetPosition.y / game.tileSize).floor() + 5; j++) {
+      for (int i = (targetPosition.x / game.tileSize).floor() - 4; i < (targetPosition.x / game.tileSize).floor() + 5; i++) {
+        for (int j = (targetPosition.y / game.tileSize).floor() - 4; j < (targetPosition.y / game.tileSize).floor() + 5; j++) {
           if (game.withinWorld(i, j)) {
-            num distance = pow((i * game.tileSize + game.tileSize / 2) - this.targetPosition.x, 2) + pow((j * game.tileSize + game.tileSize / 2) - this.targetPosition.y, 2);
+            num distance = pow((i * game.tileSize + game.tileSize / 2) - targetPosition.x, 2) + pow((j * game.tileSize + game.tileSize / 2) - targetPosition.y, 2);
             if (distance < pow(game.tileSize * 4, 2)) {
               game.world.tiles[i][j][0].creep -= 10;
               if (game.world.tiles[i][j][0].creep < 0) {
@@ -59,13 +60,13 @@ class Shell {
   void draw() {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;
     
-    Vector position = Helper.real2screen(this.position);
+    Vector realPosition = Helper.real2screen(position);
 
-    if (engine.isVisible(position, new Vector(16 * game.zoom, 16 * game.zoom))) {
+    if (engine.isVisible(realPosition, new Vector(16 * game.zoom, 16 * game.zoom))) {
       context
         ..save()
-        ..translate(position.x + 8 * game.zoom, position.y + 8 * game.zoom)
-        ..rotate(Helper.deg2rad(this.rotation))
+        ..translate(realPosition.x + 8 * game.zoom, realPosition.y + 8 * game.zoom)
+        ..rotate(Helper.deg2rad(rotation))
         ..drawImageScaled(engine.images["shell"], -8 * game.zoom, -8 * game.zoom, 16 * game.zoom, 16 * game.zoom)
         ..restore();
     }
