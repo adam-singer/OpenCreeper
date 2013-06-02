@@ -405,7 +405,7 @@ class Game {
       building.size = 3;
     }
     if (building.imageID == "cannon") {
-      building.maxHealth = 5; //25
+      building.maxHealth = 25;
       building.maxEnergy = 40;
       building.energy = 0;
       building.weaponRadius = 8;
@@ -879,7 +879,7 @@ class Game {
               var dx = targets[0].x * this.tileSize + this.tileSize / 2 - center.x;
               var dy = targets[0].y * this.tileSize + this.tileSize / 2 - center.y;
               
-              this.buildings[t].targetAngle = Helper.rad2deg(atan2(dy, dx) + PI / 2);
+              this.buildings[t].targetAngle = Helper.rad2deg(atan2(dy, dx) + PI / 2).floor();
               this.buildings[t].weaponTargetPosition = new Vector(targets[0].x, targets[0].y);
               this.buildings[t].rotating = true;
             }
@@ -887,10 +887,10 @@ class Game {
           else {
             if (this.buildings[t].angle != this.buildings[t].targetAngle) {
               // rotate to target
-              double angleToTarget = this.buildings[t].targetAngle;
+              int angleToTarget = this.buildings[t].targetAngle;
 
-              num turnRate = 5.0;
-              num absoluteDelta = (angleToTarget - this.buildings[t].angle).abs();
+              int turnRate = 5;
+              int absoluteDelta = (angleToTarget - this.buildings[t].angle).abs();
 
               if (absoluteDelta < turnRate)
                 turnRate = absoluteDelta;
