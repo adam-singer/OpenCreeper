@@ -399,7 +399,7 @@ class Game {
       building.size = 3;
     }
     if (building.imageID == "cannon") {
-      building.maxHealth = 25;
+      building.maxHealth = 5; //25
       building.maxEnergy = 40;
       building.energy = 0;
       building.weaponRadius = 8;
@@ -839,13 +839,15 @@ class Game {
         }
 
         else if (this.buildings[t].imageID == "cannon" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 10) {
+          if (!this.buildings[t].rotating) {  
+          
             this.buildings[t].energyTimer = 0;
 
             int height = this.getHighestTerrain(this.buildings[t].position);
 
+            List targets = new List();            
             // find closest random target
-            for (int r = 0; r < this.buildings[t].weaponRadius + 1; r++) {
-              List targets = new List();
+            for (int r = 0; r < this.buildings[t].weaponRadius + 1; r++) {  
               int radius = r * this.tileSize;
               for (int i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
                 for (int j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
@@ -863,74 +865,110 @@ class Game {
                   }
                 }
               }
-              if (targets.length > 0) {
-                Helper.shuffle(targets);
+            }
+            
+            if (targets.length > 0) {
+              Helper.shuffle(targets);
+              
+              var dx = targets[0].x * this.tileSize + this.tileSize / 2 - center.x;
+              var dy = targets[0].y * this.tileSize + this.tileSize / 2 - center.y;
+              
+              this.buildings[t].targetAngle = Helper.rad2deg(atan2(dy, dx) + PI / 2);
+              this.buildings[t].weaponTargetPosition = new Vector(targets[0].x, targets[0].y);
+              this.buildings[t].rotating = true;
+            }
+          }
+          else {
+            if (this.buildings[t].angle != this.buildings[t].targetAngle) {
+              // rotate to target
+              double angleToTarget = this.buildings[t].targetAngle;
 
-                this.world.tiles[targets[0].x][targets[0].y][0].creep -= 10;
-                if (this.world.tiles[targets[0].x][targets[0].y][0].creep < 0)
-                  this.world.tiles[targets[0].x][targets[0].y][0].creep = 0;
+              num turnRate = 5.0;
+              num absoluteDelta = (angleToTarget - this.buildings[t].angle).abs();
 
-                var dx = targets[0].x * this.tileSize + this.tileSize / 2 - center.x;
-                var dy = targets[0].y * this.tileSize + this.tileSize / 2 - center.y;
-                this.buildings[t].targetAngle = atan2(dy, dx) + PI / 2;
-                this.buildings[t].weaponTargetPosition = new Vector(targets[0].x, targets[0].y);
-                this.buildings[t].energy -= 1;
-                this.buildings[t].operating = true;
-                this.smokes.add(new Smoke(new Vector(targets[0].x * this.tileSize + this.tileSize / 2, targets[0].y * this.tileSize + this.tileSize / 2)));
-                engine.playSound("laser", position);
-                break;
+              if (absoluteDelta < turnRate)
+                turnRate = absoluteDelta;
+
+              if (absoluteDelta <= 180)
+                if (angleToTarget < this.buildings[t].angle)
+                  this.buildings[t].angle -= turnRate;
+                else
+                  this.buildings[t].angle += turnRate;
+              else
+                if (angleToTarget < this.buildings[t].angle)
+                  this.buildings[t].angle += turnRate;
+                else
+                  this.buildings[t].angle -= turnRate;
+
+              if (this.buildings[t].angle > 180)
+                this.buildings[t].angle -= 360;
+              if (this.buildings[t].angle < -180)
+                this.buildings[t].angle += 360;
+            }
+            else {
+              // shoot it
+              this.world.tiles[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y][0].creep -= 10;
+              if (this.world.tiles[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y][0].creep < 0)
+                this.world.tiles[this.buildings[t].weaponTargetPosition.x][this.buildings[t].weaponTargetPosition.y][0].creep = 0;
+                           
+              this.buildings[t].rotating = false;
+              this.buildings[t].energy -= 1;
+              this.buildings[t].operating = true;
+              this.smokes.add(new Smoke(new Vector(this.buildings[t].weaponTargetPosition.x * this.tileSize + this.tileSize / 2, this.buildings[t].weaponTargetPosition.y * this.tileSize + this.tileSize / 2)));
+              engine.playSound("laser", position);
+            }          
+          }
+        }
+
+        else if (this.buildings[t].imageID == "mortar" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 200) {
+          this.buildings[t].energyTimer = 0;
+
+          // find most creep in range
+          Vector target = null;
+          var highestCreep = 0;
+          for (int i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
+            for (int j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
+              if (this.withinWorld(i, j)) {
+                var distance = pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
+
+                if (distance <= pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][0].creep > 0 && this.world.tiles[i][j][0].creep >= highestCreep) {
+                  highestCreep = this.world.tiles[i][j][0].creep;
+                  target = new Vector(i, j);
+                }
               }
             }
           }
+          if (target != null) {
+            engine.playSound("shot", position);
+            Shell shell = new Shell(center, "shell", new Vector(target.x * this.tileSize + this.tileSize / 2, target.y * this.tileSize + this.tileSize / 2));
+            shell.init();
+            this.shells.add(shell);
+            this.buildings[t].energy -= 1;
+          }
+        }
 
-          else if (this.buildings[t].imageID == "mortar" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 200) {
-              this.buildings[t].energyTimer = 0;
+        else if (this.buildings[t].imageID == "beam" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 0) {
+          this.buildings[t].energyTimer = 0;
 
-              // find most creep in range
-              Vector target = null;
-              var highestCreep = 0;
-              for (int i = position.x - this.buildings[t].weaponRadius; i <= position.x + this.buildings[t].weaponRadius; i++) {
-                for (int j = position.y - this.buildings[t].weaponRadius; j <= position.y + this.buildings[t].weaponRadius; j++) {
-                  if (this.withinWorld(i, j)) {
-                    var distance = pow((i * this.tileSize + this.tileSize / 2) - center.x, 2) + pow((j * this.tileSize + this.tileSize / 2) - center.y, 2);
-  
-                    if (distance <= pow(this.buildings[t].weaponRadius * this.tileSize, 2) && this.world.tiles[i][j][0].creep > 0 && this.world.tiles[i][j][0].creep >= highestCreep) {
-                      highestCreep = this.world.tiles[i][j][0].creep;
-                      target = new Vector(i, j);
-                    }
-                  }
-                }
-              }
-              if (target != null) {
-                engine.playSound("shot", position);
-                Shell shell = new Shell(center, "shell", new Vector(target.x * this.tileSize + this.tileSize / 2, target.y * this.tileSize + this.tileSize / 2));
-                shell.init();
-                this.shells.add(shell);
-                this.buildings[t].energy -= 1;
+          // find spore in range
+          for (int i = 0; i < this.spores.length; i++) {
+            Vector sporeCenter = this.spores[i].getCenter();
+            var distance = pow(sporeCenter.x - center.x, 2) + pow(sporeCenter.y - center.y, 2);
+
+            if (distance <= pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
+              this.buildings[t].weaponTargetPosition = sporeCenter;
+              this.buildings[t].energy -= .1;
+              this.buildings[t].operating = true;
+              this.spores[i].health -= 2;
+              if (this.spores[i].health <= 0) {
+                this.spores[i].remove = true;
+                engine.playSound("explosion", Helper.real2tiled(this.spores[i].position));
+                this.explosions.add(new Explosion(sporeCenter));
               }
             }
-
-            else if (this.buildings[t].imageID == "beam" && this.buildings[t].energy > 0 && this.buildings[t].energyTimer > 0) {
-                this.buildings[t].energyTimer = 0;
-
-                // find spore in range
-                for (int i = 0; i < this.spores.length; i++) {
-                  Vector sporeCenter = this.spores[i].getCenter();
-                  var distance = pow(sporeCenter.x - center.x, 2) + pow(sporeCenter.y - center.y, 2);
-
-                  if (distance <= pow(this.buildings[t].weaponRadius * this.tileSize, 2)) {
-                    this.buildings[t].weaponTargetPosition = sporeCenter;
-                    this.buildings[t].energy -= .1;
-                    this.buildings[t].operating = true;
-                    this.spores[i].health -= 2;
-                    if (this.spores[i].health <= 0) {
-                      this.spores[i].remove = true;
-                      engine.playSound("explosion", Helper.real2tiled(this.spores[i].position));
-                      this.explosions.add(new Explosion(sporeCenter));
-                    }
-                  }
-                }
-              }
+          }
+        }
+        
       }
     }
   }
