@@ -244,7 +244,6 @@ void onMouseUp(MouseEvent evt) {
           game.buildings[i].weaponTargetPosition = null;
           game.buildings[i].status = "RISING";
           game.buildings[i].moveTargetPosition = position;
-          game.buildings[i].calculateVector();
         }
       }
     }

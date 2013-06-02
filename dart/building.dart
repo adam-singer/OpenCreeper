@@ -42,20 +42,21 @@ class Building {
       }
       if (flightCounter == 0) {
         status = "IDLE";
-        position.x = moveTargetPosition.x;
-        position.y = moveTargetPosition.y;
         scale = 1;
       }
     }
 
     if (status == "MOVING") {
+      calculateVector();
       
       position += speed;
       
-      if (position.x * game.tileSize > moveTargetPosition.x * game.tileSize - 2 &&
-          position.x * game.tileSize < moveTargetPosition.x * game.tileSize + 2 &&
-          position.y * game.tileSize > moveTargetPosition.y * game.tileSize - 2 &&
-          position.y * game.tileSize < moveTargetPosition.y * game.tileSize + 2) {
+      if (position.x * game.tileSize > moveTargetPosition.x * game.tileSize - 1 &&
+          position.x * game.tileSize < moveTargetPosition.x * game.tileSize + 1 &&
+          position.y * game.tileSize > moveTargetPosition.y * game.tileSize - 1 &&
+          position.y * game.tileSize < moveTargetPosition.y * game.tileSize + 1) {
+        position.x = moveTargetPosition.x;
+        position.y = moveTargetPosition.y;
         status = "FALLING";
       }
     }
@@ -70,6 +71,11 @@ class Building {
 
       speed.x = (delta.x / distance) * game.buildingSpeed * game.speed / game.tileSize;
       speed.y = (delta.y / distance) * game.buildingSpeed * game.speed / game.tileSize;
+      
+      if (speed.x.abs() > delta.x.abs())
+        speed.x = delta.x;
+      if (speed.y.abs() > delta.y.abs())
+        speed.y = delta.y;
     }
   }
 
@@ -99,8 +105,8 @@ class Building {
     if (built && imageID == "shield" && status == "IDLE") {
       Vector center = getCenter();
 
-      for (int i = position.x - 9; i < position.x + 10; i++) {
-        for (int j = position.y - 9; j < position.y + 10; j++) {
+      for (int i = position.x - weaponRadius; i <= position.x + weaponRadius; i++) {
+        for (int j = position.y - weaponRadius; j <= position.y + weaponRadius; j++) {
           if (game.withinWorld(i, j)) {
             num distance = pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
             if (distance < pow(game.tileSize * 10, 2)) {
@@ -114,6 +120,253 @@ class Building {
           }
         }
       }
+
+    }
+  }
+
+  void checkOperating() {
+    operating = false;
+    if (needsEnergy && active && status == "IDLE") {
+
+      energyTimer++;
+      Vector center = getCenter();
+
+      if (imageID == "analyzer" && energy > 0) {
+        // find emitter
+        if (weaponTargetPosition == null) {
+          for (int i = 0; i < game.emitters.length; i++) {
+            Vector emitterCenter = game.emitters[i].getCenter();
+
+            num distance = pow(emitterCenter.x - center.x, 2) + pow(emitterCenter.y - center.y, 2);
+
+            if (distance <= pow(weaponRadius * game.tileSize, 2)) {
+              if (game.emitters[i].building == null) {
+                game.emitters[i].building = this;
+                weaponTargetPosition = game.emitters[i].position;
+                break;
+              }
+            }
+
+          }
+        }
+        else {
+          if (energyTimer > 20) {
+            energyTimer = 0;
+            energy -= 1;
+          }
+
+          operating = true;
+        }
+      }
+
+      if (imageID == "terp" && energy > 0) {
+        // find lowest target
+        if (weaponTargetPosition == null) {
+          // find lowest tile
+          Vector target = null;
+          int lowestTile = 10;
+          for (int i = position.x - weaponRadius; i <= position.x + weaponRadius; i++) {
+            for (int j = position.y - weaponRadius; j <= position.y + weaponRadius; j++) {
+
+              if (game.withinWorld(i, j)) {
+                var distance = pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
+                var tileHeight = game.getHighestTerrain(new Vector(i, j));
+
+                if (distance <= pow(weaponRadius * game.tileSize, 2) && game.world.terraform[i][j]["target"] > -1 && tileHeight <= lowestTile) {
+                  lowestTile = tileHeight;
+                  target = new Vector(i, j);
+                }
+              }
+            }
+          }
+          if (target != null) {
+            weaponTargetPosition = target;
+          }
+        } else {
+          if (energyTimer > 20) {
+            energyTimer = 0;
+            energy -= 1;
+          }
+
+          operating = true;
+          var terraformElement = game.world.terraform[weaponTargetPosition.x][weaponTargetPosition.y];
+          terraformElement["progress"] += 1;
+          if (terraformElement["progress"] == 100) {
+            terraformElement["progress"] = 0;
+
+            int height = game.getHighestTerrain(weaponTargetPosition);
+            List tilesToRedraw = new List();
+
+            if (height < terraformElement["target"]) {
+              game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y][height + 1].full = true;
+              // reset index around tile
+              tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y, height + 1));
+              tilesToRedraw.add(new Vector3(weaponTargetPosition.x - 1, weaponTargetPosition.y, height + 1));
+              tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y - 1, height + 1));
+              tilesToRedraw.add(new Vector3(weaponTargetPosition.x + 1, weaponTargetPosition.y, height + 1));
+              tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y + 1, height + 1));
+            } else {
+              game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y][height].full = false;
+              // reset index around tile
+              tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y, height));
+              tilesToRedraw.add(new Vector3(weaponTargetPosition.x - 1, weaponTargetPosition.y, height));
+              tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y - 1, height));
+              tilesToRedraw.add(new Vector3(weaponTargetPosition.x + 1, weaponTargetPosition.y, height));
+              tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y + 1, height));
+            }
+
+            game.redrawTile(tilesToRedraw);
+
+            height = game.getHighestTerrain(weaponTargetPosition);
+            if (height == terraformElement["target"]) {
+              game.world.terraform[weaponTargetPosition.x][weaponTargetPosition.y]["progress"] = 0;
+              game.world.terraform[weaponTargetPosition.x][weaponTargetPosition.y]["target"] = -1;
+            }
+
+            weaponTargetPosition = null;
+            operating = false;
+          }
+        }
+      }
+
+      else if (imageID == "shield" && energy > 0) {
+        if (energyTimer > 20) {
+          energyTimer = 0;
+          energy -= 1;
+        }
+        operating = true;
+      }
+
+      else if (imageID == "cannon" && energy > 0 && energyTimer > 10) {
+          if (!rotating) {
+
+            energyTimer = 0;
+
+            int height = game.getHighestTerrain(position);
+
+            List targets = new List();
+            // find closest random target
+            for (int r = 0; r < weaponRadius + 1; r++) {
+              int radius = r * game.tileSize;
+              for (int i = position.x - weaponRadius; i <= position.x + weaponRadius; i++) {
+                for (int j = position.y - weaponRadius; j <= position.y + weaponRadius; j++) {
+
+                  // cannons can only shoot at tiles not higher than themselves
+                  if (game.withinWorld(i, j)) {
+                    int tileHeight = game.getHighestTerrain(new Vector(i, j));
+                    if (tileHeight <= height) {
+                      var distance = pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
+
+                      if (distance <= pow(radius, 2) && game.world.tiles[i][j][0].creep > 0) {
+                        targets.add(new Vector(i, j));
+                      }
+                    }
+                  }
+                }
+              }
+              if (targets.length > 0)
+                break;
+            }
+
+            if (targets.length > 0) {
+              Helper.shuffle(targets);
+
+              var dx = targets[0].x * game.tileSize + game.tileSize / 2 - center.x;
+              var dy = targets[0].y * game.tileSize + game.tileSize / 2 - center.y;
+
+              targetAngle = Helper.rad2deg(atan2(dy, dx) + PI / 2).floor();
+              weaponTargetPosition = new Vector(targets[0].x, targets[0].y);
+              rotating = true;
+            }
+          }
+          else {
+            if (angle != targetAngle) {
+              // rotate to target
+              int turnRate = 5;
+              int absoluteDelta = (targetAngle - angle).abs();
+
+              if (absoluteDelta < turnRate)
+                turnRate = absoluteDelta;
+
+              if (absoluteDelta <= 180)
+                if (targetAngle < angle)
+                  angle -= turnRate;
+                else
+                  angle += turnRate;
+              else
+                if (targetAngle < angle)
+                  angle += turnRate;
+                else
+                  angle -= turnRate;
+
+              if (angle > 180)
+                angle -= 360;
+              if (angle < -180)
+                angle += 360;
+            }
+            else {
+              // shoot it
+              game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y][0].creep -= 10;
+              if (game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y][0].creep < 0)
+                game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y][0].creep = 0;
+
+              rotating = false;
+              energy -= 1;
+              operating = true;
+              game.smokes.add(new Smoke(new Vector(weaponTargetPosition.x * game.tileSize + game.tileSize / 2, weaponTargetPosition.y * game.tileSize + game.tileSize / 2)));
+              engine.playSound("laser", position);
+            }
+          }
+        }
+
+        else if (imageID == "mortar" && energy > 0 && energyTimer > 200) {
+            energyTimer = 0;
+
+            // find most creep in range
+            Vector target = null;
+            var highestCreep = 0;
+            for (int i = position.x - weaponRadius; i <= position.x + weaponRadius; i++) {
+              for (int j = position.y - weaponRadius; j <= position.y + weaponRadius; j++) {
+                if (game.withinWorld(i, j)) {
+                  var distance = pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
+
+                  if (distance <= pow(weaponRadius * game.tileSize, 2) && game.world.tiles[i][j][0].creep > 0 && game.world.tiles[i][j][0].creep >= highestCreep) {
+                    highestCreep = game.world.tiles[i][j][0].creep;
+                    target = new Vector(i, j);
+                  }
+                }
+              }
+            }
+            if (target != null) {
+              engine.playSound("shot", position);
+              Shell shell = new Shell(center, "shell", new Vector(target.x * game.tileSize + game.tileSize / 2, target.y * game.tileSize + game.tileSize / 2));
+              shell.init();
+              game.shells.add(shell);
+              energy -= 1;
+            }
+          }
+
+          else if (imageID == "beam" && energy > 0 && energyTimer > 0) {
+              energyTimer = 0;
+
+              // find spore in range
+              for (int i = 0; i < game.spores.length; i++) {
+                Vector sporeCenter = game.spores[i].getCenter();
+                var distance = pow(sporeCenter.x - center.x, 2) + pow(sporeCenter.y - center.y, 2);
+
+                if (distance <= pow(weaponRadius * game.tileSize, 2)) {
+                  weaponTargetPosition = sporeCenter;
+                  energy -= .1;
+                  operating = true;
+                  game.spores[i].health -= 2;
+                  if (game.spores[i].health <= 0) {
+                    game.spores[i].remove = true;
+                    engine.playSound("explosion", Helper.real2tiled(game.spores[i].position));
+                    game.explosions.add(new Explosion(sporeCenter));
+                  }
+                }
+              }
+            }
 
     }
   }

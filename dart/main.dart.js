@@ -3667,7 +3667,7 @@ stringReplaceAllUnchecked: function(receiver, from, to) {
     return receiver.replace(new RegExp(from.replace(new RegExp("[-[\\]{}()*+?.,\\\\^$|#\\s]", 'g'), "\\$&"), 'g'), to.replace("$", "$$$$"));
 }}],
 ["creeper", {
-Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed,imageID<,status*,operating?,selected*,hovered<,built@,active@,canMove<,needsEnergy<,rotating@,health@,maxHealth<,energy@,maxEnergy<,energyTimer@,healthRequests@,energyRequests@,requestTimer@,weaponRadius<,size>,collectedEnergy@,flightCounter,scale,angle@,targetAngle@,ship?",
+Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition?,speed,imageID<,status*,operating?,selected*,hovered<,built@,active@,canMove<,needsEnergy<,rotating,health@,maxHealth<,energy@,maxEnergy<,energyTimer,healthRequests@,energyRequests@,requestTimer@,weaponRadius,size>,collectedEnergy@,flightCounter,scale,angle,targetAngle,ship?",
   updateHoverState$0: function() {
     var realPosition, t1, t2, t3, t4, t5, t6;
     realPosition = $.Helper_tiled2screen(this.position);
@@ -3721,15 +3721,17 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
       }
       if (this.flightCounter === 0) {
         this.status = "IDLE";
-        $.set$x$x(this.position, this.moveTargetPosition.x);
-        $.set$y$x(this.position, this.moveTargetPosition.y);
         this.scale = 1;
       }
     }
     if (this.status === "MOVING") {
+      this.calculateVector$0();
       this.position = $.$add$ns(this.position, this.speed);
-      if ($.$gt$n($.$mul$n($.get$x$x(this.position), $.game.tileSize), $.$sub$n($.$mul$n(this.moveTargetPosition.x, $.game.tileSize), 2)) && $.$lt$n($.$mul$n($.get$x$x(this.position), $.game.tileSize), $.$add$ns($.$mul$n(this.moveTargetPosition.x, $.game.tileSize), 2)) && $.$gt$n($.$mul$n($.get$y$x(this.position), $.game.tileSize), $.$sub$n($.$mul$n(this.moveTargetPosition.y, $.game.tileSize), 2)) && $.$lt$n($.$mul$n($.get$y$x(this.position), $.game.tileSize), $.$add$ns($.$mul$n(this.moveTargetPosition.y, $.game.tileSize), 2)))
+      if ($.$gt$n($.$mul$n($.get$x$x(this.position), $.game.tileSize), $.$sub$n($.$mul$n(this.moveTargetPosition.x, $.game.tileSize), 1)) && $.$lt$n($.$mul$n($.get$x$x(this.position), $.game.tileSize), $.$add$ns($.$mul$n(this.moveTargetPosition.x, $.game.tileSize), 1)) && $.$gt$n($.$mul$n($.get$y$x(this.position), $.game.tileSize), $.$sub$n($.$mul$n(this.moveTargetPosition.y, $.game.tileSize), 1)) && $.$lt$n($.$mul$n($.get$y$x(this.position), $.game.tileSize), $.$add$ns($.$mul$n(this.moveTargetPosition.y, $.game.tileSize), 1))) {
+        $.set$x$x(this.position, this.moveTargetPosition.x);
+        $.set$y$x(this.position, this.moveTargetPosition.y);
         this.status = "FALLING";
+      }
     }
   },
   calculateVector$0: function() {
@@ -3755,6 +3757,10 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
       t6 = t3.tileSize;
       t1.x = t2 * t4 * t5 / t6;
       this.speed.y = $.$div$n(delta.y, distance) * t3.buildingSpeed * t3.speed / t6;
+      if ($.abs$0$n(this.speed.x) > $.abs$0$n(delta.x))
+        this.speed.x = delta.x;
+      if ($.abs$0$n(this.speed.y) > $.abs$0$n(delta.y))
+        this.speed.y = delta.y;
     }
   },
   getCenter$0: function() {
@@ -3789,14 +3795,14 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
     var center, i, j, t1, t2, t3, distance;
     if (this.built && $.$eq(this.imageID, "shield") && this.status === "IDLE") {
       center = this.getCenter$0();
-      i = $.$sub$n($.get$x$x(this.position), 9);
+      i = $.$sub$n($.get$x$x(this.position), this.weaponRadius);
       if (i !== (i | 0))
         return this.shield$0$bailout(1, center, i);
-      for (; $.JSNumber_methods.$lt(i, $.$add$ns($.get$x$x(this.position), 10)); ++i) {
-        j = $.$sub$n($.get$y$x(this.position), 9);
+      for (; $.JSNumber_methods.$le(i, $.$add$ns($.get$x$x(this.position), this.weaponRadius)); ++i) {
+        j = $.$sub$n($.get$y$x(this.position), this.weaponRadius);
         if (typeof j !== "number")
           return this.shield$0$bailout(2, center, i, $.JSNumber_methods, j);
-        for (; $.JSNumber_methods.$lt(j, $.$add$ns($.get$y$x(this.position), 10)); ++j) {
+        for (; $.JSNumber_methods.$le(j, $.$add$ns($.get$y$x(this.position), this.weaponRadius)); ++j) {
           t1 = $.game;
           if (t1.withinWorld$2(i, j)) {
             t1 = t1.tileSize;
@@ -3818,7 +3824,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
                 throw $.ioore(i);
               t1 = t1[i];
               if (typeof t1 !== "string" && (typeof t1 !== "object" || t1 === null || t1.constructor !== Array && !$.isJsIndexable(t1, t1[$.dispatchPropertyName])))
-                return this.shield$0$bailout(3, center, i, $.JSNumber_methods, j, distance, $.JSNumber_methods, t1);
+                return this.shield$0$bailout(3, center, i, $.JSNumber_methods, j, t1, $.JSNumber_methods, distance);
               if (j >>> 0 !== j || j >= t1.length)
                 throw $.ioore(j);
               if ($.$gt$n($.$index$asx(t1[j], 0).get$creep(), 0)) {
@@ -3827,7 +3833,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
                   throw $.ioore(i);
                 t1 = t1[i];
                 if (typeof t1 !== "string" && (typeof t1 !== "object" || t1 === null || t1.constructor !== Array && !$.isJsIndexable(t1, t1[$.dispatchPropertyName])))
-                  return this.shield$0$bailout(4, center, i, $.JSNumber_methods, j, distance, $.JSNumber_methods, t1);
+                  return this.shield$0$bailout(4, center, i, $.JSNumber_methods, j, t1, $.JSNumber_methods, distance);
                 if (j >= t1.length)
                   throw $.ioore(j);
                 t1 = $.$index$asx(t1[j], 0);
@@ -3837,7 +3843,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
                   throw $.ioore(i);
                 t1 = t1[i];
                 if (typeof t1 !== "string" && (typeof t1 !== "object" || t1 === null || t1.constructor !== Array && !$.isJsIndexable(t1, t1[$.dispatchPropertyName])))
-                  return this.shield$0$bailout(5, center, i, $.JSNumber_methods, j, 0, $.JSNumber_methods, t1);
+                  return this.shield$0$bailout(5, center, i, $.JSNumber_methods, j, t1, $.JSNumber_methods);
                 if (j >= t1.length)
                   throw $.ioore(j);
                 if ($.$lt$n($.$index$asx(t1[j], 0).get$creep(), 0)) {
@@ -3846,7 +3852,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
                     throw $.ioore(i);
                   t1 = t1[i];
                   if (typeof t1 !== "string" && (typeof t1 !== "object" || t1 === null || t1.constructor !== Array && !$.isJsIndexable(t1, t1[$.dispatchPropertyName])))
-                    return this.shield$0$bailout(6, center, i, $.JSNumber_methods, j, 0, $.JSNumber_methods, t1);
+                    return this.shield$0$bailout(6, center, i, $.JSNumber_methods, j, t1, $.JSNumber_methods);
                   if (j >= t1.length)
                     throw $.ioore(j);
                   $.$index$asx(t1[j], 0).set$creep(0);
@@ -3858,7 +3864,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
       }
     }
   },
-  shield$0$bailout: function(state0, center, i, t1, j, distance, t2, t3) {
+  shield$0$bailout: function(state0, center, i, t1, j, t3, t2, distance) {
     switch (state0) {
       case 0:
       default:
@@ -3867,7 +3873,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
           switch (state0) {
             case 0:
               center = this.getCenter$0();
-              i = $.$sub$n($.get$x$x(this.position), 9);
+              i = $.$sub$n($.get$x$x(this.position), this.weaponRadius);
             case 1:
               state0 = 0;
             default:
@@ -3876,9 +3882,9 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
                   switch (state0) {
                     case 0:
                       t1 = $.getInterceptor$n(i);
-                      if (!t1.$lt(i, $.$add$ns($.get$x$x(this.position), 10)))
+                      if (!t1.$le(i, $.$add$ns($.get$x$x(this.position), this.weaponRadius)))
                         break L0;
-                      j = $.$sub$n($.get$y$x(this.position), 9);
+                      j = $.$sub$n($.get$y$x(this.position), this.weaponRadius);
                     case 2:
                       state0 = 0;
                     default:
@@ -3887,7 +3893,7 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
                           switch (state0) {
                             case 0:
                               t2 = $.getInterceptor$n(j);
-                              if (!t2.$lt(j, $.$add$ns($.get$y$x(this.position), 10)))
+                              if (!t2.$le(j, $.$add$ns($.get$y$x(this.position), this.weaponRadius)))
                                 break L1;
                               t3 = $.game;
                             default:
@@ -3950,6 +3956,1012 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
                           }
                       i = t1.$add(i, 1);
                   }
+          }
+    }
+  },
+  checkOperating$0: function() {
+    var center, i, t1, emitterCenter, t2, t3, target, lowestTile, j, tileHeight, t4, terraformElement, height, tilesToRedraw, t5, t6, targets, r, radius, dx, dy, truncated, absoluteDelta, turnRate, highestCreep, shell, sporeCenter;
+    this.operating = false;
+    if (this.needsEnergy && this.active && this.status === "IDLE") {
+      this.energyTimer = this.energyTimer + 1;
+      center = this.getCenter$0();
+      if ($.$eq(this.imageID, "analyzer") && this.energy > 0)
+        if (this.weaponTargetPosition == null)
+          for (i = 0; t1 = $.game.emitters, i < t1.length; ++i) {
+            emitterCenter = t1[i].getCenter$0();
+            t1 = $.$sub$n(emitterCenter.x, center.x);
+            if (typeof t1 !== "number")
+              $.throwExpression(new $.ArgumentError(t1));
+            t1 = Math.pow(t1, 2);
+            t2 = $.$sub$n(emitterCenter.y, center.y);
+            if (typeof t2 !== "number")
+              $.throwExpression(new $.ArgumentError(t2));
+            t2 = Math.pow(t2, 2);
+            t3 = this.weaponRadius * $.game.tileSize;
+            if (t1 + t2 <= Math.pow(t3, 2)) {
+              t1 = $.game.emitters;
+              if (i >= t1.length)
+                throw $.ioore(i);
+              t1 = t1[i];
+              if (t1.get$building() == null) {
+                t1.set$building(this);
+                t1 = $.game.emitters;
+                if (i >= t1.length)
+                  throw $.ioore(i);
+                this.weaponTargetPosition = $.get$position$x(t1[i]);
+                break;
+              }
+            }
+          }
+        else {
+          if (this.energyTimer > 20) {
+            this.energyTimer = 0;
+            this.energy = this.energy - 1;
+          }
+          this.operating = true;
+        }
+      if ($.$eq(this.imageID, "terp") && this.energy > 0)
+        if (this.weaponTargetPosition == null) {
+          i = $.$sub$n($.get$x$x(this.position), this.weaponRadius);
+          if (i !== (i | 0))
+            return this.checkOperating$0$bailout(1, center, i);
+          target = null;
+          lowestTile = 10;
+          for (; $.JSNumber_methods.$le(i, $.$add$ns($.get$x$x(this.position), this.weaponRadius)); ++i) {
+            j = $.$sub$n($.get$y$x(this.position), this.weaponRadius);
+            if (typeof j !== "number")
+              return this.checkOperating$0$bailout(2, center, i, lowestTile, target, $.JSNumber_methods, j);
+            for (; $.JSNumber_methods.$le(j, $.$add$ns($.get$y$x(this.position), this.weaponRadius)); ++j) {
+              t1 = $.game;
+              if (t1.withinWorld$2(i, j)) {
+                t1 = t1.tileSize;
+                t2 = center.x;
+                if (typeof t2 !== "number")
+                  throw $.iae(t2);
+                t2 = i * t1 + t1 / 2 - t2;
+                t1 = Math.pow(t2, 2);
+                t2 = $.game.tileSize;
+                t3 = center.y;
+                if (typeof t3 !== "number")
+                  throw $.iae(t3);
+                t3 = j * t2 + t2 / 2 - t3;
+                t2 = Math.pow(t3, 2);
+                tileHeight = $.game.getHighestTerrain$1(new $.Vector(i, j));
+                t3 = this.weaponRadius * $.game.tileSize;
+                if (t1 + t2 <= Math.pow(t3, 2)) {
+                  t1 = $.game.world.terraform;
+                  if (i < 0 || i >= t1.length)
+                    throw $.ioore(i);
+                  t1 = t1[i];
+                  if (typeof t1 !== "string" && (typeof t1 !== "object" || t1 === null || t1.constructor !== Array && !$.isJsIndexable(t1, t1[$.dispatchPropertyName])))
+                    return this.checkOperating$0$bailout(3, center, i, lowestTile, target, $.JSNumber_methods, j, t1, tileHeight, $.JSNumber_methods);
+                  if (j >>> 0 !== j || j >= t1.length)
+                    throw $.ioore(j);
+                  t1 = $.$gt$n($.$index$asx(t1[j], "target"), -1) && tileHeight <= lowestTile;
+                } else
+                  t1 = false;
+                if (t1) {
+                  target = new $.Vector(i, j);
+                  lowestTile = tileHeight;
+                }
+              }
+            }
+          }
+          if (target != null)
+            this.weaponTargetPosition = target;
+        } else {
+          if (this.energyTimer > 20) {
+            this.energyTimer = 0;
+            this.energy = this.energy - 1;
+          }
+          this.operating = true;
+          t1 = $.game.world.terraform;
+          t2 = this.weaponTargetPosition;
+          t3 = $.getInterceptor$x(t2);
+          t4 = t3.get$x(t2);
+          if (t4 >>> 0 !== t4 || t4 >= t1.length)
+            throw $.ioore(t4);
+          terraformElement = $.$index$asx(t1[t4], t3.get$y(t2));
+          t2 = $.getInterceptor$asx(terraformElement);
+          t2.$indexSet(terraformElement, "progress", $.$add$ns(t2.$index(terraformElement, "progress"), 1));
+          if ($.$eq(t2.$index(terraformElement, "progress"), 100)) {
+            t2.$indexSet(terraformElement, "progress", 0);
+            height = $.game.getHighestTerrain$1(this.weaponTargetPosition);
+            tilesToRedraw = $.List_List($);
+            t1 = $.JSNumber_methods.$lt(height, t2.$index(terraformElement, "target"));
+            t3 = $.game;
+            t4 = this.weaponTargetPosition;
+            t3 = t3.world;
+            t5 = $.getInterceptor$x(t4);
+            if (t1) {
+              t1 = t3.tiles;
+              t3 = t5.get$x(t4);
+              if (t3 >>> 0 !== t3 || t3 >= t1.length)
+                throw $.ioore(t3);
+              t6 = height + 1;
+              $.$index$asx($.$index$asx(t1[t3], t5.get$y(t4)), t6).set$full(true);
+              t4 = this.weaponTargetPosition;
+              t5 = $.getInterceptor$x(t4);
+              tilesToRedraw.push(new $.Vector3(t5.get$x(t4), t5.get$y(t4), t6));
+              tilesToRedraw.push(new $.Vector3($.$sub$n($.get$x$x(this.weaponTargetPosition), 1), $.get$y$x(this.weaponTargetPosition), t6));
+              t4 = this.weaponTargetPosition;
+              t5 = $.getInterceptor$x(t4);
+              tilesToRedraw.push(new $.Vector3(t5.get$x(t4), $.$sub$n(t5.get$y(t4), 1), t6));
+              tilesToRedraw.push(new $.Vector3($.$add$ns($.get$x$x(this.weaponTargetPosition), 1), $.get$y$x(this.weaponTargetPosition), t6));
+              t4 = this.weaponTargetPosition;
+              t5 = $.getInterceptor$x(t4);
+              tilesToRedraw.push(new $.Vector3(t5.get$x(t4), $.$add$ns(t5.get$y(t4), 1), t6));
+            } else {
+              t1 = t3.tiles;
+              t3 = t5.get$x(t4);
+              if (t3 >>> 0 !== t3 || t3 >= t1.length)
+                throw $.ioore(t3);
+              $.$index$asx($.$index$asx(t1[t3], t5.get$y(t4)), height).set$full(false);
+              t4 = this.weaponTargetPosition;
+              t5 = $.getInterceptor$x(t4);
+              tilesToRedraw.push(new $.Vector3(t5.get$x(t4), t5.get$y(t4), height));
+              tilesToRedraw.push(new $.Vector3($.$sub$n($.get$x$x(this.weaponTargetPosition), 1), $.get$y$x(this.weaponTargetPosition), height));
+              t4 = this.weaponTargetPosition;
+              t5 = $.getInterceptor$x(t4);
+              tilesToRedraw.push(new $.Vector3(t5.get$x(t4), $.$sub$n(t5.get$y(t4), 1), height));
+              tilesToRedraw.push(new $.Vector3($.$add$ns($.get$x$x(this.weaponTargetPosition), 1), $.get$y$x(this.weaponTargetPosition), height));
+              t4 = this.weaponTargetPosition;
+              t5 = $.getInterceptor$x(t4);
+              tilesToRedraw.push(new $.Vector3(t5.get$x(t4), $.$add$ns(t5.get$y(t4), 1), height));
+            }
+            $.game.redrawTile$1(tilesToRedraw);
+            if ($.game.getHighestTerrain$1(this.weaponTargetPosition) === t2.$index(terraformElement, "target")) {
+              t1 = $.game.world.terraform;
+              t2 = this.weaponTargetPosition;
+              t3 = $.getInterceptor$x(t2);
+              t4 = t3.get$x(t2);
+              if (t4 >>> 0 !== t4 || t4 >= t1.length)
+                throw $.ioore(t4);
+              $.$indexSet$ax($.$index$asx(t1[t4], t3.get$y(t2)), "progress", 0);
+              t2 = $.game.world.terraform;
+              t3 = this.weaponTargetPosition;
+              t4 = $.getInterceptor$x(t3);
+              t1 = t4.get$x(t3);
+              if (t1 >>> 0 !== t1 || t1 >= t2.length)
+                throw $.ioore(t1);
+              $.$indexSet$ax($.$index$asx(t2[t1], t4.get$y(t3)), "target", -1);
+            }
+            this.weaponTargetPosition = null;
+            this.operating = false;
+          }
+        }
+      else if ($.$eq(this.imageID, "shield") && this.energy > 0) {
+        if (this.energyTimer > 20) {
+          this.energyTimer = 0;
+          this.energy = this.energy - 1;
+        }
+        this.operating = true;
+      } else if ($.$eq(this.imageID, "cannon") && this.energy > 0 && this.energyTimer > 10)
+        if (!this.rotating) {
+          this.energyTimer = 0;
+          height = $.game.getHighestTerrain$1(this.position);
+          targets = $.List_List($);
+          for (r = 0; t1 = this.weaponRadius, r < t1 + 1; ++r) {
+            radius = r * $.game.tileSize;
+            i = $.$sub$n($.get$x$x(this.position), t1);
+            if (i !== (i | 0))
+              return this.checkOperating$0$bailout(4, center, i, 0, 0, 0, 0, 0, 0, 0, height, targets, r, radius);
+            for (; $.JSNumber_methods.$le(i, $.$add$ns($.get$x$x(this.position), this.weaponRadius)); ++i) {
+              j = $.$sub$n($.get$y$x(this.position), this.weaponRadius);
+              if (typeof j !== "number")
+                return this.checkOperating$0$bailout(5, center, i, 0, 0, $.JSNumber_methods, j, 0, 0, 0, height, targets, r, radius);
+              for (; $.JSNumber_methods.$le(j, $.$add$ns($.get$y$x(this.position), this.weaponRadius)); ++j) {
+                t1 = $.game;
+                if (t1.withinWorld$2(i, j))
+                  if (t1.getHighestTerrain$1(new $.Vector(i, j)) <= height) {
+                    t1 = $.game.tileSize;
+                    t2 = center.x;
+                    if (typeof t2 !== "number")
+                      throw $.iae(t2);
+                    t2 = i * t1 + t1 / 2 - t2;
+                    t1 = Math.pow(t2, 2);
+                    t2 = $.game.tileSize;
+                    t3 = center.y;
+                    if (typeof t3 !== "number")
+                      throw $.iae(t3);
+                    t3 = j * t2 + t2 / 2 - t3;
+                    t2 = Math.pow(t3, 2);
+                    if (t1 + t2 <= Math.pow(radius, 2)) {
+                      t1 = $.game.world.tiles;
+                      if (i < 0 || i >= t1.length)
+                        throw $.ioore(i);
+                      t1 = t1[i];
+                      if (typeof t1 !== "string" && (typeof t1 !== "object" || t1 === null || t1.constructor !== Array && !$.isJsIndexable(t1, t1[$.dispatchPropertyName])))
+                        return this.checkOperating$0$bailout(6, center, i, 0, 0, $.JSNumber_methods, j, t1, 0, $.JSNumber_methods, height, targets, r, radius);
+                      if (j >>> 0 !== j || j >= t1.length)
+                        throw $.ioore(j);
+                      t1 = $.$gt$n($.$index$asx(t1[j], 0).get$creep(), 0);
+                    } else
+                      t1 = false;
+                    if (t1)
+                      targets.push(new $.Vector(i, j));
+                  }
+              }
+            }
+            if (targets.length > 0)
+              break;
+          }
+          if (targets.length > 0) {
+            $.Helper_shuffle(targets);
+            if (0 >= targets.length)
+              throw $.ioore(0);
+            dx = $.$sub$n($.$add$ns($.$mul$n($.get$x$x(targets[0]), $.game.tileSize), $.game.tileSize / 2), center.x);
+            if (0 >= targets.length)
+              throw $.ioore(0);
+            dy = $.$sub$n($.$add$ns($.$mul$n($.get$y$x(targets[0]), $.game.tileSize), $.game.tileSize / 2), center.y);
+            if (typeof dy !== "number")
+              $.throwExpression(new $.ArgumentError(dy));
+            if (typeof dx !== "number")
+              $.throwExpression(new $.ArgumentError(dx));
+            t1 = Math.floor((Math.atan2(dy, dx) + 1.5707963267948966) * 57.29577951308232);
+            if (isNaN(t1))
+              $.throwExpression(new $.UnsupportedError("NaN"));
+            if (t1 == Infinity || t1 == -Infinity)
+              $.throwExpression(new $.UnsupportedError("Infinity"));
+            truncated = t1 < 0 ? Math.ceil(t1) : Math.floor(t1);
+            this.targetAngle = truncated == -0.0 ? 0 : truncated;
+            if (0 >= targets.length)
+              throw $.ioore(0);
+            t1 = targets[0];
+            t2 = $.getInterceptor$x(t1);
+            this.weaponTargetPosition = new $.Vector(t2.get$x(t1), t2.get$y(t1));
+            this.rotating = true;
+          }
+        } else {
+          t1 = this.angle;
+          t2 = this.targetAngle;
+          if (t1 !== t2) {
+            absoluteDelta = Math.abs($.$sub$n(t2, t1));
+            turnRate = absoluteDelta < 5 ? absoluteDelta : 5;
+            if (absoluteDelta <= 180) {
+              t1 = this.targetAngle;
+              t2 = this.angle;
+              if ($.$lt$n(t1, t2))
+                this.angle = t2 - turnRate;
+              else
+                this.angle = t2 + turnRate;
+            } else {
+              t1 = this.targetAngle;
+              t2 = this.angle;
+              if ($.$lt$n(t1, t2))
+                this.angle = t2 + turnRate;
+              else
+                this.angle = t2 - turnRate;
+            }
+            t1 = this.angle;
+            if (t1 > 180)
+              this.angle = t1 - 360;
+            t1 = this.angle;
+            if (t1 < -180)
+              this.angle = t1 + 360;
+          } else {
+            t1 = $.game.world.tiles;
+            t2 = this.weaponTargetPosition;
+            t3 = $.getInterceptor$x(t2);
+            t4 = t3.get$x(t2);
+            if (t4 >>> 0 !== t4 || t4 >= t1.length)
+              throw $.ioore(t4);
+            t2 = $.$index$asx($.$index$asx(t1[t4], t3.get$y(t2)), 0);
+            t2.set$creep($.$sub$n(t2.get$creep(), 10));
+            t1 = $.game.world.tiles;
+            t2 = this.weaponTargetPosition;
+            t3 = $.getInterceptor$x(t2);
+            t4 = t3.get$x(t2);
+            if (t4 >>> 0 !== t4 || t4 >= t1.length)
+              throw $.ioore(t4);
+            if ($.$lt$n($.$index$asx($.$index$asx(t1[t4], t3.get$y(t2)), 0).get$creep(), 0)) {
+              t1 = $.game.world.tiles;
+              t2 = this.weaponTargetPosition;
+              t3 = $.getInterceptor$x(t2);
+              t4 = t3.get$x(t2);
+              if (t4 >>> 0 !== t4 || t4 >= t1.length)
+                throw $.ioore(t4);
+              $.$index$asx($.$index$asx(t1[t4], t3.get$y(t2)), 0).set$creep(0);
+            }
+            this.rotating = false;
+            this.energy = this.energy - 1;
+            this.operating = true;
+            t1 = $.game;
+            t2 = t1.smokes;
+            $.$add$ns($.$mul$n($.get$x$x(this.weaponTargetPosition), t1.tileSize), $.game.tileSize / 2);
+            $.$add$ns($.$mul$n($.get$y$x(this.weaponTargetPosition), $.game.tileSize), $.game.tileSize / 2);
+            t1 = new $.Smoke(null, null, null);
+            t1.frame = 0;
+            t1.imageID = "smoke";
+            t2.push(t1);
+            $.engine.playSound$2("laser", this.position);
+          }
+        }
+      else if ($.$eq(this.imageID, "mortar") && this.energy > 0 && this.energyTimer > 200) {
+        this.energyTimer = 0;
+        i = $.$sub$n($.get$x$x(this.position), this.weaponRadius);
+        if (i !== (i | 0))
+          return this.checkOperating$0$bailout(7, center, i);
+        target = null;
+        highestCreep = 0;
+        for (; $.JSNumber_methods.$le(i, $.$add$ns($.get$x$x(this.position), this.weaponRadius)); ++i) {
+          j = $.$sub$n($.get$y$x(this.position), this.weaponRadius);
+          if (typeof j !== "number")
+            return this.checkOperating$0$bailout(8, center, i, 0, target, $.JSNumber_methods, j, 0, 0, 0, 0, 0, 0, 0, highestCreep);
+          for (; $.JSNumber_methods.$le(j, $.$add$ns($.get$y$x(this.position), this.weaponRadius)); ++j) {
+            t1 = $.game;
+            if (t1.withinWorld$2(i, j)) {
+              t1 = t1.tileSize;
+              t2 = center.x;
+              if (typeof t2 !== "number")
+                throw $.iae(t2);
+              t2 = i * t1 + t1 / 2 - t2;
+              t1 = Math.pow(t2, 2);
+              t2 = $.game.tileSize;
+              t3 = center.y;
+              if (typeof t3 !== "number")
+                throw $.iae(t3);
+              t3 = j * t2 + t2 / 2 - t3;
+              t2 = Math.pow(t3, 2);
+              t3 = this.weaponRadius * $.game.tileSize;
+              if (t1 + t2 <= Math.pow(t3, 2)) {
+                t1 = $.game.world.tiles;
+                if (i < 0 || i >= t1.length)
+                  throw $.ioore(i);
+                t1 = t1[i];
+                if (typeof t1 !== "string" && (typeof t1 !== "object" || t1 === null || t1.constructor !== Array && !$.isJsIndexable(t1, t1[$.dispatchPropertyName])))
+                  return this.checkOperating$0$bailout(9, center, i, 0, target, $.JSNumber_methods, j, t1, 0, $.JSNumber_methods, 0, 0, 0, 0, highestCreep);
+                if (j >>> 0 !== j || j >= t1.length)
+                  throw $.ioore(j);
+                if ($.$gt$n($.$index$asx(t1[j], 0).get$creep(), 0)) {
+                  t1 = $.game.world.tiles;
+                  if (i >= t1.length)
+                    throw $.ioore(i);
+                  t1 = t1[i];
+                  if (typeof t1 !== "string" && (typeof t1 !== "object" || t1 === null || t1.constructor !== Array && !$.isJsIndexable(t1, t1[$.dispatchPropertyName])))
+                    return this.checkOperating$0$bailout(10, center, i, 0, target, $.JSNumber_methods, j, t1, 0, $.JSNumber_methods, 0, 0, 0, 0, highestCreep);
+                  if (j >= t1.length)
+                    throw $.ioore(j);
+                  t1 = $.$ge$n($.$index$asx(t1[j], 0).get$creep(), highestCreep);
+                } else
+                  t1 = false;
+              } else
+                t1 = false;
+              if (t1) {
+                t1 = $.game.world.tiles;
+                if (i < 0 || i >= t1.length)
+                  throw $.ioore(i);
+                t1 = t1[i];
+                if (typeof t1 !== "string" && (typeof t1 !== "object" || t1 === null || t1.constructor !== Array && !$.isJsIndexable(t1, t1[$.dispatchPropertyName])))
+                  return this.checkOperating$0$bailout(11, center, i, 0, 0, $.JSNumber_methods, j, t1, 0, $.JSNumber_methods);
+                if (j >>> 0 !== j || j >= t1.length)
+                  throw $.ioore(j);
+                highestCreep = $.$index$asx(t1[j], 0).get$creep();
+                target = new $.Vector(i, j);
+              }
+            }
+          }
+        }
+        if (target != null) {
+          $.engine.playSound$2("shot", this.position);
+          shell = new $.Shell(center, new $.Vector($.$add$ns($.$mul$n(target.x, $.game.tileSize), $.game.tileSize / 2), $.$add$ns($.$mul$n(target.y, $.game.tileSize), $.game.tileSize / 2)), new $.Vector(0, 0), "shell", false, 0, 0);
+          shell.init$0();
+          $.game.shells.push(shell);
+          this.energy = this.energy - 1;
+        }
+      } else if ($.$eq(this.imageID, "beam") && this.energy > 0 && this.energyTimer > 0) {
+        this.energyTimer = 0;
+        for (i = 0; t1 = $.game.spores, i < t1.length; ++i) {
+          sporeCenter = t1[i].getCenter$0();
+          t1 = $.$sub$n(sporeCenter.x, center.x);
+          if (typeof t1 !== "number")
+            $.throwExpression(new $.ArgumentError(t1));
+          t1 = Math.pow(t1, 2);
+          t2 = $.$sub$n(sporeCenter.y, center.y);
+          if (typeof t2 !== "number")
+            $.throwExpression(new $.ArgumentError(t2));
+          t2 = Math.pow(t2, 2);
+          t3 = this.weaponRadius * $.game.tileSize;
+          if (t1 + t2 <= Math.pow(t3, 2)) {
+            this.weaponTargetPosition = sporeCenter;
+            this.energy = this.energy - 0.1;
+            this.operating = true;
+            t1 = $.game.spores;
+            if (i >= t1.length)
+              throw $.ioore(i);
+            t1 = t1[i];
+            t1.set$health(t1.get$health() - 2);
+            t1 = $.game.spores;
+            if (i >= t1.length)
+              throw $.ioore(i);
+            t1 = t1[i];
+            if (t1.get$health() <= 0) {
+              $.set$remove$ax(t1, true);
+              t1 = $.engine;
+              t2 = $.game.spores;
+              if (i >= t2.length)
+                throw $.ioore(i);
+              t2 = $.get$position$x(t2[i]);
+              t3 = $.getInterceptor$x(t2);
+              t4 = Math.floor($.$div$n(t3.get$x(t2), $.game.tileSize));
+              if (isNaN(t4))
+                $.throwExpression(new $.UnsupportedError("NaN"));
+              if (t4 == Infinity || t4 == -Infinity)
+                $.throwExpression(new $.UnsupportedError("Infinity"));
+              truncated = t4 < 0 ? $.JSNumber_methods.ceilToDouble$0(t4) : $.JSNumber_methods.floorToDouble$0(t4);
+              t4 = truncated == -0.0 ? 0 : truncated;
+              t2 = Math.floor($.$div$n(t3.get$y(t2), $.game.tileSize));
+              if (isNaN(t2))
+                $.throwExpression(new $.UnsupportedError("NaN"));
+              if (t2 == Infinity || t2 == -Infinity)
+                $.throwExpression(new $.UnsupportedError("Infinity"));
+              truncated = t2 < 0 ? $.JSNumber_methods.ceilToDouble$0(t2) : $.JSNumber_methods.floorToDouble$0(t2);
+              t2 = truncated == -0.0 ? 0 : truncated;
+              t1.playSound$2("explosion", new $.Vector(t4, t2));
+              t2 = $.game.explosions;
+              t4 = new $.Explosion(null, null, null);
+              t4.frame = 0;
+              t4.imageID = "explosion";
+              t2.push(t4);
+            }
+          }
+        }
+      }
+    }
+  },
+  checkOperating$0$bailout: function(state0, center, i, lowestTile, target, t1, j, t3, tileHeight, t2, height, targets, r, radius, highestCreep) {
+    switch (state0) {
+      case 0:
+        this.operating = false;
+      default:
+        var emitterCenter, t4, t5, terraformElement, tilesToRedraw, t6, dx, dy, truncated, absoluteDelta, turnRate, shell, sporeCenter;
+        if (state0 === 11 || state0 === 10 || state0 === 9 || state0 === 8 || state0 === 7 || state0 === 6 || state0 === 5 || state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && this.needsEnergy && this.active && this.status === "IDLE")
+          switch (state0) {
+            case 0:
+              this.energyTimer = this.energyTimer + 1;
+              center = this.getCenter$0();
+              if ($.$eq(this.imageID, "analyzer") && this.energy > 0)
+                if (this.weaponTargetPosition == null)
+                  for (i = 0; t1 = $.game.emitters, i < t1.length; ++i) {
+                    emitterCenter = t1[i].getCenter$0();
+                    t1 = $.$sub$n(emitterCenter.x, center.x);
+                    if (typeof t1 !== "number")
+                      $.throwExpression(new $.ArgumentError(t1));
+                    t1 = Math.pow(t1, 2);
+                    t2 = $.$sub$n(emitterCenter.y, center.y);
+                    if (typeof t2 !== "number")
+                      $.throwExpression(new $.ArgumentError(t2));
+                    t2 = Math.pow(t2, 2);
+                    t3 = this.weaponRadius * $.game.tileSize;
+                    if (t1 + t2 <= Math.pow(t3, 2)) {
+                      t1 = $.game.emitters;
+                      if (i >= t1.length)
+                        throw $.ioore(i);
+                      t1 = t1[i];
+                      if (t1.get$building() == null) {
+                        t1.set$building(this);
+                        t1 = $.game.emitters;
+                        if (i >= t1.length)
+                          throw $.ioore(i);
+                        this.weaponTargetPosition = $.get$position$x(t1[i]);
+                        break;
+                      }
+                    }
+                  }
+                else {
+                  if (this.energyTimer > 20) {
+                    this.energyTimer = 0;
+                    this.energy = this.energy - 1;
+                  }
+                  this.operating = true;
+                }
+            default:
+              if (state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && $.$eq(this.imageID, "terp") && this.energy > 0)
+                switch (state0) {
+                  case 0:
+                  default:
+                    if (state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && this.weaponTargetPosition == null)
+                      switch (state0) {
+                        case 0:
+                          i = $.$sub$n($.get$x$x(this.position), this.weaponRadius);
+                        case 1:
+                          state0 = 0;
+                          target = null;
+                          lowestTile = 10;
+                        default:
+                          L0:
+                            while (true)
+                              switch (state0) {
+                                case 0:
+                                  t1 = $.getInterceptor$n(i);
+                                  if (!t1.$le(i, $.$add$ns($.get$x$x(this.position), this.weaponRadius)))
+                                    break L0;
+                                  j = $.$sub$n($.get$y$x(this.position), this.weaponRadius);
+                                case 2:
+                                  state0 = 0;
+                                case 3:
+                                  L1:
+                                    while (true)
+                                      switch (state0) {
+                                        case 0:
+                                          t2 = $.getInterceptor$n(j);
+                                          if (!t2.$le(j, $.$add$ns($.get$y$x(this.position), this.weaponRadius)))
+                                            break L1;
+                                          t3 = $.game;
+                                        case 3:
+                                          if (state0 === 3 || state0 === 0 && t3.withinWorld$2(i, j))
+                                            switch (state0) {
+                                              case 0:
+                                                t3 = $.$sub$n($.$add$ns(t1.$mul(i, t3.tileSize), $.game.tileSize / 2), center.x);
+                                                if (typeof t3 !== "number")
+                                                  $.throwExpression(new $.ArgumentError(t3));
+                                                t3 = Math.pow(t3, 2);
+                                                t4 = $.$sub$n($.$add$ns(t2.$mul(j, $.game.tileSize), $.game.tileSize / 2), center.y);
+                                                if (typeof t4 !== "number")
+                                                  $.throwExpression(new $.ArgumentError(t4));
+                                                t4 = Math.pow(t4, 2);
+                                                tileHeight = $.game.getHighestTerrain$1(new $.Vector(i, j));
+                                                t5 = this.weaponRadius * $.game.tileSize;
+                                              case 3:
+                                                if (state0 === 3 || state0 === 0 && t3 + t4 <= Math.pow(t5, 2))
+                                                  switch (state0) {
+                                                    case 0:
+                                                      t3 = $.game.world.terraform;
+                                                      if (i >>> 0 !== i || i >= t3.length)
+                                                        throw $.ioore(i);
+                                                      t3 = t3[i];
+                                                    case 3:
+                                                      state0 = 0;
+                                                      t3 = $.$gt$n($.$index$asx($.$index$asx(t3, j), "target"), -1) && tileHeight <= lowestTile;
+                                                  }
+                                                else
+                                                  t3 = false;
+                                                if (t3) {
+                                                  target = new $.Vector(i, j);
+                                                  lowestTile = tileHeight;
+                                                }
+                                            }
+                                          j = t2.$add(j, 1);
+                                      }
+                                  i = t1.$add(i, 1);
+                              }
+                          if (target != null)
+                            this.weaponTargetPosition = target;
+                      }
+                    else {
+                      if (this.energyTimer > 20) {
+                        this.energyTimer = 0;
+                        this.energy = this.energy - 1;
+                      }
+                      this.operating = true;
+                      t1 = $.game.world.terraform;
+                      t2 = this.weaponTargetPosition;
+                      t3 = $.getInterceptor$x(t2);
+                      t4 = t3.get$x(t2);
+                      if (t4 >>> 0 !== t4 || t4 >= t1.length)
+                        throw $.ioore(t4);
+                      terraformElement = $.$index$asx(t1[t4], t3.get$y(t2));
+                      t2 = $.getInterceptor$asx(terraformElement);
+                      t2.$indexSet(terraformElement, "progress", $.$add$ns(t2.$index(terraformElement, "progress"), 1));
+                      if ($.$eq(t2.$index(terraformElement, "progress"), 100)) {
+                        t2.$indexSet(terraformElement, "progress", 0);
+                        height = $.game.getHighestTerrain$1(this.weaponTargetPosition);
+                        tilesToRedraw = $.List_List($);
+                        t1 = $.JSNumber_methods.$lt(height, t2.$index(terraformElement, "target"));
+                        t3 = $.game;
+                        t4 = this.weaponTargetPosition;
+                        if (t1) {
+                          t1 = t3.world.tiles;
+                          t3 = $.getInterceptor$x(t4);
+                          t5 = t3.get$x(t4);
+                          if (t5 >>> 0 !== t5 || t5 >= t1.length)
+                            throw $.ioore(t5);
+                          t6 = height + 1;
+                          $.$index$asx($.$index$asx(t1[t5], t3.get$y(t4)), t6).set$full(true);
+                          t4 = this.weaponTargetPosition;
+                          t3 = $.getInterceptor$x(t4);
+                          tilesToRedraw.push(new $.Vector3(t3.get$x(t4), t3.get$y(t4), t6));
+                          tilesToRedraw.push(new $.Vector3($.$sub$n($.get$x$x(this.weaponTargetPosition), 1), $.get$y$x(this.weaponTargetPosition), t6));
+                          t4 = this.weaponTargetPosition;
+                          t3 = $.getInterceptor$x(t4);
+                          tilesToRedraw.push(new $.Vector3(t3.get$x(t4), $.$sub$n(t3.get$y(t4), 1), t6));
+                          tilesToRedraw.push(new $.Vector3($.$add$ns($.get$x$x(this.weaponTargetPosition), 1), $.get$y$x(this.weaponTargetPosition), t6));
+                          t4 = this.weaponTargetPosition;
+                          t3 = $.getInterceptor$x(t4);
+                          tilesToRedraw.push(new $.Vector3(t3.get$x(t4), $.$add$ns(t3.get$y(t4), 1), t6));
+                        } else {
+                          t1 = t3.world.tiles;
+                          t3 = $.getInterceptor$x(t4);
+                          t5 = t3.get$x(t4);
+                          if (t5 >>> 0 !== t5 || t5 >= t1.length)
+                            throw $.ioore(t5);
+                          $.$index$asx($.$index$asx(t1[t5], t3.get$y(t4)), height).set$full(false);
+                          t4 = this.weaponTargetPosition;
+                          t3 = $.getInterceptor$x(t4);
+                          tilesToRedraw.push(new $.Vector3(t3.get$x(t4), t3.get$y(t4), height));
+                          tilesToRedraw.push(new $.Vector3($.$sub$n($.get$x$x(this.weaponTargetPosition), 1), $.get$y$x(this.weaponTargetPosition), height));
+                          t4 = this.weaponTargetPosition;
+                          t3 = $.getInterceptor$x(t4);
+                          tilesToRedraw.push(new $.Vector3(t3.get$x(t4), $.$sub$n(t3.get$y(t4), 1), height));
+                          tilesToRedraw.push(new $.Vector3($.$add$ns($.get$x$x(this.weaponTargetPosition), 1), $.get$y$x(this.weaponTargetPosition), height));
+                          t4 = this.weaponTargetPosition;
+                          t3 = $.getInterceptor$x(t4);
+                          tilesToRedraw.push(new $.Vector3(t3.get$x(t4), $.$add$ns(t3.get$y(t4), 1), height));
+                        }
+                        $.game.redrawTile$1(tilesToRedraw);
+                        if ($.game.getHighestTerrain$1(this.weaponTargetPosition) === t2.$index(terraformElement, "target")) {
+                          t1 = $.game.world.terraform;
+                          t2 = this.weaponTargetPosition;
+                          t3 = $.getInterceptor$x(t2);
+                          t4 = t3.get$x(t2);
+                          if (t4 >>> 0 !== t4 || t4 >= t1.length)
+                            throw $.ioore(t4);
+                          $.$indexSet$ax($.$index$asx(t1[t4], t3.get$y(t2)), "progress", 0);
+                          t2 = $.game.world.terraform;
+                          t3 = this.weaponTargetPosition;
+                          t4 = $.getInterceptor$x(t3);
+                          t1 = t4.get$x(t3);
+                          if (t1 >>> 0 !== t1 || t1 >= t2.length)
+                            throw $.ioore(t1);
+                          $.$indexSet$ax($.$index$asx(t2[t1], t4.get$y(t3)), "target", -1);
+                        }
+                        this.weaponTargetPosition = null;
+                        this.operating = false;
+                      }
+                    }
+                }
+              else
+                switch (state0) {
+                  case 0:
+                  default:
+                    if (state0 === 0 && $.$eq(this.imageID, "shield") && this.energy > 0) {
+                      if (this.energyTimer > 20) {
+                        this.energyTimer = 0;
+                        this.energy = this.energy - 1;
+                      }
+                      this.operating = true;
+                    } else
+                      switch (state0) {
+                        case 0:
+                        default:
+                          if (state0 === 6 || state0 === 5 || state0 === 4 || state0 === 0 && $.$eq(this.imageID, "cannon") && this.energy > 0 && this.energyTimer > 10)
+                            switch (state0) {
+                              case 0:
+                              default:
+                                if (state0 === 6 || state0 === 5 || state0 === 4 || state0 === 0 && !this.rotating)
+                                  switch (state0) {
+                                    case 0:
+                                      this.energyTimer = 0;
+                                      height = $.game.getHighestTerrain$1(this.position);
+                                      targets = $.List_List($);
+                                      r = 0;
+                                    default:
+                                      L2:
+                                        while (true)
+                                          switch (state0) {
+                                            case 0:
+                                              t1 = this.weaponRadius;
+                                              if (!(r < t1 + 1))
+                                                break L2;
+                                              radius = r * $.game.tileSize;
+                                              i = $.$sub$n($.get$x$x(this.position), t1);
+                                            case 4:
+                                              state0 = 0;
+                                            default:
+                                              L3:
+                                                while (true)
+                                                  switch (state0) {
+                                                    case 0:
+                                                      t1 = $.getInterceptor$n(i);
+                                                      if (!t1.$le(i, $.$add$ns($.get$x$x(this.position), this.weaponRadius)))
+                                                        break L3;
+                                                      j = $.$sub$n($.get$y$x(this.position), this.weaponRadius);
+                                                    case 5:
+                                                      state0 = 0;
+                                                    case 6:
+                                                      L4:
+                                                        while (true)
+                                                          switch (state0) {
+                                                            case 0:
+                                                              t2 = $.getInterceptor$n(j);
+                                                              if (!t2.$le(j, $.$add$ns($.get$y$x(this.position), this.weaponRadius)))
+                                                                break L4;
+                                                              t3 = $.game;
+                                                            case 6:
+                                                              if (state0 === 6 || state0 === 0 && t3.withinWorld$2(i, j))
+                                                                switch (state0) {
+                                                                  case 0:
+                                                                  case 6:
+                                                                    if (state0 === 6 || state0 === 0 && t3.getHighestTerrain$1(new $.Vector(i, j)) <= height)
+                                                                      switch (state0) {
+                                                                        case 0:
+                                                                          t3 = $.$sub$n($.$add$ns(t1.$mul(i, $.game.tileSize), $.game.tileSize / 2), center.x);
+                                                                          if (typeof t3 !== "number")
+                                                                            $.throwExpression(new $.ArgumentError(t3));
+                                                                          t3 = Math.pow(t3, 2);
+                                                                          t4 = $.$sub$n($.$add$ns(t2.$mul(j, $.game.tileSize), $.game.tileSize / 2), center.y);
+                                                                          if (typeof t4 !== "number")
+                                                                            $.throwExpression(new $.ArgumentError(t4));
+                                                                          t4 = Math.pow(t4, 2);
+                                                                        case 6:
+                                                                          if (state0 === 6 || state0 === 0 && t3 + t4 <= Math.pow(radius, 2))
+                                                                            switch (state0) {
+                                                                              case 0:
+                                                                                t3 = $.game.world.tiles;
+                                                                                if (i >>> 0 !== i || i >= t3.length)
+                                                                                  throw $.ioore(i);
+                                                                                t3 = t3[i];
+                                                                              case 6:
+                                                                                state0 = 0;
+                                                                                t3 = $.$gt$n($.$index$asx($.$index$asx(t3, j), 0).get$creep(), 0);
+                                                                            }
+                                                                          else
+                                                                            t3 = false;
+                                                                          if (t3)
+                                                                            targets.push(new $.Vector(i, j));
+                                                                      }
+                                                                }
+                                                              j = t2.$add(j, 1);
+                                                          }
+                                                      i = t1.$add(i, 1);
+                                                  }
+                                              if (targets.length > 0)
+                                                break L2;
+                                              ++r;
+                                          }
+                                      if (targets.length > 0) {
+                                        $.Helper_shuffle(targets);
+                                        if (0 >= targets.length)
+                                          throw $.ioore(0);
+                                        dx = $.$sub$n($.$add$ns($.$mul$n($.get$x$x(targets[0]), $.game.tileSize), $.game.tileSize / 2), center.x);
+                                        if (0 >= targets.length)
+                                          throw $.ioore(0);
+                                        dy = $.$sub$n($.$add$ns($.$mul$n($.get$y$x(targets[0]), $.game.tileSize), $.game.tileSize / 2), center.y);
+                                        if (typeof dy !== "number")
+                                          $.throwExpression(new $.ArgumentError(dy));
+                                        if (typeof dx !== "number")
+                                          $.throwExpression(new $.ArgumentError(dx));
+                                        t1 = Math.floor((Math.atan2(dy, dx) + 1.5707963267948966) * 57.29577951308232);
+                                        if (isNaN(t1))
+                                          $.throwExpression(new $.UnsupportedError("NaN"));
+                                        if (t1 == Infinity || t1 == -Infinity)
+                                          $.throwExpression(new $.UnsupportedError("Infinity"));
+                                        truncated = t1 < 0 ? Math.ceil(t1) : Math.floor(t1);
+                                        this.targetAngle = truncated == -0.0 ? 0 : truncated;
+                                        if (0 >= targets.length)
+                                          throw $.ioore(0);
+                                        t1 = targets[0];
+                                        t2 = $.getInterceptor$x(t1);
+                                        this.weaponTargetPosition = new $.Vector(t2.get$x(t1), t2.get$y(t1));
+                                        this.rotating = true;
+                                      }
+                                  }
+                                else {
+                                  t1 = this.angle;
+                                  t2 = this.targetAngle;
+                                  if (t1 !== t2) {
+                                    absoluteDelta = Math.abs($.$sub$n(t2, t1));
+                                    turnRate = absoluteDelta < 5 ? absoluteDelta : 5;
+                                    if (absoluteDelta <= 180) {
+                                      t1 = this.targetAngle;
+                                      t2 = this.angle;
+                                      if ($.$lt$n(t1, t2))
+                                        this.angle = t2 - turnRate;
+                                      else
+                                        this.angle = t2 + turnRate;
+                                    } else {
+                                      t1 = this.targetAngle;
+                                      t2 = this.angle;
+                                      if ($.$lt$n(t1, t2))
+                                        this.angle = t2 + turnRate;
+                                      else
+                                        this.angle = t2 - turnRate;
+                                    }
+                                    t1 = this.angle;
+                                    if (t1 > 180)
+                                      this.angle = t1 - 360;
+                                    t1 = this.angle;
+                                    if (t1 < -180)
+                                      this.angle = t1 + 360;
+                                  } else {
+                                    t1 = $.game.world.tiles;
+                                    t2 = this.weaponTargetPosition;
+                                    t3 = $.getInterceptor$x(t2);
+                                    t4 = t3.get$x(t2);
+                                    if (t4 >>> 0 !== t4 || t4 >= t1.length)
+                                      throw $.ioore(t4);
+                                    t2 = $.$index$asx($.$index$asx(t1[t4], t3.get$y(t2)), 0);
+                                    t2.set$creep($.$sub$n(t2.get$creep(), 10));
+                                    t1 = $.game.world.tiles;
+                                    t2 = this.weaponTargetPosition;
+                                    t3 = $.getInterceptor$x(t2);
+                                    t4 = t3.get$x(t2);
+                                    if (t4 >>> 0 !== t4 || t4 >= t1.length)
+                                      throw $.ioore(t4);
+                                    if ($.$lt$n($.$index$asx($.$index$asx(t1[t4], t3.get$y(t2)), 0).get$creep(), 0)) {
+                                      t1 = $.game.world.tiles;
+                                      t2 = this.weaponTargetPosition;
+                                      t3 = $.getInterceptor$x(t2);
+                                      t4 = t3.get$x(t2);
+                                      if (t4 >>> 0 !== t4 || t4 >= t1.length)
+                                        throw $.ioore(t4);
+                                      $.$index$asx($.$index$asx(t1[t4], t3.get$y(t2)), 0).set$creep(0);
+                                    }
+                                    this.rotating = false;
+                                    this.energy = this.energy - 1;
+                                    this.operating = true;
+                                    t1 = $.game;
+                                    t2 = t1.smokes;
+                                    $.$add$ns($.$mul$n($.get$x$x(this.weaponTargetPosition), t1.tileSize), $.game.tileSize / 2);
+                                    $.$add$ns($.$mul$n($.get$y$x(this.weaponTargetPosition), $.game.tileSize), $.game.tileSize / 2);
+                                    t1 = new $.Smoke(null, null, null);
+                                    t1.frame = 0;
+                                    t1.imageID = "smoke";
+                                    t2.push(t1);
+                                    $.engine.playSound$2("laser", this.position);
+                                  }
+                                }
+                            }
+                          else
+                            switch (state0) {
+                              case 0:
+                              default:
+                                if (state0 === 11 || state0 === 10 || state0 === 9 || state0 === 8 || state0 === 7 || state0 === 0 && $.$eq(this.imageID, "mortar") && this.energy > 0 && this.energyTimer > 200)
+                                  switch (state0) {
+                                    case 0:
+                                      this.energyTimer = 0;
+                                      i = $.$sub$n($.get$x$x(this.position), this.weaponRadius);
+                                    case 7:
+                                      state0 = 0;
+                                      target = null;
+                                      highestCreep = 0;
+                                    default:
+                                      L5:
+                                        while (true)
+                                          switch (state0) {
+                                            case 0:
+                                              t1 = $.getInterceptor$n(i);
+                                              if (!t1.$le(i, $.$add$ns($.get$x$x(this.position), this.weaponRadius)))
+                                                break L5;
+                                              j = $.$sub$n($.get$y$x(this.position), this.weaponRadius);
+                                            case 8:
+                                              state0 = 0;
+                                            default:
+                                              L6:
+                                                while (true)
+                                                  switch (state0) {
+                                                    case 0:
+                                                      t2 = $.getInterceptor$n(j);
+                                                      if (!t2.$le(j, $.$add$ns($.get$y$x(this.position), this.weaponRadius)))
+                                                        break L6;
+                                                      t3 = $.game;
+                                                    default:
+                                                      if (state0 === 11 || state0 === 10 || state0 === 9 || state0 === 0 && t3.withinWorld$2(i, j))
+                                                        switch (state0) {
+                                                          case 0:
+                                                            t3 = $.$sub$n($.$add$ns(t1.$mul(i, t3.tileSize), $.game.tileSize / 2), center.x);
+                                                            if (typeof t3 !== "number")
+                                                              $.throwExpression(new $.ArgumentError(t3));
+                                                            t3 = Math.pow(t3, 2);
+                                                            t4 = $.$sub$n($.$add$ns(t2.$mul(j, $.game.tileSize), $.game.tileSize / 2), center.y);
+                                                            if (typeof t4 !== "number")
+                                                              $.throwExpression(new $.ArgumentError(t4));
+                                                            t4 = Math.pow(t4, 2);
+                                                            t5 = this.weaponRadius * $.game.tileSize;
+                                                          default:
+                                                            if (state0 === 10 || state0 === 9 || state0 === 0 && t3 + t4 <= Math.pow(t5, 2))
+                                                              switch (state0) {
+                                                                case 0:
+                                                                  t3 = $.game.world.tiles;
+                                                                  if (i >>> 0 !== i || i >= t3.length)
+                                                                    throw $.ioore(i);
+                                                                  t3 = t3[i];
+                                                                case 9:
+                                                                  state0 = 0;
+                                                                case 10:
+                                                                  if (state0 === 10 || state0 === 0 && $.$gt$n($.$index$asx($.$index$asx(t3, j), 0).get$creep(), 0))
+                                                                    switch (state0) {
+                                                                      case 0:
+                                                                        t3 = $.game.world.tiles;
+                                                                        if (i >= t3.length)
+                                                                          throw $.ioore(i);
+                                                                        t3 = t3[i];
+                                                                      case 10:
+                                                                        state0 = 0;
+                                                                        t3 = $.$ge$n($.$index$asx($.$index$asx(t3, j), 0).get$creep(), highestCreep);
+                                                                    }
+                                                                  else
+                                                                    t3 = false;
+                                                              }
+                                                            else
+                                                              t3 = false;
+                                                          case 11:
+                                                            if (state0 === 11 || state0 === 0 && t3)
+                                                              switch (state0) {
+                                                                case 0:
+                                                                  t3 = $.game.world.tiles;
+                                                                  if (i >>> 0 !== i || i >= t3.length)
+                                                                    throw $.ioore(i);
+                                                                  t3 = t3[i];
+                                                                case 11:
+                                                                  state0 = 0;
+                                                                  highestCreep = $.$index$asx($.$index$asx(t3, j), 0).get$creep();
+                                                                  target = new $.Vector(i, j);
+                                                              }
+                                                        }
+                                                      j = t2.$add(j, 1);
+                                                  }
+                                              i = t1.$add(i, 1);
+                                          }
+                                      if (target != null) {
+                                        $.engine.playSound$2("shot", this.position);
+                                        shell = new $.Shell(center, new $.Vector($.$add$ns($.$mul$n(target.x, $.game.tileSize), $.game.tileSize / 2), $.$add$ns($.$mul$n(target.y, $.game.tileSize), $.game.tileSize / 2)), new $.Vector(0, 0), "shell", false, 0, 0);
+                                        shell.init$0();
+                                        $.game.shells.push(shell);
+                                        this.energy = this.energy - 1;
+                                      }
+                                  }
+                                else if ($.$eq(this.imageID, "beam") && this.energy > 0 && this.energyTimer > 0) {
+                                  this.energyTimer = 0;
+                                  for (i = 0; t1 = $.game.spores, i < t1.length; ++i) {
+                                    sporeCenter = t1[i].getCenter$0();
+                                    t1 = $.$sub$n(sporeCenter.x, center.x);
+                                    if (typeof t1 !== "number")
+                                      $.throwExpression(new $.ArgumentError(t1));
+                                    t1 = Math.pow(t1, 2);
+                                    t2 = $.$sub$n(sporeCenter.y, center.y);
+                                    if (typeof t2 !== "number")
+                                      $.throwExpression(new $.ArgumentError(t2));
+                                    t2 = Math.pow(t2, 2);
+                                    t3 = this.weaponRadius * $.game.tileSize;
+                                    if (t1 + t2 <= Math.pow(t3, 2)) {
+                                      this.weaponTargetPosition = sporeCenter;
+                                      this.energy = this.energy - 0.1;
+                                      this.operating = true;
+                                      t1 = $.game.spores;
+                                      if (i >= t1.length)
+                                        throw $.ioore(i);
+                                      t1 = t1[i];
+                                      t1.set$health(t1.get$health() - 2);
+                                      t1 = $.game.spores;
+                                      if (i >= t1.length)
+                                        throw $.ioore(i);
+                                      t1 = t1[i];
+                                      if (t1.get$health() <= 0) {
+                                        $.set$remove$ax(t1, true);
+                                        t1 = $.engine;
+                                        t2 = $.game.spores;
+                                        if (i >= t2.length)
+                                          throw $.ioore(i);
+                                        t2 = $.get$position$x(t2[i]);
+                                        t3 = $.getInterceptor$x(t2);
+                                        t4 = Math.floor($.$div$n(t3.get$x(t2), $.game.tileSize));
+                                        if (isNaN(t4))
+                                          $.throwExpression(new $.UnsupportedError("NaN"));
+                                        if (t4 == Infinity || t4 == -Infinity)
+                                          $.throwExpression(new $.UnsupportedError("Infinity"));
+                                        truncated = t4 < 0 ? $.JSNumber_methods.ceilToDouble$0(t4) : $.JSNumber_methods.floorToDouble$0(t4);
+                                        t4 = truncated == -0.0 ? 0 : truncated;
+                                        t2 = Math.floor($.$div$n(t3.get$y(t2), $.game.tileSize));
+                                        if (isNaN(t2))
+                                          $.throwExpression(new $.UnsupportedError("NaN"));
+                                        if (t2 == Infinity || t2 == -Infinity)
+                                          $.throwExpression(new $.UnsupportedError("Infinity"));
+                                        truncated = t2 < 0 ? $.JSNumber_methods.ceilToDouble$0(t2) : $.JSNumber_methods.floorToDouble$0(t2);
+                                        t2 = truncated == -0.0 ? 0 : truncated;
+                                        t1.playSound$2("explosion", new $.Vector(t4, t2));
+                                        t2 = $.game.explosions;
+                                        t4 = new $.Explosion(null, null, null);
+                                        t4.frame = 0;
+                                        t4.imageID = "explosion";
+                                        t2.push(t4);
+                                      }
+                                    }
+                                  }
+                                }
+                            }
+                      }
+                }
           }
     }
   },
@@ -4231,6 +5243,11 @@ Building: {"": "Object;position>,moveTargetPosition?,weaponTargetPosition@,speed
         t1.lineTo$2(context, $.$add$ns(targetPosition.x, 8), $.$add$ns(targetPosition.y, 8));
         t1.stroke$0(context);
       }
+  },
+  Building$2: function(position, imageID) {
+    this.health = 0;
+    this.size = 3;
+    this.energy = 0;
   }
 },
 
@@ -5136,14 +6153,32 @@ Engine_init_closure6: {"": "Closure;",
 
 Engine_init_closure7: {"": "Closure;",
   call$1: function($event) {
-    var t1, t2, t3;
+    var t1, t2, t3, t4;
     t1 = $.getInterceptor$x($event);
     t2 = t1.get$deltaY($event);
     t3 = $.game;
-    if (t2 > 0)
-      t3.zoomOut$0();
-    else
-      t3.zoomIn$0();
+    if (t2 > 0) {
+      t3.zoomOut$0;
+      t2 = t3.zoom;
+      t4 = $.getInterceptor$n(t2);
+      if (t4.$gt(t2, 0.4)) {
+        t3.zoom = t4.$sub(t2, 0.2);
+        t3.zoom = $.Primitives_parseDouble($.toStringAsFixed$1$n(t3.zoom, 2), null);
+        t3.copyTerrain$0();
+        t3.drawCollection$0();
+        $.set$innerHtml$x($.document().querySelector("#speed"), "Zoom: " + $.S($.toString$0(t3.zoom)) + "x");
+      }
+    } else {
+      t3.zoomIn$0;
+      t2 = t3.zoom;
+      if ($.$lt$n(t2, 1.6)) {
+        t3.zoom = $.$add$ns(t2, 0.2);
+        t3.zoom = $.Primitives_parseDouble($.toStringAsFixed$1$n(t3.zoom, 2), null);
+        t3.copyTerrain$0();
+        t3.drawCollection$0();
+        $.set$innerHtml$x($.document().querySelector("#speed"), "Zoom: " + $.S($.toString$0(t3.zoom)) + "x");
+      }
+    }
     t1.preventDefault$0($event);
     return;
   }
@@ -5213,7 +6248,7 @@ World: {"": "Object;tiles,size>,terraform",
   }
 },
 
-Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymbol,terraformingHeight,speed,zoom,creeperTimer,energyTimer@,spawnTimer,damageTimer,smokeTimer,explosionTimer,shieldTimer,packetSpeed,shellSpeed,sporeSpeed,buildingSpeed,shipSpeed,running,mode,paused,scrollingUp,scrollingDown,scrollingLeft,scrollingRight,ghosts,packetQueue,sporetowers,emitters,symbols,explosions,smokes,spores,buildings,packets,shells,ships,world,scroll,base,keyMap,stopwatch",
+Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymbol,terraformingHeight,speed,zoom,creeperTimer,energyTimer,spawnTimer,damageTimer,smokeTimer,explosionTimer,shieldTimer,packetSpeed,shellSpeed,sporeSpeed,buildingSpeed,shipSpeed,running,mode,paused,scrollingUp,scrollingDown,scrollingLeft,scrollingRight,ghosts,packetQueue,sporetowers,emitters,symbols,explosions,smokes,spores,buildings,packets,shells,ships,world,scroll,base,keyMap,stopwatch",
   init$0: function() {
     var music, t1, t2;
     this.buildings = [];
@@ -5522,30 +6557,6 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       $.set$innerHtml$x(document.querySelector("#speed"), "Speed: " + $.JSNumber_methods.toString$0(this.speed) + "x");
     }
   },
-  zoomIn$0: function() {
-    var t1 = this.zoom;
-    if ($.$lt$n(t1, 1.6)) {
-      this.zoom = $.$add$ns(t1, 0.2);
-      this.zoom = $.Primitives_parseDouble($.toStringAsFixed$1$n(this.zoom, 2), null);
-      this.copyTerrain$0();
-      this.drawCollection$0();
-      this.drawCreeper$0();
-      $.set$innerHtml$x(document.querySelector("#speed"), "Zoom: " + $.S($.toString$0(this.zoom)) + "x");
-    }
-  },
-  zoomOut$0: function() {
-    var t1, t2;
-    t1 = this.zoom;
-    t2 = $.getInterceptor$n(t1);
-    if (t2.$gt(t1, 0.4)) {
-      this.zoom = t2.$sub(t1, 0.2);
-      this.zoom = $.Primitives_parseDouble($.toStringAsFixed$1$n(this.zoom, 2), null);
-      this.copyTerrain$0();
-      this.drawCollection$0();
-      this.drawCreeper$0();
-      $.set$innerHtml$x(document.querySelector("#speed"), "Zoom: " + $.S($.toString$0(this.zoom)) + "x");
-    }
-  },
   createWorld$0: function() {
     var t1, i, t2, j, k, heightmap, truncated, height, max, randomPosition, building, number, l, emitter, sporetower;
     t1 = this.world;
@@ -5641,7 +6652,10 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     t1 = this.scroll;
     t1.x = $.$add$ns(randomPosition.x, 4);
     t1.y = $.$add$ns(randomPosition.y, 4);
-    building = new $.Building(randomPosition, null, null, new $.Vector(0, 0), "base", "IDLE", false, false, false, false, true, false, false, false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, null, null);
+    building = new $.Building(randomPosition, null, null, new $.Vector(0, 0), "base", "IDLE", false, false, false, false, true, false, false, false, null, 0, null, 0, 0, 0, 0, 0, 0, null, 0, 0, 1, 0, null, null);
+    building.health = 0;
+    building.size = 3;
+    building.energy = 0;
     building.health = 40;
     building.maxHealth = 40;
     building.built = true;
@@ -5661,7 +6675,6 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
             throw $.ioore(t2);
           $.$index$asx($.$index$asx(t1[t2], $.$add$ns($.get$y$x(building.position), j)), k).set$full(true);
         }
-    this.calculateCollection$0();
     max = 2;
     number = (Math.random() * max >>> 0) + 2;
     for (l = 0; l < number; ++l) {
@@ -5742,233 +6755,203 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
   },
   addBuilding$2: function(position, type) {
     var building, t1;
-    building = new $.Building(position, null, null, new $.Vector(0, 0), type, "IDLE", false, false, false, false, true, false, false, false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, null, null);
+    building = new $.Building(position, null, null, new $.Vector(0, 0), type, "IDLE", false, false, false, false, true, false, false, false, null, 0, null, 0, 0, 0, 0, 0, 0, null, 0, 0, 1, 0, null, null);
     building.health = 0;
+    building.size = 3;
+    building.energy = 0;
     t1 = building.imageID;
     if (typeof t1 !== "string")
       return this.addBuilding$2$bailout(1, building, t1);
     if (t1 === "analyzer") {
       building.maxHealth = 80;
       building.maxEnergy = 20;
-      building.energy = 0;
-      building.size = 3;
       building.canMove = true;
       building.needsEnergy = true;
       building.weaponRadius = 10;
-    }
-    t1 = building.imageID;
-    if (typeof t1 !== "string")
-      return this.addBuilding$2$bailout(2, building, t1);
-    if (t1 === "terp") {
+    } else if (t1 === "terp") {
       building.maxHealth = 60;
       building.maxEnergy = 20;
-      building.energy = 0;
-      building.size = 3;
       building.canMove = true;
       building.needsEnergy = true;
       building.weaponRadius = 12;
-    }
-    t1 = building.imageID;
-    if (typeof t1 !== "string")
-      return this.addBuilding$2$bailout(3, building, t1);
-    if (t1 === "shield") {
+    } else if (t1 === "shield") {
       building.maxHealth = 75;
       building.maxEnergy = 20;
-      building.energy = 0;
-      building.size = 3;
       building.canMove = true;
       building.needsEnergy = true;
-    }
-    t1 = building.imageID;
-    if (typeof t1 !== "string")
-      return this.addBuilding$2$bailout(4, building, t1);
-    if (t1 === "bomber") {
+      building.weaponRadius = 9;
+    } else if (t1 === "bomber") {
       building.maxHealth = 75;
       building.maxEnergy = 15;
-      building.energy = 0;
-      building.size = 3;
       building.needsEnergy = true;
-    }
-    t1 = building.imageID;
-    if (typeof t1 !== "string")
-      return this.addBuilding$2$bailout(5, building, t1);
-    if (t1 === "storage") {
+    } else if (t1 === "storage")
       building.maxHealth = 8;
-      building.size = 3;
-    }
-    t1 = building.imageID;
-    if (typeof t1 !== "string")
-      return this.addBuilding$2$bailout(6, building, t1);
-    if (t1 === "reactor") {
+    else if (t1 === "reactor")
       building.maxHealth = 50;
-      building.size = 3;
-    }
-    t1 = building.imageID;
-    if (typeof t1 !== "string")
-      return this.addBuilding$2$bailout(7, building, t1);
-    if (t1 === "collector") {
+    else if (t1 === "collector")
       building.maxHealth = 5;
-      building.size = 3;
-    }
-    t1 = building.imageID;
-    if (typeof t1 !== "string")
-      return this.addBuilding$2$bailout(8, building, t1);
-    if (t1 === "relay") {
+    else if (t1 === "relay")
       building.maxHealth = 10;
-      building.size = 3;
-    }
-    t1 = building.imageID;
-    if (typeof t1 !== "string")
-      return this.addBuilding$2$bailout(9, building, t1);
-    if (t1 === "cannon") {
+    else if (t1 === "cannon") {
       building.maxHealth = 25;
       building.maxEnergy = 40;
-      building.energy = 0;
       building.weaponRadius = 8;
       building.canMove = true;
       building.needsEnergy = true;
-      building.size = 3;
-    }
-    t1 = building.imageID;
-    if (typeof t1 !== "string")
-      return this.addBuilding$2$bailout(10, building, t1);
-    if (t1 === "mortar") {
+    } else if (t1 === "mortar") {
       building.maxHealth = 40;
       building.maxEnergy = 20;
-      building.energy = 0;
       building.weaponRadius = 12;
       building.canMove = true;
       building.needsEnergy = true;
-      building.size = 3;
-    }
-    t1 = building.imageID;
-    if (typeof t1 !== "string")
-      return this.addBuilding$2$bailout(11, building, t1);
-    if (t1 === "beam") {
+    } else if (t1 === "beam") {
       building.maxHealth = 20;
       building.maxEnergy = 10;
-      building.energy = 0;
       building.weaponRadius = 12;
       building.canMove = true;
       building.needsEnergy = true;
-      building.size = 3;
     }
     this.buildings.push(building);
   },
   addBuilding$2$bailout: function(state0, building, t1) {
     switch (state0) {
       case 0:
-        building = new $.Building(position, null, null, new $.Vector(0, 0), type, "IDLE", false, false, false, false, true, false, false, false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, null, null);
+        building = new $.Building(position, null, null, new $.Vector(0, 0), type, "IDLE", false, false, false, false, true, false, false, false, null, 0, null, 0, 0, 0, 0, 0, 0, null, 0, 0, 1, 0, null, null);
         building.health = 0;
+        building.size = 3;
+        building.energy = 0;
         t1 = building.imageID;
       case 1:
         state0 = 0;
-        if ($.$eq(t1, "analyzer")) {
+      default:
+        if (state0 === 0 && $.$eq(t1, "analyzer")) {
           building.maxHealth = 80;
           building.maxEnergy = 20;
-          building.energy = 0;
-          building.size = 3;
           building.canMove = true;
           building.needsEnergy = true;
           building.weaponRadius = 10;
-        }
-        t1 = building.imageID;
-      case 2:
-        state0 = 0;
-        if ($.$eq(t1, "terp")) {
-          building.maxHealth = 60;
-          building.maxEnergy = 20;
-          building.energy = 0;
-          building.size = 3;
-          building.canMove = true;
-          building.needsEnergy = true;
-          building.weaponRadius = 12;
-        }
-        t1 = building.imageID;
-      case 3:
-        state0 = 0;
-        if ($.$eq(t1, "shield")) {
-          building.maxHealth = 75;
-          building.maxEnergy = 20;
-          building.energy = 0;
-          building.size = 3;
-          building.canMove = true;
-          building.needsEnergy = true;
-        }
-        t1 = building.imageID;
-      case 4:
-        state0 = 0;
-        if ($.$eq(t1, "bomber")) {
-          building.maxHealth = 75;
-          building.maxEnergy = 15;
-          building.energy = 0;
-          building.size = 3;
-          building.needsEnergy = true;
-        }
-        t1 = building.imageID;
-      case 5:
-        state0 = 0;
-        if ($.$eq(t1, "storage")) {
-          building.maxHealth = 8;
-          building.size = 3;
-        }
-        t1 = building.imageID;
-      case 6:
-        state0 = 0;
-        if ($.$eq(t1, "reactor")) {
-          building.maxHealth = 50;
-          building.size = 3;
-        }
-        t1 = building.imageID;
-      case 7:
-        state0 = 0;
-        if ($.$eq(t1, "collector")) {
-          building.maxHealth = 5;
-          building.size = 3;
-        }
-        t1 = building.imageID;
-      case 8:
-        state0 = 0;
-        if ($.$eq(t1, "relay")) {
-          building.maxHealth = 10;
-          building.size = 3;
-        }
-        t1 = building.imageID;
-      case 9:
-        state0 = 0;
-        if ($.$eq(t1, "cannon")) {
-          building.maxHealth = 25;
-          building.maxEnergy = 40;
-          building.energy = 0;
-          building.weaponRadius = 8;
-          building.canMove = true;
-          building.needsEnergy = true;
-          building.size = 3;
-        }
-        t1 = building.imageID;
-      case 10:
-        state0 = 0;
-        if ($.$eq(t1, "mortar")) {
-          building.maxHealth = 40;
-          building.maxEnergy = 20;
-          building.energy = 0;
-          building.weaponRadius = 12;
-          building.canMove = true;
-          building.needsEnergy = true;
-          building.size = 3;
-        }
-        t1 = building.imageID;
-      case 11:
-        state0 = 0;
-        if ($.$eq(t1, "beam")) {
-          building.maxHealth = 20;
-          building.maxEnergy = 10;
-          building.energy = 0;
-          building.weaponRadius = 12;
-          building.canMove = true;
-          building.needsEnergy = true;
-          building.size = 3;
-        }
+        } else
+          switch (state0) {
+            case 0:
+              t1 = building.imageID;
+            case 2:
+              state0 = 0;
+            default:
+              if (state0 === 0 && $.$eq(t1, "terp")) {
+                building.maxHealth = 60;
+                building.maxEnergy = 20;
+                building.canMove = true;
+                building.needsEnergy = true;
+                building.weaponRadius = 12;
+              } else
+                switch (state0) {
+                  case 0:
+                    t1 = building.imageID;
+                  case 3:
+                    state0 = 0;
+                  default:
+                    if (state0 === 0 && $.$eq(t1, "shield")) {
+                      building.maxHealth = 75;
+                      building.maxEnergy = 20;
+                      building.canMove = true;
+                      building.needsEnergy = true;
+                      building.weaponRadius = 9;
+                    } else
+                      switch (state0) {
+                        case 0:
+                          t1 = building.imageID;
+                        case 4:
+                          state0 = 0;
+                        default:
+                          if (state0 === 0 && $.$eq(t1, "bomber")) {
+                            building.maxHealth = 75;
+                            building.maxEnergy = 15;
+                            building.needsEnergy = true;
+                          } else
+                            switch (state0) {
+                              case 0:
+                                t1 = building.imageID;
+                              case 5:
+                                state0 = 0;
+                              default:
+                                if (state0 === 0 && $.$eq(t1, "storage"))
+                                  building.maxHealth = 8;
+                                else
+                                  switch (state0) {
+                                    case 0:
+                                      t1 = building.imageID;
+                                    case 6:
+                                      state0 = 0;
+                                    default:
+                                      if (state0 === 0 && $.$eq(t1, "reactor"))
+                                        building.maxHealth = 50;
+                                      else
+                                        switch (state0) {
+                                          case 0:
+                                            t1 = building.imageID;
+                                          case 7:
+                                            state0 = 0;
+                                          default:
+                                            if (state0 === 0 && $.$eq(t1, "collector"))
+                                              building.maxHealth = 5;
+                                            else
+                                              switch (state0) {
+                                                case 0:
+                                                  t1 = building.imageID;
+                                                case 8:
+                                                  state0 = 0;
+                                                default:
+                                                  if (state0 === 0 && $.$eq(t1, "relay"))
+                                                    building.maxHealth = 10;
+                                                  else
+                                                    switch (state0) {
+                                                      case 0:
+                                                        t1 = building.imageID;
+                                                      case 9:
+                                                        state0 = 0;
+                                                      default:
+                                                        if (state0 === 0 && $.$eq(t1, "cannon")) {
+                                                          building.maxHealth = 25;
+                                                          building.maxEnergy = 40;
+                                                          building.weaponRadius = 8;
+                                                          building.canMove = true;
+                                                          building.needsEnergy = true;
+                                                        } else
+                                                          switch (state0) {
+                                                            case 0:
+                                                              t1 = building.imageID;
+                                                            case 10:
+                                                              state0 = 0;
+                                                            case 11:
+                                                              if (state0 === 0 && $.$eq(t1, "mortar")) {
+                                                                building.maxHealth = 40;
+                                                                building.maxEnergy = 20;
+                                                                building.weaponRadius = 12;
+                                                                building.canMove = true;
+                                                                building.needsEnergy = true;
+                                                              } else
+                                                                switch (state0) {
+                                                                  case 0:
+                                                                    t1 = building.imageID;
+                                                                  case 11:
+                                                                    state0 = 0;
+                                                                    if ($.$eq(t1, "beam")) {
+                                                                      building.maxHealth = 20;
+                                                                      building.maxEnergy = 10;
+                                                                      building.weaponRadius = 12;
+                                                                      building.canMove = true;
+                                                                      building.needsEnergy = true;
+                                                                    }
+                                                                }
+                                                          }
+                                                    }
+                                              }
+                                        }
+                                  }
+                            }
+                      }
+                }
+          }
         this.buildings.push(building);
     }
   },
@@ -6146,20 +7129,21 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     $.setProperty$3$x(t1, "cursor", "url('images/Normal.cur') 2 2, pointer", "");
   },
   setupUI$0: function() {
-    this.symbols.push(new $.UISymbol(new $.Vector(0, 0), "cannon", "Q", 80, 55, 3, 25, 8, false, false));
-    this.symbols.push(new $.UISymbol(new $.Vector(81, 0), "collector", "W", 80, 55, 3, 5, 6, false, false));
-    this.symbols.push(new $.UISymbol(new $.Vector(162, 0), "reactor", "E", 80, 55, 3, 50, 0, false, false));
-    this.symbols.push(new $.UISymbol(new $.Vector(243, 0), "storage", "R", 80, 55, 3, 8, 0, false, false));
-    this.symbols.push(new $.UISymbol(new $.Vector(324, 0), "shield", "T", 80, 55, 3, 75, 10, false, false));
-    this.symbols.push(new $.UISymbol(new $.Vector(405, 0), "analyzer", "Z", 80, 55, 3, 80, 10, false, false));
-    this.symbols.push(new $.UISymbol(new $.Vector(0, 56), "relay", "A", 80, 55, 3, 10, 8, false, false));
-    this.symbols.push(new $.UISymbol(new $.Vector(81, 56), "mortar", "S", 80, 55, 3, 40, 12, false, false));
-    this.symbols.push(new $.UISymbol(new $.Vector(162, 56), "beam", "D", 80, 55, 3, 20, 12, false, false));
-    this.symbols.push(new $.UISymbol(new $.Vector(243, 56), "bomber", "F", 80, 55, 3, 75, 0, false, false));
-    this.symbols.push(new $.UISymbol(new $.Vector(324, 56), "terp", "G", 80, 55, 3, 60, 12, false, false));
+    var t1 = this.symbols;
+    t1.push(new $.UISymbol(new $.Vector(0, 0), "cannon", "Q", 80, 55, 3, 25, 8, false, false));
+    t1.push(new $.UISymbol(new $.Vector(81, 0), "collector", "W", 80, 55, 3, 5, 6, false, false));
+    t1.push(new $.UISymbol(new $.Vector(162, 0), "reactor", "E", 80, 55, 3, 50, 0, false, false));
+    t1.push(new $.UISymbol(new $.Vector(243, 0), "storage", "R", 80, 55, 3, 8, 0, false, false));
+    t1.push(new $.UISymbol(new $.Vector(324, 0), "shield", "T", 80, 55, 3, 75, 10, false, false));
+    t1.push(new $.UISymbol(new $.Vector(405, 0), "analyzer", "Z", 80, 55, 3, 80, 10, false, false));
+    t1.push(new $.UISymbol(new $.Vector(0, 56), "relay", "A", 80, 55, 3, 10, 8, false, false));
+    t1.push(new $.UISymbol(new $.Vector(81, 56), "mortar", "S", 80, 55, 3, 40, 12, false, false));
+    t1.push(new $.UISymbol(new $.Vector(162, 56), "beam", "D", 80, 55, 3, 20, 12, false, false));
+    t1.push(new $.UISymbol(new $.Vector(243, 56), "bomber", "F", 80, 55, 3, 75, 0, false, false));
+    t1.push(new $.UISymbol(new $.Vector(324, 56), "terp", "G", 80, 55, 3, 60, 12, false, false));
   },
   drawTerrain$0: function() {
-    var i, t1, t2, t3, i0, t4, t5, t6, j, j0, t7, t8, t9, k, t10, up, down, left, right, index, t11, pattern;
+    var i, t1, t2, t3, i0, t4, t5, t6, j, j0, t7, t8, t9, k, t10, up, down, left, right, index, indexAbove, t11, pattern;
     for (i = 0; i < 10; ++i) {
       t1 = $.engine.canvas;
       $.clear$0$ax(t1.$index(t1, "level" + i));
@@ -6206,26 +7190,22 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
             t10 = this.world.tiles;
             if (i >= t10.length)
               throw $.ioore(i);
-            $.set$index$x($.$index$asx($.$index$asx(t10[i], j), k), 8 * down + 4 * left + 2 * up + right);
-            t10 = this.world.tiles;
-            if (i >= t10.length)
-              throw $.ioore(i);
-            index = $.get$index$x($.$index$asx($.$index$asx(t10[i], j), k));
-            t10 = k + 1;
-            if (t10 < 10) {
-              t11 = this.world.tiles;
-              if (i >= t11.length)
+            index = 8 * down + 4 * left + 2 * up + right;
+            $.set$index$x($.$index$asx($.$index$asx(t10[i], j), k), index);
+            if (k < 9) {
+              t10 = this.world.tiles;
+              if (i >= t10.length)
                 throw $.ioore(i);
-              t10 = $.get$index$x($.$index$asx($.$index$asx(t11[i], j), t10));
-              t10 = index == null ? t10 == null : index === t10;
-            } else
-              t10 = false;
-            if (t10)
-              continue;
+              indexAbove = $.get$index$x($.$index$asx($.$index$asx(t10[i], j), k + 1));
+              if (index === indexAbove)
+                continue;
+              if (indexAbove === 5 || indexAbove === 7 || indexAbove === 10 || indexAbove === 11 || indexAbove === 13 || indexAbove === 14 || indexAbove === 15)
+                continue;
+            }
             t10 = $.engine.canvas;
             t10 = t10.$index(t10, "level" + k).get$context();
             t11 = $.engine.images;
-            $.drawImageScaledFromSource$9$x(t10, t11.$index(t11, "mask"), $.$mul$n(index, t2) + 3, t3, t1, t1, t6, t9, t1, t1);
+            $.drawImageScaledFromSource$9$x(t10, t11.$index(t11, "mask"), index * t2 + 3, t3, t1, t1, t6, t9, t1, t1);
           }
         }
     for (i = 0; i < 10; ++i) {
@@ -6257,23 +7237,20 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
             if (i >= t6.length)
               throw $.ioore(i);
             index = $.get$index$x($.$index$asx($.$index$asx(t6[i], j), k));
-            t6 = k + 1;
-            if (t6 < 10) {
-              t7 = this.world.tiles;
-              if (i >= t7.length)
+            if (k < 9) {
+              t6 = this.world.tiles;
+              if (i >= t6.length)
                 throw $.ioore(i);
-              t6 = $.get$index$x($.$index$asx($.$index$asx(t7[i], j), t6));
-              t6 = index == null ? t6 == null : index === t6;
-            } else
-              t6 = false;
-            if (t6)
-              continue;
+              indexAbove = $.get$index$x($.$index$asx($.$index$asx(t6[i], j), k + 1));
+              if (index == null ? indexAbove == null : index === indexAbove)
+                continue;
+              if (indexAbove === 5 || indexAbove === 7 || indexAbove === 10 || indexAbove === 11 || indexAbove === 13 || indexAbove === 14 || indexAbove === 15)
+                continue;
+            }
             t6 = $.engine.canvas;
             t6 = t6.$index(t6, "level" + k).get$context();
             t7 = $.engine.images;
             $.drawImageScaledFromSource$9$x(t6, t7.$index(t7, "borders"), $.$mul$n(index, t2) + 2, 2, t3, t3, t4, t5, t3, t3);
-            if (index === 5 || index === 7 || index === 10 || index === 11 || index === 13 || index === 14 || index === 15)
-              break;
           }
         }
     t1 = $.engine.canvas;
@@ -6353,7 +7330,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     $.drawImageScaledFromSource$9$x(t1, t2, left, $top, width, height, t3, t4, $.$sub$n(t5.width, delta2.x), $.$sub$n(t5.height, delta2.y));
   },
   redrawTile$1: function(tilesToRedraw) {
-    var tempCanvas, tempContext, t1, t, t2, t3, t4, i, t5, t6, iS, jS, k, t7, t8, t9, up, t10, down, left, right, index, pattern, translation;
+    var tempCanvas, tempContext, t1, t, t2, t3, t4, i, t5, t6, iS, jS, k, up, down, left, right, index, indexAbove, pattern, translation, t7;
     tempCanvas = [];
     tempContext = [];
     for (t1 = this.tileSize, t = 0; t < 10; ++t) {
@@ -6374,108 +7351,57 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       iS = t6.get$x(t5);
       jS = t6.get$y(t5);
       if (typeof jS !== "number")
-        return this.redrawTile$1$bailout(1, tilesToRedraw, i, tempCanvas, tempContext, t5, t2, t3, t4, iS, t1, jS);
+        return this.redrawTile$1$bailout(1, jS, i, tempCanvas, t1, t4, tilesToRedraw, tempContext, iS, t2, t5, t3);
       k = $.get$z$x(t5);
-      t5 = this.world;
-      t6 = t5.tiles;
-      t7 = t6.length;
-      if (iS >>> 0 !== iS || iS >= t7)
+      t5 = this.world.tiles;
+      if (iS >>> 0 !== iS || iS >= t5.length)
         throw $.ioore(iS);
-      t8 = t6[iS];
-      if (typeof t8 !== "string" && (typeof t8 !== "object" || t8 === null || t8.constructor !== Array && !$.isJsIndexable(t8, t8[$.dispatchPropertyName])))
-        return this.redrawTile$1$bailout(2, tilesToRedraw, i, tempCanvas, tempContext, t8, t2, t3, t4, iS, t1, jS, k);
-      if (jS >>> 0 !== jS || jS >= t8.length)
-        throw $.ioore(jS);
-      t9 = t8[jS];
-      if (typeof t9 !== "string" && (typeof t9 !== "object" || t9 === null || t9.constructor !== Array && !$.isJsIndexable(t9, t9[$.dispatchPropertyName])))
-        return this.redrawTile$1$bailout(3, tilesToRedraw, i, tempCanvas, tempContext, t9, t2, t3, t4, iS, t1, jS, k);
-      if (k >>> 0 !== k || k >= t9.length)
-        throw $.ioore(k);
-      if (t9[k].get$full()) {
-        t9 = jS - 1;
-        if (t9 < 0)
+      if ($.$index$asx($.$index$asx(t5[iS], jS), k).get$full()) {
+        t5 = jS - 1;
+        if (t5 < 0)
           up = 0;
         else {
-          if (t9 >= t8.length)
-            throw $.ioore(t9);
-          t9 = t8[t9];
-          if (typeof t9 !== "string" && (typeof t9 !== "object" || t9 === null || t9.constructor !== Array && !$.isJsIndexable(t9, t9[$.dispatchPropertyName])))
-            return this.redrawTile$1$bailout(5, tilesToRedraw, i, tempCanvas, tempContext, $.JSNumber_methods, t2, t3, t4, iS, t1, jS, k, t9);
-          if (k >= t9.length)
-            throw $.ioore(k);
-          up = t9[k].get$full() ? 1 : 0;
+          t6 = this.world.tiles;
+          if (iS >= t6.length)
+            throw $.ioore(iS);
+          up = $.$index$asx($.$index$asx(t6[iS], t5), k).get$full() ? 1 : 0;
         }
-        t9 = jS + 1;
-        t5 = t5.size;
-        t10 = t5.y;
-        if (typeof t10 !== "number")
-          return this.redrawTile$1$bailout(6, tilesToRedraw, i, tempCanvas, tempContext, $.JSNumber_methods, t2, t3, t4, iS, t1, jS, k, t9, t10, up);
-        if (t9 > t10 - 1)
+        t5 = jS + 1;
+        if ($.JSNumber_methods.$gt(t5, $.$sub$n(this.world.size.y, 1)))
           down = 0;
         else {
-          if (t9 >= t8.length)
-            throw $.ioore(t9);
-          t9 = t8[t9];
-          if (typeof t9 !== "string" && (typeof t9 !== "object" || t9 === null || t9.constructor !== Array && !$.isJsIndexable(t9, t9[$.dispatchPropertyName])))
-            return this.redrawTile$1$bailout(8, tilesToRedraw, i, tempCanvas, tempContext, t9, t2, t3, t4, iS, t1, jS, k, 0, 0, up);
-          if (k >= t9.length)
-            throw $.ioore(k);
-          down = t9[k].get$full() ? 1 : 0;
+          t6 = this.world.tiles;
+          if (iS >= t6.length)
+            throw $.ioore(iS);
+          down = $.$index$asx($.$index$asx(t6[iS], t5), k).get$full() ? 1 : 0;
         }
-        t9 = iS - 1;
-        if (t9 < 0)
+        t5 = iS - 1;
+        if (t5 < 0)
           left = 0;
         else {
-          t9 = t6[t9];
-          if (typeof t9 !== "string" && (typeof t9 !== "object" || t9 === null || t9.constructor !== Array && !$.isJsIndexable(t9, t9[$.dispatchPropertyName])))
-            return this.redrawTile$1$bailout(9, tilesToRedraw, i, tempCanvas, tempContext, t9, t2, t3, t4, iS, t1, jS, k, 0, 0, up, down);
-          if (jS >= t9.length)
-            throw $.ioore(jS);
-          t9 = t9[jS];
-          if (typeof t9 !== "string" && (typeof t9 !== "object" || t9 === null || t9.constructor !== Array && !$.isJsIndexable(t9, t9[$.dispatchPropertyName])))
-            return this.redrawTile$1$bailout(10, tilesToRedraw, i, tempCanvas, tempContext, t9, t2, t3, t4, iS, t1, jS, k, 0, 0, up, down);
-          if (k >= t9.length)
-            throw $.ioore(k);
-          left = t9[k].get$full() ? 1 : 0;
+          t6 = this.world.tiles;
+          if (t5 >= t6.length)
+            throw $.ioore(t5);
+          left = $.$index$asx($.$index$asx(t6[t5], jS), k).get$full() ? 1 : 0;
         }
-        t9 = iS + 1;
-        t5 = t5.x;
-        if (typeof t5 !== "number")
-          return this.redrawTile$1$bailout(11, tilesToRedraw, i, tempCanvas, tempContext, t9, t2, t3, t4, iS, t1, jS, k, t5, 0, up, down, left);
-        if (t9 > t5 - 1)
+        t5 = iS + 1;
+        if ($.JSInt_methods.$gt(t5, $.$sub$n(this.world.size.x, 1)))
           right = 0;
         else {
-          if (t9 >= t7)
-            throw $.ioore(t9);
-          t5 = t6[t9];
-          if (typeof t5 !== "string" && (typeof t5 !== "object" || t5 === null || t5.constructor !== Array && !$.isJsIndexable(t5, t5[$.dispatchPropertyName])))
-            return this.redrawTile$1$bailout(12, tilesToRedraw, i, tempCanvas, tempContext, t5, t2, t3, t4, iS, t1, jS, k, 0, 0, up, down, left);
-          if (jS >= t5.length)
-            throw $.ioore(jS);
-          t5 = t5[jS];
-          if (typeof t5 !== "string" && (typeof t5 !== "object" || t5 === null || t5.constructor !== Array && !$.isJsIndexable(t5, t5[$.dispatchPropertyName])))
-            return this.redrawTile$1$bailout(13, tilesToRedraw, i, tempCanvas, tempContext, t5, t2, t3, t4, iS, t1, jS, k, 0, 0, up, down, left);
-          if (k >= t5.length)
-            throw $.ioore(k);
-          right = t5[k].get$full() ? 1 : 0;
+          t6 = this.world.tiles;
+          if (t5 >= t6.length)
+            throw $.ioore(t5);
+          right = $.$index$asx($.$index$asx(t6[t5], jS), k).get$full() ? 1 : 0;
         }
-        if (jS >= t8.length)
-          throw $.ioore(jS);
-        t5 = t8[jS];
-        if (typeof t5 !== "string" && (typeof t5 !== "object" || t5 === null || t5.constructor !== Array && !$.isJsIndexable(t5, t5[$.dispatchPropertyName])))
-          return this.redrawTile$1$bailout(15, tilesToRedraw, i, tempCanvas, tempContext, t5, t2, t3, t4, iS, t1, jS, k, 0, 0, up, down, left, right);
-        if (k >= t5.length)
-          throw $.ioore(k);
-        $.set$index$x(t5[k], 8 * down + 4 * left + 2 * up + right);
+        t5 = this.world.tiles;
+        if (iS >= t5.length)
+          throw $.ioore(iS);
+        $.set$index$x($.$index$asx($.$index$asx(t5[iS], jS), k), 8 * down + 4 * left + 2 * up + right);
       } else {
-        if (jS >= t8.length)
-          throw $.ioore(jS);
-        t5 = t8[jS];
-        if (typeof t5 !== "string" && (typeof t5 !== "object" || t5 === null || t5.constructor !== Array && !$.isJsIndexable(t5, t5[$.dispatchPropertyName])))
-          return this.redrawTile$1$bailout(17, tilesToRedraw, i, tempCanvas, tempContext, t5, t2, t3, t4, iS, t1, jS, k);
-        if (k >= t5.length)
-          throw $.ioore(k);
-        $.set$index$x(t5[k], -1);
+        t5 = this.world.tiles;
+        if (iS >= t5.length)
+          throw $.ioore(iS);
+        $.set$index$x($.$index$asx($.$index$asx(t5[iS], jS), k), -1);
       }
       for (t = 9; t > -1; --t) {
         if (t >= tempContext.length)
@@ -6486,74 +7412,56 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
           throw $.ioore(iS);
         t5 = t5[iS];
         if (typeof t5 !== "string" && (typeof t5 !== "object" || t5 === null || t5.constructor !== Array && !$.isJsIndexable(t5, t5[$.dispatchPropertyName])))
-          return this.redrawTile$1$bailout(18, tilesToRedraw, i, tempCanvas, tempContext, t5, t2, t3, t4, iS, t1, jS, 0, 0, 0, 0, 0, 0, 0, t);
-        if (jS >= t5.length)
+          return this.redrawTile$1$bailout(2, jS, i, tempCanvas, t1, t4, tilesToRedraw, tempContext, iS, t2, t5, t3, t);
+        if (jS >>> 0 !== jS || jS >= t5.length)
           throw $.ioore(jS);
-        t6 = t5[jS];
-        if (typeof t6 !== "string" && (typeof t6 !== "object" || t6 === null || t6.constructor !== Array && !$.isJsIndexable(t6, t6[$.dispatchPropertyName])))
-          return this.redrawTile$1$bailout(19, tilesToRedraw, i, tempCanvas, tempContext, t6, t2, t3, t4, iS, t1, jS, 0, 0, 0, 0, 0, 0, 0, t);
-        if (t >= t6.length)
-          throw $.ioore(t);
-        if (t6[t].get$full()) {
+        if ($.$index$asx(t5[jS], t).get$full()) {
+          t5 = this.world.tiles;
+          if (iS >= t5.length)
+            throw $.ioore(iS);
+          t5 = t5[iS];
+          if (typeof t5 !== "string" && (typeof t5 !== "object" || t5 === null || t5.constructor !== Array && !$.isJsIndexable(t5, t5[$.dispatchPropertyName])))
+            return this.redrawTile$1$bailout(3, jS, i, tempCanvas, t1, t4, tilesToRedraw, tempContext, iS, t2, t5, t3, t);
           if (jS >= t5.length)
             throw $.ioore(jS);
-          t5 = t5[jS];
-          if (typeof t5 !== "string" && (typeof t5 !== "object" || t5 === null || t5.constructor !== Array && !$.isJsIndexable(t5, t5[$.dispatchPropertyName])))
-            return this.redrawTile$1$bailout(21, tilesToRedraw, i, tempCanvas, tempContext, t5, t2, t3, t4, iS, t1, jS, 0, 0, 0, 0, 0, 0, 0, t);
-          if (t >= t5.length)
-            throw $.ioore(t);
-          index = $.get$index$x(t5[t]);
-          if (typeof index !== "number")
-            return this.redrawTile$1$bailout(22, tilesToRedraw, i, tempCanvas, tempContext, 0, t2, t3, t4, iS, t1, jS, 0, 0, 0, 0, 0, 0, 0, t, index);
-          t5 = t + 1;
-          if (t5 < 10) {
-            t6 = this.world.tiles;
-            if (iS >= t6.length)
+          index = $.get$index$x($.$index$asx(t5[jS], t));
+          if (t < 9) {
+            t5 = this.world.tiles;
+            if (iS >= t5.length)
               throw $.ioore(iS);
-            t6 = t6[iS];
-            if (typeof t6 !== "string" && (typeof t6 !== "object" || t6 === null || t6.constructor !== Array && !$.isJsIndexable(t6, t6[$.dispatchPropertyName])))
-              return this.redrawTile$1$bailout(23, tilesToRedraw, i, tempCanvas, tempContext, t5, t2, t3, t4, iS, t1, jS, 0, t6, 0, 0, 0, 0, 0, t, index);
-            if (jS >= t6.length)
+            t5 = t5[iS];
+            if (typeof t5 !== "string" && (typeof t5 !== "object" || t5 === null || t5.constructor !== Array && !$.isJsIndexable(t5, t5[$.dispatchPropertyName])))
+              return this.redrawTile$1$bailout(4, jS, i, tempCanvas, t1, t4, tilesToRedraw, tempContext, iS, t2, t5, t3, t, index);
+            if (jS >= t5.length)
               throw $.ioore(jS);
-            t6 = t6[jS];
-            if (typeof t6 !== "string" && (typeof t6 !== "object" || t6 === null || t6.constructor !== Array && !$.isJsIndexable(t6, t6[$.dispatchPropertyName])))
-              return this.redrawTile$1$bailout(24, tilesToRedraw, i, tempCanvas, tempContext, t5, t2, t3, t4, iS, t1, jS, 0, t6, 0, 0, 0, 0, 0, t, index);
-            if (t5 >= t6.length)
-              throw $.ioore(t5);
-            t5 = index === $.get$index$x(t6[t5]);
-          } else
-            t5 = false;
-          if (t5)
-            continue;
+            indexAbove = $.get$index$x($.$index$asx(t5[jS], t + 1));
+            if (index == null ? indexAbove == null : index === indexAbove)
+              continue;
+            if (indexAbove === 5 || indexAbove === 7 || indexAbove === 10 || indexAbove === 11 || indexAbove === 13 || indexAbove === 14 || indexAbove === 15)
+              continue;
+          }
           if (t >= tempContext.length)
             throw $.ioore(t);
           t5 = tempContext[t];
           t6 = $.engine.images;
-          $.drawImageScaledFromSource$9$x(t5, t6.$index(t6, "mask"), index * t2 + 3, t4, t1, t1, 0, 0, t1, t1);
-          if (index === 5 || index === 7 || index === 10 || index === 11 || index === 13 || index === 14 || index === 15)
-            break;
+          $.drawImageScaledFromSource$9$x(t5, t6.$index(t6, "mask"), $.$mul$n(index, t2) + 3, t4, t1, t1, 0, 0, t1, t1);
         }
       }
-      for (t5 = jS * t1, t = 9; t > -1; --t) {
-        t6 = this.world.tiles;
-        if (iS < 0 || iS >= t6.length)
+      for (t = 9; t > -1; --t) {
+        t5 = this.world.tiles;
+        if (iS < 0 || iS >= t5.length)
           throw $.ioore(iS);
-        t6 = t6[iS];
-        if (typeof t6 !== "string" && (typeof t6 !== "object" || t6 === null || t6.constructor !== Array && !$.isJsIndexable(t6, t6[$.dispatchPropertyName])))
-          return this.redrawTile$1$bailout(25, tilesToRedraw, i, tempCanvas, tempContext, $.JSNumber_methods, t2, t3, t4, iS, t1, jS, 0, t6, 0, 0, 0, 0, 0, t);
-        if (jS >= t6.length)
+        t5 = t5[iS];
+        if (typeof t5 !== "string" && (typeof t5 !== "object" || t5 === null || t5.constructor !== Array && !$.isJsIndexable(t5, t5[$.dispatchPropertyName])))
+          return this.redrawTile$1$bailout(5, jS, i, tempCanvas, t1, t4, tilesToRedraw, tempContext, iS, t2, $.JSNumber_methods, t3, t, 0, t5);
+        if (jS >>> 0 !== jS || jS >= t5.length)
           throw $.ioore(jS);
-        t6 = t6[jS];
-        if (typeof t6 !== "string" && (typeof t6 !== "object" || t6 === null || t6.constructor !== Array && !$.isJsIndexable(t6, t6[$.dispatchPropertyName])))
-          return this.redrawTile$1$bailout(26, tilesToRedraw, i, tempCanvas, tempContext, $.JSNumber_methods, t2, t3, t4, iS, t1, jS, 0, t6, 0, 0, 0, 0, 0, t);
-        if (t >= t6.length)
-          throw $.ioore(t);
-        if (t6[t].get$full()) {
+        if ($.$index$asx(t5[jS], t).get$full()) {
           if (t >= tempContext.length)
             throw $.ioore(t);
-          t6 = tempContext[t];
-          t7 = $.engine.images;
-          pattern = $.createPattern$2$x(t6, t7.$index(t7, "level" + t), "repeat");
+          t5 = tempContext[t];
+          t6 = $.engine.images;
+          pattern = $.createPattern$2$x(t5, t6.$index(t6, "level" + t), "repeat");
           if (t >= tempContext.length)
             throw $.ioore(t);
           $.set$globalCompositeOperation$x(tempContext[t], "source-in");
@@ -6563,17 +7471,10 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
           if (t >= tempContext.length)
             throw $.ioore(t);
           $.save$0$x(tempContext[t]);
-          translation = new $.Vector($.JSInt_methods.floor$0(iS * t1), $.JSNumber_methods.floor$0(t5));
+          translation = new $.Vector($.JSInt_methods.floor$0(iS * t1), $.JSNumber_methods.floor$0(jS * t1));
           if (t >= tempContext.length)
             throw $.ioore(t);
-          t7 = tempContext[t];
-          t6 = translation.x;
-          if (typeof t6 !== "number")
-            throw t6.$negate();
-          t8 = translation.y;
-          if (typeof t8 !== "number")
-            throw t8.$negate();
-          $.translate$2$x(t7, -t6, -t8);
+          $.translate$2$x(tempContext[t], $.$negate$n(translation.x), $.$negate$n(translation.y));
           if (t >= tempContext.length)
             throw $.ioore(t);
           $.fillRect$4$x(tempContext[t], translation.x, translation.y, t1, t1);
@@ -6586,76 +7487,61 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
         }
       }
       for (t = 9; t > -1; --t) {
-        t6 = this.world.tiles;
-        if (iS < 0 || iS >= t6.length)
+        t5 = this.world.tiles;
+        if (iS < 0 || iS >= t5.length)
           throw $.ioore(iS);
-        t6 = t6[iS];
-        if (typeof t6 !== "string" && (typeof t6 !== "object" || t6 === null || t6.constructor !== Array && !$.isJsIndexable(t6, t6[$.dispatchPropertyName])))
-          return this.redrawTile$1$bailout(27, tilesToRedraw, i, tempCanvas, tempContext, $.JSNumber_methods, t2, t3, t4, iS, t1, jS, 0, t6, 0, 0, 0, 0, 0, t);
-        if (jS >= t6.length)
+        t5 = t5[iS];
+        if (typeof t5 !== "string" && (typeof t5 !== "object" || t5 === null || t5.constructor !== Array && !$.isJsIndexable(t5, t5[$.dispatchPropertyName])))
+          return this.redrawTile$1$bailout(6, jS, i, tempCanvas, t1, t4, tilesToRedraw, tempContext, iS, t2, $.JSNumber_methods, t3, t, 0, t5);
+        if (jS >>> 0 !== jS || jS >= t5.length)
           throw $.ioore(jS);
-        t7 = t6[jS];
-        if (typeof t7 !== "string" && (typeof t7 !== "object" || t7 === null || t7.constructor !== Array && !$.isJsIndexable(t7, t7[$.dispatchPropertyName])))
-          return this.redrawTile$1$bailout(28, tilesToRedraw, i, tempCanvas, tempContext, $.JSNumber_methods, t2, t3, t4, iS, t1, jS, 0, t7, 0, 0, 0, 0, 0, t);
-        if (t >= t7.length)
-          throw $.ioore(t);
-        if (t7[t].get$full()) {
-          if (jS >= t6.length)
+        if ($.$index$asx(t5[jS], t).get$full()) {
+          t5 = this.world.tiles;
+          if (iS >= t5.length)
+            throw $.ioore(iS);
+          t5 = t5[iS];
+          if (typeof t5 !== "string" && (typeof t5 !== "object" || t5 === null || t5.constructor !== Array && !$.isJsIndexable(t5, t5[$.dispatchPropertyName])))
+            return this.redrawTile$1$bailout(7, jS, i, tempCanvas, t1, t4, tilesToRedraw, tempContext, iS, t2, $.JSNumber_methods, t3, t, 0, t5);
+          if (jS >= t5.length)
             throw $.ioore(jS);
-          t6 = t6[jS];
-          if (typeof t6 !== "string" && (typeof t6 !== "object" || t6 === null || t6.constructor !== Array && !$.isJsIndexable(t6, t6[$.dispatchPropertyName])))
-            return this.redrawTile$1$bailout(30, tilesToRedraw, i, tempCanvas, tempContext, $.JSNumber_methods, t2, t3, t4, iS, t1, jS, 0, t6, 0, 0, 0, 0, 0, t);
-          if (t >= t6.length)
-            throw $.ioore(t);
-          index = $.get$index$x(t6[t]);
-          if (typeof index !== "number")
-            return this.redrawTile$1$bailout(31, tilesToRedraw, i, tempCanvas, tempContext, $.JSNumber_methods, t2, t3, t4, iS, t1, jS, 0, 0, 0, 0, 0, 0, 0, t, index);
-          if (!(index < 0)) {
-            t6 = t + 1;
-            if (t6 < 10) {
-              t7 = this.world.tiles;
-              if (iS >= t7.length)
-                throw $.ioore(iS);
-              t7 = t7[iS];
-              if (typeof t7 !== "string" && (typeof t7 !== "object" || t7 === null || t7.constructor !== Array && !$.isJsIndexable(t7, t7[$.dispatchPropertyName])))
-                return this.redrawTile$1$bailout(32, tilesToRedraw, i, tempCanvas, tempContext, $.JSNumber_methods, t2, t3, t4, iS, t1, jS, 0, $.JSNumber_methods, t6, 0, 0, 0, 0, t, index, t7);
-              if (jS >= t7.length)
-                throw $.ioore(jS);
-              t7 = t7[jS];
-              if (typeof t7 !== "string" && (typeof t7 !== "object" || t7 === null || t7.constructor !== Array && !$.isJsIndexable(t7, t7[$.dispatchPropertyName])))
-                return this.redrawTile$1$bailout(33, tilesToRedraw, i, tempCanvas, tempContext, $.JSNumber_methods, t2, t3, t4, iS, t1, jS, 0, $.JSNumber_methods, t6, 0, 0, 0, 0, t, index, t7);
-              if (t6 >= t7.length)
-                throw $.ioore(t6);
-              t6 = index === $.get$index$x(t7[t6]);
-            } else
-              t6 = false;
-          } else
-            t6 = true;
-          if (t6)
-            continue;
+          index = $.get$index$x($.$index$asx(t5[jS], t));
+          if (t < 9) {
+            t5 = this.world.tiles;
+            if (iS >= t5.length)
+              throw $.ioore(iS);
+            t5 = t5[iS];
+            if (typeof t5 !== "string" && (typeof t5 !== "object" || t5 === null || t5.constructor !== Array && !$.isJsIndexable(t5, t5[$.dispatchPropertyName])))
+              return this.redrawTile$1$bailout(8, jS, i, tempCanvas, t1, t4, tilesToRedraw, tempContext, iS, t2, $.JSNumber_methods, t3, t, index, t5);
+            if (jS >= t5.length)
+              throw $.ioore(jS);
+            indexAbove = $.get$index$x($.$index$asx(t5[jS], t + 1));
+            if (index == null ? indexAbove == null : index === indexAbove)
+              continue;
+            if (indexAbove === 5 || indexAbove === 7 || indexAbove === 10 || indexAbove === 11 || indexAbove === 13 || indexAbove === 14 || indexAbove === 15)
+              continue;
+          }
           if (t >= tempContext.length)
             throw $.ioore(t);
-          t6 = tempContext[t];
-          t7 = $.engine.images;
-          $.drawImageScaledFromSource$9$x(t6, t7.$index(t7, "borders"), index * t2 + 2, 2, t3, t3, 0, 0, t3, t3);
-          if (index === 5 || index === 7 || index === 10 || index === 11 || index === 13 || index === 14 || index === 15)
-            break;
+          t5 = tempContext[t];
+          t6 = $.engine.images;
+          $.drawImageScaledFromSource$9$x(t5, t6.$index(t6, "borders"), $.$mul$n(index, t2) + 2, 2, t3, t3, 0, 0, t3, t3);
         }
       }
-      t6 = $.engine.canvas;
+      t5 = $.engine.canvas;
+      t6 = jS * t1;
       t7 = iS * t1;
-      $.clearRect$4$x(t6.$index(t6, "levelbuffer").get$context(), t7, t5, t1, t1);
+      $.clearRect$4$x(t5.$index(t5, "levelbuffer").get$context(), t7, t6, t1, t1);
       for (t = 0; t < 10; ++t) {
-        t6 = $.engine.canvas;
-        t6 = t6.$index(t6, "levelbuffer").get$context();
+        t5 = $.engine.canvas;
+        t5 = t5.$index(t5, "levelbuffer").get$context();
         if (t >= tempCanvas.length)
           throw $.ioore(t);
-        $.drawImageScaledFromSource$9$x(t6, tempCanvas[t], 0, 0, t1, t1, t7, t5, t1, t1);
+        $.drawImageScaledFromSource$9$x(t5, tempCanvas[t], 0, 0, t1, t1, t7, t6, t1, t1);
       }
     }
     this.copyTerrain$0();
   },
-  redrawTile$1$bailout: function(state0, tilesToRedraw, i, tempCanvas, tempContext, t5, t2, t3, t4, iS, t1, jS, k, t6, t7, up, down, left, right, t, index, t8) {
+  redrawTile$1$bailout: function(state0, jS, i, tempCanvas, t1, t4, tilesToRedraw, tempContext, iS, t2, t5, t3, t, index, t6) {
     switch (state0) {
       case 0:
         tempCanvas = [];
@@ -6677,7 +7563,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
         t4 = t2 + 3;
         i = 0;
       default:
-        var pattern, translation;
+        var k, up, down, left, right, indexAbove, t7, pattern, translation;
         L0:
           while (true)
             switch (state0) {
@@ -6694,130 +7580,54 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                 t5 = this.world.tiles;
                 if (iS >>> 0 !== iS || iS >= t5.length)
                   throw $.ioore(iS);
-                t5 = t5[iS];
-              case 2:
-                state0 = 0;
-                t5 = $.$index$asx(t5, jS);
-              case 3:
-                state0 = 0;
-              default:
-                if (state0 === 15 || state0 === 14 || state0 === 13 || state0 === 12 || state0 === 11 || state0 === 10 || state0 === 9 || state0 === 8 || state0 === 7 || state0 === 6 || state0 === 5 || state0 === 4 || state0 === 0 && $.$index$asx(t5, k).get$full())
-                  switch (state0) {
-                    case 0:
-                      t5 = $.getInterceptor$n(jS);
-                    default:
-                      if (state0 === 0 && $.$lt$n(t5.$sub(jS, 1), 0))
-                        up = 0;
-                      else
-                        switch (state0) {
-                          case 0:
-                            t6 = this.world.tiles;
-                            if (iS >= t6.length)
-                              throw $.ioore(iS);
-                            t6 = t6[iS];
-                          case 4:
-                            state0 = 0;
-                            t6 = $.$index$asx(t6, t5.$sub(jS, 1));
-                          case 5:
-                            state0 = 0;
-                            up = $.$index$asx(t6, k).get$full() ? 1 : 0;
-                        }
-                      t6 = t5.$add(jS, 1);
-                      t7 = this.world.size.y;
-                    case 6:
-                      state0 = 0;
-                    case 7:
-                    case 8:
-                      if (state0 === 0 && $.$gt$n(t6, $.$sub$n(t7, 1)))
-                        down = 0;
-                      else
-                        switch (state0) {
-                          case 0:
-                            t6 = this.world.tiles;
-                            if (iS >= t6.length)
-                              throw $.ioore(iS);
-                            t6 = t6[iS];
-                          case 7:
-                            state0 = 0;
-                            t5 = $.$index$asx(t6, t5.$add(jS, 1));
-                          case 8:
-                            state0 = 0;
-                            down = $.$index$asx(t5, k).get$full() ? 1 : 0;
-                        }
-                      t5 = iS - 1;
-                    case 9:
-                    case 10:
-                      if (state0 === 0 && t5 < 0)
-                        left = 0;
-                      else
-                        switch (state0) {
-                          case 0:
-                            t6 = this.world.tiles;
-                            if (t5 < 0 || t5 >= t6.length)
-                              throw $.ioore(t5);
-                            t5 = t6[t5];
-                          case 9:
-                            state0 = 0;
-                            t5 = $.$index$asx(t5, jS);
-                          case 10:
-                            state0 = 0;
-                            left = $.$index$asx(t5, k).get$full() ? 1 : 0;
-                        }
-                      t5 = iS + 1;
-                      t6 = this.world.size.x;
-                    case 11:
-                      state0 = 0;
-                    case 12:
-                    case 13:
-                      if (state0 === 0 && $.JSInt_methods.$gt(t5, $.$sub$n(t6, 1)))
-                        right = 0;
-                      else
-                        switch (state0) {
-                          case 0:
-                            t6 = this.world.tiles;
-                            if (t5 >= t6.length)
-                              throw $.ioore(t5);
-                            t5 = t6[t5];
-                          case 12:
-                            state0 = 0;
-                            t5 = $.$index$asx(t5, jS);
-                          case 13:
-                            state0 = 0;
-                            right = $.$index$asx(t5, k).get$full() ? 1 : 0;
-                        }
-                      t5 = this.world.tiles;
-                      if (iS >= t5.length)
-                        throw $.ioore(iS);
-                      t5 = t5[iS];
-                    case 14:
-                      state0 = 0;
-                      t5 = $.$index$asx(t5, jS);
-                    case 15:
-                      state0 = 0;
-                      $.set$index$x($.$index$asx(t5, k), 8 * down + 4 * left + 2 * up + right);
+                if ($.$index$asx($.$index$asx(t5[iS], jS), k).get$full()) {
+                  t5 = $.getInterceptor$n(jS);
+                  if ($.$lt$n(t5.$sub(jS, 1), 0))
+                    up = 0;
+                  else {
+                    t6 = this.world.tiles;
+                    if (iS >= t6.length)
+                      throw $.ioore(iS);
+                    up = $.$index$asx($.$index$asx(t6[iS], t5.$sub(jS, 1)), k).get$full() ? 1 : 0;
                   }
-                else
-                  switch (state0) {
-                    case 0:
-                      t5 = this.world.tiles;
-                      if (iS >= t5.length)
-                        throw $.ioore(iS);
-                      t5 = t5[iS];
-                    case 16:
-                      state0 = 0;
-                      t5 = $.$index$asx(t5, jS);
-                    case 17:
-                      state0 = 0;
-                      $.set$index$x($.$index$asx(t5, k), -1);
+                  if ($.$gt$n(t5.$add(jS, 1), $.$sub$n(this.world.size.y, 1)))
+                    down = 0;
+                  else {
+                    t6 = this.world.tiles;
+                    if (iS >= t6.length)
+                      throw $.ioore(iS);
+                    down = $.$index$asx($.$index$asx(t6[iS], t5.$add(jS, 1)), k).get$full() ? 1 : 0;
                   }
+                  t5 = iS - 1;
+                  if (t5 < 0)
+                    left = 0;
+                  else {
+                    t6 = this.world.tiles;
+                    if (t5 < 0 || t5 >= t6.length)
+                      throw $.ioore(t5);
+                    left = $.$index$asx($.$index$asx(t6[t5], jS), k).get$full() ? 1 : 0;
+                  }
+                  t5 = iS + 1;
+                  if ($.JSInt_methods.$gt(t5, $.$sub$n(this.world.size.x, 1)))
+                    right = 0;
+                  else {
+                    t6 = this.world.tiles;
+                    if (t5 >= t6.length)
+                      throw $.ioore(t5);
+                    right = $.$index$asx($.$index$asx(t6[t5], jS), k).get$full() ? 1 : 0;
+                  }
+                  t5 = this.world.tiles;
+                  if (iS >= t5.length)
+                    throw $.ioore(iS);
+                  $.set$index$x($.$index$asx($.$index$asx(t5[iS], jS), k), 8 * down + 4 * left + 2 * up + right);
+                } else {
+                  t5 = this.world.tiles;
+                  if (iS >= t5.length)
+                    throw $.ioore(iS);
+                  $.set$index$x($.$index$asx($.$index$asx(t5[iS], jS), k), -1);
+                }
                 t = 9;
-              case 18:
-              case 19:
-              case 20:
-              case 21:
-              case 22:
-              case 23:
-              case 24:
+              default:
                 L1:
                   while (true)
                     switch (state0) {
@@ -6835,55 +7645,40 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                               if (iS < 0 || iS >= t5.length)
                                 throw $.ioore(iS);
                               t5 = t5[iS];
-                            case 18:
-                              state0 = 0;
-                              t5 = $.$index$asx(t5, jS);
-                            case 19:
+                            case 2:
                               state0 = 0;
                             default:
-                              if (state0 === 24 || state0 === 23 || state0 === 22 || state0 === 21 || state0 === 20 || state0 === 0 && $.$index$asx(t5, t).get$full())
+                              if (state0 === 4 || state0 === 3 || state0 === 0 && $.$index$asx($.$index$asx(t5, jS), t).get$full())
                                 switch (state0) {
                                   case 0:
                                     t5 = this.world.tiles;
                                     if (iS >= t5.length)
                                       throw $.ioore(iS);
                                     t5 = t5[iS];
-                                  case 20:
+                                  case 3:
                                     state0 = 0;
-                                    t5 = $.$index$asx(t5, jS);
-                                  case 21:
-                                    state0 = 0;
-                                    index = $.get$index$x($.$index$asx(t5, t));
-                                  case 22:
-                                    state0 = 0;
-                                    t5 = t + 1;
-                                  default:
-                                    if (state0 === 24 || state0 === 23 || state0 === 0 && t5 < 10)
+                                    index = $.get$index$x($.$index$asx($.$index$asx(t5, jS), t));
+                                  case 4:
+                                    if (state0 === 4 || state0 === 0 && t < 9)
                                       switch (state0) {
                                         case 0:
-                                          t6 = this.world.tiles;
-                                          if (iS >= t6.length)
+                                          t5 = this.world.tiles;
+                                          if (iS >= t5.length)
                                             throw $.ioore(iS);
-                                          t6 = t6[iS];
-                                        case 23:
+                                          t5 = t5[iS];
+                                        case 4:
                                           state0 = 0;
-                                          t6 = $.$index$asx(t6, jS);
-                                        case 24:
-                                          state0 = 0;
-                                          t5 = $.get$index$x($.$index$asx(t6, t5));
-                                          t5 = index == null ? t5 == null : index === t5;
+                                          indexAbove = $.get$index$x($.$index$asx($.$index$asx(t5, jS), t + 1));
+                                          if (index == null ? indexAbove == null : index === indexAbove)
+                                            break c$1;
+                                          if (indexAbove === 5 || indexAbove === 7 || indexAbove === 10 || indexAbove === 11 || indexAbove === 13 || indexAbove === 14 || indexAbove === 15)
+                                            break c$1;
                                       }
-                                    else
-                                      t5 = false;
-                                    if (t5)
-                                      break c$1;
                                     if (t >= tempContext.length)
                                       throw $.ioore(t);
                                     t5 = tempContext[t];
                                     t6 = $.engine.images;
                                     $.drawImageScaledFromSource$9$x(t5, t6.$index(t6, "mask"), $.$mul$n(index, t2) + 3, t4, t1, t1, 0, 0, t1, t1);
-                                    if (index === 5 || index === 7 || index === 10 || index === 11 || index === 13 || index === 14 || index === 15)
-                                      break L1;
                                 }
                           }
                         }
@@ -6891,8 +7686,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                     }
                 t5 = $.getInterceptor$n(jS);
                 t = 9;
-              case 25:
-              case 26:
+              case 5:
                 L2:
                   while (true)
                     switch (state0) {
@@ -6903,12 +7697,9 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                         if (iS < 0 || iS >= t6.length)
                           throw $.ioore(iS);
                         t6 = t6[iS];
-                      case 25:
+                      case 5:
                         state0 = 0;
-                        t6 = $.$index$asx(t6, jS);
-                      case 26:
-                        state0 = 0;
-                        if ($.$index$asx(t6, t).get$full()) {
+                        if ($.$index$asx($.$index$asx(t6, jS), t).get$full()) {
                           if (t >= tempContext.length)
                             throw $.ioore(t);
                           t6 = tempContext[t];
@@ -6926,15 +7717,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                           translation = new $.Vector($.JSInt_methods.floor$0(iS * t1), $.floor$0$nx(t5.$mul(jS, t1)));
                           if (t >= tempContext.length)
                             throw $.ioore(t);
-                          t7 = tempContext[t];
-                          t6 = translation.x;
-                          if (typeof t6 !== "number")
-                            throw t6.$negate();
-                          t6 = $.$negate$n(t6);
-                          t8 = translation.y;
-                          if (typeof t8 !== "number")
-                            throw t8.$negate();
-                          $.translate$2$x(t7, t6, $.$negate$n(t8));
+                          $.translate$2$x(tempContext[t], $.$negate$n(translation.x), $.$negate$n(translation.y));
                           if (t >= tempContext.length)
                             throw $.ioore(t);
                           $.fillRect$4$x(tempContext[t], translation.x, translation.y, t1, t1);
@@ -6948,13 +7731,9 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                         --t;
                     }
                 t = 9;
-              case 27:
-              case 28:
-              case 29:
-              case 30:
-              case 31:
-              case 32:
-              case 33:
+              case 6:
+              case 7:
+              case 8:
                 L3:
                   while (true)
                     switch (state0) {
@@ -6969,63 +7748,40 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                               if (iS < 0 || iS >= t6.length)
                                 throw $.ioore(iS);
                               t6 = t6[iS];
-                            case 27:
-                              state0 = 0;
-                              t6 = $.$index$asx(t6, jS);
-                            case 28:
+                            case 6:
                               state0 = 0;
                             default:
-                              if (state0 === 33 || state0 === 32 || state0 === 31 || state0 === 30 || state0 === 29 || state0 === 0 && $.$index$asx(t6, t).get$full())
+                              if (state0 === 8 || state0 === 7 || state0 === 0 && $.$index$asx($.$index$asx(t6, jS), t).get$full())
                                 switch (state0) {
                                   case 0:
                                     t6 = this.world.tiles;
                                     if (iS >= t6.length)
                                       throw $.ioore(iS);
                                     t6 = t6[iS];
-                                  case 29:
+                                  case 7:
                                     state0 = 0;
-                                    t6 = $.$index$asx(t6, jS);
-                                  case 30:
-                                    state0 = 0;
-                                    index = $.get$index$x($.$index$asx(t6, t));
-                                  case 31:
-                                    state0 = 0;
-                                    t6 = $.getInterceptor$n(index);
-                                  default:
-                                    if (state0 === 33 || state0 === 32 || state0 === 0 && !t6.$lt(index, 0))
+                                    index = $.get$index$x($.$index$asx($.$index$asx(t6, jS), t));
+                                  case 8:
+                                    if (state0 === 8 || state0 === 0 && t < 9)
                                       switch (state0) {
                                         case 0:
-                                          t7 = t + 1;
-                                        default:
-                                          if (state0 === 33 || state0 === 32 || state0 === 0 && t7 < 10)
-                                            switch (state0) {
-                                              case 0:
-                                                t8 = this.world.tiles;
-                                                if (iS >= t8.length)
-                                                  throw $.ioore(iS);
-                                                t8 = t8[iS];
-                                              case 32:
-                                                state0 = 0;
-                                                t8 = $.$index$asx(t8, jS);
-                                              case 33:
-                                                state0 = 0;
-                                                t7 = $.get$index$x($.$index$asx(t8, t7));
-                                                t7 = index == null ? t7 == null : index === t7;
-                                            }
-                                          else
-                                            t7 = false;
+                                          t6 = this.world.tiles;
+                                          if (iS >= t6.length)
+                                            throw $.ioore(iS);
+                                          t6 = t6[iS];
+                                        case 8:
+                                          state0 = 0;
+                                          indexAbove = $.get$index$x($.$index$asx($.$index$asx(t6, jS), t + 1));
+                                          if (index == null ? indexAbove == null : index === indexAbove)
+                                            break c$1;
+                                          if (indexAbove === 5 || indexAbove === 7 || indexAbove === 10 || indexAbove === 11 || indexAbove === 13 || indexAbove === 14 || indexAbove === 15)
+                                            break c$1;
                                       }
-                                    else
-                                      t7 = true;
-                                    if (t7)
-                                      break c$1;
                                     if (t >= tempContext.length)
                                       throw $.ioore(t);
-                                    t7 = tempContext[t];
-                                    t8 = $.engine.images;
-                                    $.drawImageScaledFromSource$9$x(t7, t8.$index(t8, "borders"), t6.$mul(index, t2) + 2, 2, t3, t3, 0, 0, t3, t3);
-                                    if (index === 5 || index === 7 || index === 10 || index === 11 || index === 13 || index === 14 || index === 15)
-                                      break L3;
+                                    t6 = tempContext[t];
+                                    t7 = $.engine.images;
+                                    $.drawImageScaledFromSource$9$x(t6, t7.$index(t7, "borders"), $.$mul$n(index, t2) + 2, 2, t3, t3, 0, 0, t3, t3);
                                 }
                           }
                         }
@@ -7043,1696 +7799,6 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                 ++i;
             }
         this.copyTerrain$0();
-    }
-  },
-  checkOperating$0: function() {
-    var t1, t2, t, t3, position, center, i, emitterCenter, t4, t5, target, lowestTile, j, t6, tileHeight, t7, terraformElement, height, tilesToRedraw, t8, targets, r, radius, dx, dy, truncated, absoluteDelta, turnRate, highestCreep, shell, sporeCenter;
-    for (t1 = this.tileSize, t2 = t1 / 2, t = 0; t3 = this.buildings, t < t3.length; ++t) {
-      t3[t].set$operating(false);
-      t3 = this.buildings;
-      if (t >= t3.length)
-        throw $.ioore(t);
-      t3 = t3[t];
-      if (t3.get$needsEnergy() && t3.get$active() && $.get$status$x(t3) === "IDLE") {
-        t3.set$energyTimer(t3.get$energyTimer() + 1);
-        t3 = this.buildings;
-        if (t >= t3.length)
-          throw $.ioore(t);
-        position = $.get$position$x(t3[t]);
-        t3 = this.buildings;
-        if (t >= t3.length)
-          throw $.ioore(t);
-        center = t3[t].getCenter$0();
-        t3 = this.buildings;
-        if (t >= t3.length)
-          throw $.ioore(t);
-        if ($.$eq(t3[t].get$imageID(), "analyzer")) {
-          t3 = this.buildings;
-          if (t >= t3.length)
-            throw $.ioore(t);
-          t3 = t3[t].get$energy() > 0;
-        } else
-          t3 = false;
-        if (t3) {
-          t3 = this.buildings;
-          if (t >= t3.length)
-            throw $.ioore(t);
-          t3 = t3[t];
-          if (t3.get$weaponTargetPosition() == null)
-            for (i = 0; t3 = this.emitters, i < t3.length; ++i) {
-              emitterCenter = t3[i].getCenter$0();
-              t3 = $.$sub$n(emitterCenter.x, center.x);
-              if (typeof t3 !== "number")
-                $.throwExpression(new $.ArgumentError(t3));
-              t3 = Math.pow(t3, 2);
-              t4 = $.$sub$n(emitterCenter.y, center.y);
-              if (typeof t4 !== "number")
-                $.throwExpression(new $.ArgumentError(t4));
-              t4 = Math.pow(t4, 2);
-              t5 = this.buildings;
-              if (t >= t5.length)
-                throw $.ioore(t);
-              t5 = t5[t].get$weaponRadius() * t1;
-              if (t3 + t4 <= Math.pow(t5, 2)) {
-                t3 = this.emitters;
-                if (i >= t3.length)
-                  throw $.ioore(i);
-                t3 = t3[i];
-                if (t3.get$building() == null) {
-                  t4 = this.buildings;
-                  if (t >= t4.length)
-                    throw $.ioore(t);
-                  t3.set$building(t4[t]);
-                  t4 = this.buildings;
-                  if (t >= t4.length)
-                    throw $.ioore(t);
-                  t4 = t4[t];
-                  t3 = this.emitters;
-                  if (i >= t3.length)
-                    throw $.ioore(i);
-                  t4.set$weaponTargetPosition($.get$position$x(t3[i]));
-                  break;
-                }
-              }
-            }
-          else {
-            if (t3.get$energyTimer() > 20) {
-              t3.set$energyTimer(0);
-              t3 = this.buildings;
-              if (t >= t3.length)
-                throw $.ioore(t);
-              t3 = t3[t];
-              t3.set$energy(t3.get$energy() - 1);
-            }
-            t3 = this.buildings;
-            if (t >= t3.length)
-              throw $.ioore(t);
-            t3[t].set$operating(true);
-          }
-        }
-        t3 = this.buildings;
-        if (t >= t3.length)
-          throw $.ioore(t);
-        if ($.$eq(t3[t].get$imageID(), "terp")) {
-          t3 = this.buildings;
-          if (t >= t3.length)
-            throw $.ioore(t);
-          t3 = t3[t].get$energy() > 0;
-        } else
-          t3 = false;
-        if (t3) {
-          t3 = this.buildings;
-          if (t >= t3.length)
-            throw $.ioore(t);
-          t3 = t3[t];
-          if (t3.get$weaponTargetPosition() == null) {
-            t4 = $.getInterceptor$x(position);
-            i = $.$sub$n(t4.get$x(position), t3.get$weaponRadius());
-            if (i !== (i | 0))
-              return this.checkOperating$0$bailout(1, position, t, center, i, t4, t2, t1);
-            target = null;
-            lowestTile = 10;
-            while (true) {
-              t3 = t4.get$x(position);
-              t5 = this.buildings;
-              if (t >= t5.length)
-                throw $.ioore(t);
-              if (!$.JSNumber_methods.$le(i, $.$add$ns(t3, t5[t].get$weaponRadius())))
-                break;
-              t3 = t4.get$y(position);
-              t5 = this.buildings;
-              if (t >= t5.length)
-                throw $.ioore(t);
-              j = $.$sub$n(t3, t5[t].get$weaponRadius());
-              if (typeof j !== "number")
-                return this.checkOperating$0$bailout(2, position, t, center, i, t4, t2, t1, $.JSNumber_methods, target, lowestTile, j);
-              t5 = i * t1 + t2;
-              while (true) {
-                t3 = t4.get$y(position);
-                t6 = this.buildings;
-                if (t >= t6.length)
-                  throw $.ioore(t);
-                if (!$.JSNumber_methods.$le(j, $.$add$ns(t3, t6[t].get$weaponRadius())))
-                  break;
-                if (this.withinWorld$2(i, j)) {
-                  t3 = center.x;
-                  if (typeof t3 !== "number")
-                    throw $.iae(t3);
-                  t3 = t5 - t3;
-                  t3 = Math.pow(t3, 2);
-                  t6 = center.y;
-                  if (typeof t6 !== "number")
-                    throw $.iae(t6);
-                  t6 = j * t1 + t2 - t6;
-                  t6 = Math.pow(t6, 2);
-                  tileHeight = this.getHighestTerrain$1(new $.Vector(i, j));
-                  t7 = this.buildings;
-                  if (t >= t7.length)
-                    throw $.ioore(t);
-                  t7 = t7[t].get$weaponRadius() * t1;
-                  if (t3 + t6 <= Math.pow(t7, 2)) {
-                    t3 = this.world.terraform;
-                    if (i < 0 || i >= t3.length)
-                      throw $.ioore(i);
-                    t3 = t3[i];
-                    if (typeof t3 !== "string" && (typeof t3 !== "object" || t3 === null || t3.constructor !== Array && !$.isJsIndexable(t3, t3[$.dispatchPropertyName])))
-                      return this.checkOperating$0$bailout(3, position, t, center, i, t4, t2, t1, $.JSNumber_methods, target, lowestTile, j, t3, $.JSNumber_methods, tileHeight);
-                    if (j >>> 0 !== j || j >= t3.length)
-                      throw $.ioore(j);
-                    t3 = $.$gt$n($.$index$asx(t3[j], "target"), -1) && tileHeight <= lowestTile;
-                  } else
-                    t3 = false;
-                  if (t3) {
-                    target = new $.Vector(i, j);
-                    lowestTile = tileHeight;
-                  }
-                }
-                ++j;
-              }
-              ++i;
-            }
-            if (target != null) {
-              t3 = this.buildings;
-              if (t >= t3.length)
-                throw $.ioore(t);
-              t3[t].set$weaponTargetPosition(target);
-            }
-          } else {
-            if (t3.get$energyTimer() > 20) {
-              t3.set$energyTimer(0);
-              t3 = this.buildings;
-              if (t >= t3.length)
-                throw $.ioore(t);
-              t3 = t3[t];
-              t3.set$energy(t3.get$energy() - 1);
-            }
-            t3 = this.buildings;
-            if (t >= t3.length)
-              throw $.ioore(t);
-            t3[t].set$operating(true);
-            t3 = this.world.terraform;
-            t4 = this.buildings;
-            if (t >= t4.length)
-              throw $.ioore(t);
-            t4 = t4[t].get$weaponTargetPosition();
-            t5 = $.getInterceptor$x(t4);
-            t6 = t5.get$x(t4);
-            if (t6 >>> 0 !== t6 || t6 >= t3.length)
-              throw $.ioore(t6);
-            terraformElement = $.$index$asx(t3[t6], t5.get$y(t4));
-            t4 = $.getInterceptor$asx(terraformElement);
-            t4.$indexSet(terraformElement, "progress", $.$add$ns(t4.$index(terraformElement, "progress"), 1));
-            if ($.$eq(t4.$index(terraformElement, "progress"), 100)) {
-              t4.$indexSet(terraformElement, "progress", 0);
-              t3 = this.buildings;
-              if (t >= t3.length)
-                throw $.ioore(t);
-              height = this.getHighestTerrain$1(t3[t].get$weaponTargetPosition());
-              tilesToRedraw = $.List_List($);
-              t3 = $.JSNumber_methods.$lt(height, t4.$index(terraformElement, "target"));
-              t5 = this.world;
-              t6 = this.buildings;
-              t5 = t5.tiles;
-              t7 = t6.length;
-              t6 = t6[t];
-              if (t3) {
-                if (t >= t7)
-                  throw $.ioore(t);
-                t3 = t6.get$weaponTargetPosition();
-                t6 = $.getInterceptor$x(t3);
-                t7 = t6.get$x(t3);
-                if (t7 >>> 0 !== t7 || t7 >= t5.length)
-                  throw $.ioore(t7);
-                t8 = height + 1;
-                $.$index$asx($.$index$asx(t5[t7], t6.get$y(t3)), t8).set$full(true);
-                t3 = this.buildings;
-                if (t >= t3.length)
-                  throw $.ioore(t);
-                t3 = t3[t].get$weaponTargetPosition();
-                t6 = $.getInterceptor$x(t3);
-                tilesToRedraw.push(new $.Vector3(t6.get$x(t3), t6.get$y(t3), t8));
-                t3 = this.buildings;
-                if (t >= t3.length)
-                  throw $.ioore(t);
-                t3 = $.$sub$n($.get$x$x(t3[t].get$weaponTargetPosition()), 1);
-                t6 = this.buildings;
-                if (t >= t6.length)
-                  throw $.ioore(t);
-                tilesToRedraw.push(new $.Vector3(t3, $.get$y$x(t6[t].get$weaponTargetPosition()), t8));
-                t6 = this.buildings;
-                if (t >= t6.length)
-                  throw $.ioore(t);
-                t6 = t6[t].get$weaponTargetPosition();
-                t3 = $.getInterceptor$x(t6);
-                tilesToRedraw.push(new $.Vector3(t3.get$x(t6), $.$sub$n(t3.get$y(t6), 1), t8));
-                t6 = this.buildings;
-                if (t >= t6.length)
-                  throw $.ioore(t);
-                t6 = $.$add$ns($.get$x$x(t6[t].get$weaponTargetPosition()), 1);
-                t3 = this.buildings;
-                if (t >= t3.length)
-                  throw $.ioore(t);
-                tilesToRedraw.push(new $.Vector3(t6, $.get$y$x(t3[t].get$weaponTargetPosition()), t8));
-                t3 = this.buildings;
-                if (t >= t3.length)
-                  throw $.ioore(t);
-                t3 = t3[t].get$weaponTargetPosition();
-                t6 = $.getInterceptor$x(t3);
-                tilesToRedraw.push(new $.Vector3(t6.get$x(t3), $.$add$ns(t6.get$y(t3), 1), t8));
-              } else {
-                if (t >= t7)
-                  throw $.ioore(t);
-                t3 = t6.get$weaponTargetPosition();
-                t6 = $.getInterceptor$x(t3);
-                t7 = t6.get$x(t3);
-                if (t7 >>> 0 !== t7 || t7 >= t5.length)
-                  throw $.ioore(t7);
-                $.$index$asx($.$index$asx(t5[t7], t6.get$y(t3)), height).set$full(false);
-                t3 = this.buildings;
-                if (t >= t3.length)
-                  throw $.ioore(t);
-                t3 = t3[t].get$weaponTargetPosition();
-                t6 = $.getInterceptor$x(t3);
-                tilesToRedraw.push(new $.Vector3(t6.get$x(t3), t6.get$y(t3), height));
-                t3 = this.buildings;
-                if (t >= t3.length)
-                  throw $.ioore(t);
-                t3 = $.$sub$n($.get$x$x(t3[t].get$weaponTargetPosition()), 1);
-                t6 = this.buildings;
-                if (t >= t6.length)
-                  throw $.ioore(t);
-                tilesToRedraw.push(new $.Vector3(t3, $.get$y$x(t6[t].get$weaponTargetPosition()), height));
-                t6 = this.buildings;
-                if (t >= t6.length)
-                  throw $.ioore(t);
-                t6 = t6[t].get$weaponTargetPosition();
-                t3 = $.getInterceptor$x(t6);
-                tilesToRedraw.push(new $.Vector3(t3.get$x(t6), $.$sub$n(t3.get$y(t6), 1), height));
-                t6 = this.buildings;
-                if (t >= t6.length)
-                  throw $.ioore(t);
-                t6 = $.$add$ns($.get$x$x(t6[t].get$weaponTargetPosition()), 1);
-                t3 = this.buildings;
-                if (t >= t3.length)
-                  throw $.ioore(t);
-                tilesToRedraw.push(new $.Vector3(t6, $.get$y$x(t3[t].get$weaponTargetPosition()), height));
-                t3 = this.buildings;
-                if (t >= t3.length)
-                  throw $.ioore(t);
-                t3 = t3[t].get$weaponTargetPosition();
-                t6 = $.getInterceptor$x(t3);
-                tilesToRedraw.push(new $.Vector3(t6.get$x(t3), $.$add$ns(t6.get$y(t3), 1), height));
-              }
-              this.redrawTile$1(tilesToRedraw);
-              t3 = this.buildings;
-              if (t >= t3.length)
-                throw $.ioore(t);
-              if (this.getHighestTerrain$1(t3[t].get$weaponTargetPosition()) === t4.$index(terraformElement, "target")) {
-                t3 = this.world.terraform;
-                t4 = this.buildings;
-                if (t >= t4.length)
-                  throw $.ioore(t);
-                t4 = t4[t].get$weaponTargetPosition();
-                t5 = $.getInterceptor$x(t4);
-                t6 = t5.get$x(t4);
-                if (t6 >>> 0 !== t6 || t6 >= t3.length)
-                  throw $.ioore(t6);
-                $.$indexSet$ax($.$index$asx(t3[t6], t5.get$y(t4)), "progress", 0);
-                t4 = this.world.terraform;
-                t5 = this.buildings;
-                if (t >= t5.length)
-                  throw $.ioore(t);
-                t5 = t5[t].get$weaponTargetPosition();
-                t6 = $.getInterceptor$x(t5);
-                t3 = t6.get$x(t5);
-                if (t3 >>> 0 !== t3 || t3 >= t4.length)
-                  throw $.ioore(t3);
-                $.$indexSet$ax($.$index$asx(t4[t3], t6.get$y(t5)), "target", -1);
-              }
-              t3 = this.buildings;
-              if (t >= t3.length)
-                throw $.ioore(t);
-              t3[t].set$weaponTargetPosition(null);
-              t3 = this.buildings;
-              if (t >= t3.length)
-                throw $.ioore(t);
-              t3[t].set$operating(false);
-            }
-          }
-        } else {
-          t3 = this.buildings;
-          if (t >= t3.length)
-            throw $.ioore(t);
-          if ($.$eq(t3[t].get$imageID(), "shield")) {
-            t3 = this.buildings;
-            if (t >= t3.length)
-              throw $.ioore(t);
-            t3 = t3[t].get$energy() > 0;
-          } else
-            t3 = false;
-          if (t3) {
-            t3 = this.buildings;
-            if (t >= t3.length)
-              throw $.ioore(t);
-            t3 = t3[t];
-            if (t3.get$energyTimer() > 20) {
-              t3.set$energyTimer(0);
-              t3 = this.buildings;
-              if (t >= t3.length)
-                throw $.ioore(t);
-              t3 = t3[t];
-              t3.set$energy(t3.get$energy() - 1);
-            }
-            t3 = this.buildings;
-            if (t >= t3.length)
-              throw $.ioore(t);
-            t3[t].set$operating(true);
-          } else {
-            t3 = this.buildings;
-            if (t >= t3.length)
-              throw $.ioore(t);
-            if ($.$eq(t3[t].get$imageID(), "cannon")) {
-              t3 = this.buildings;
-              if (t >= t3.length)
-                throw $.ioore(t);
-              t3 = t3[t];
-              t3 = t3.get$energy() > 0 && t3.get$energyTimer() > 10;
-            } else
-              t3 = false;
-            if (t3) {
-              t3 = this.buildings;
-              if (t >= t3.length)
-                throw $.ioore(t);
-              t3 = t3[t];
-              if (!t3.get$rotating()) {
-                t3.set$energyTimer(0);
-                t3 = this.buildings;
-                if (t >= t3.length)
-                  throw $.ioore(t);
-                height = this.getHighestTerrain$1($.get$position$x(t3[t]));
-                targets = $.List_List($);
-                t3 = $.getInterceptor$x(position);
-                r = 0;
-                while (true) {
-                  t4 = this.buildings;
-                  if (t >= t4.length)
-                    throw $.ioore(t);
-                  t4 = t4[t].get$weaponRadius();
-                  if (!(r < t4 + 1))
-                    break;
-                  radius = r * t1;
-                  i = $.$sub$n(t3.get$x(position), t4);
-                  if (i !== (i | 0))
-                    return this.checkOperating$0$bailout(4, position, t, center, i, 0, t2, t1, 0, 0, 0, 0, t3, 0, 0, targets, radius, r, height);
-                  while (true) {
-                    t4 = t3.get$x(position);
-                    t5 = this.buildings;
-                    if (t >= t5.length)
-                      throw $.ioore(t);
-                    if (!$.JSNumber_methods.$le(i, $.$add$ns(t4, t5[t].get$weaponRadius())))
-                      break;
-                    t4 = t3.get$y(position);
-                    t5 = this.buildings;
-                    if (t >= t5.length)
-                      throw $.ioore(t);
-                    j = $.$sub$n(t4, t5[t].get$weaponRadius());
-                    if (typeof j !== "number")
-                      return this.checkOperating$0$bailout(5, position, t, center, i, 0, t2, t1, $.JSNumber_methods, 0, 0, j, t3, 0, 0, targets, radius, r, height);
-                    t5 = i * t1 + t2;
-                    while (true) {
-                      t4 = t3.get$y(position);
-                      t6 = this.buildings;
-                      if (t >= t6.length)
-                        throw $.ioore(t);
-                      if (!$.JSNumber_methods.$le(j, $.$add$ns(t4, t6[t].get$weaponRadius())))
-                        break;
-                      if (this.withinWorld$2(i, j))
-                        if (this.getHighestTerrain$1(new $.Vector(i, j)) <= height) {
-                          t4 = center.x;
-                          if (typeof t4 !== "number")
-                            throw $.iae(t4);
-                          t4 = t5 - t4;
-                          t4 = Math.pow(t4, 2);
-                          t6 = center.y;
-                          if (typeof t6 !== "number")
-                            throw $.iae(t6);
-                          t6 = j * t1 + t2 - t6;
-                          t6 = Math.pow(t6, 2);
-                          if (t4 + t6 <= Math.pow(radius, 2)) {
-                            t4 = this.world.tiles;
-                            if (i < 0 || i >= t4.length)
-                              throw $.ioore(i);
-                            t4 = t4[i];
-                            if (typeof t4 !== "string" && (typeof t4 !== "object" || t4 === null || t4.constructor !== Array && !$.isJsIndexable(t4, t4[$.dispatchPropertyName])))
-                              return this.checkOperating$0$bailout(6, position, t, center, i, t4, t2, t1, $.JSNumber_methods, 0, 0, j, t3, $.JSNumber_methods, 0, targets, radius, r, height);
-                            if (j >>> 0 !== j || j >= t4.length)
-                              throw $.ioore(j);
-                            t4 = $.$gt$n($.$index$asx(t4[j], 0).get$creep(), 0);
-                          } else
-                            t4 = false;
-                          if (t4)
-                            targets.push(new $.Vector(i, j));
-                        }
-                      ++j;
-                    }
-                    ++i;
-                  }
-                  ++r;
-                }
-                if (targets.length > 0) {
-                  $.Helper_shuffle(targets);
-                  if (0 >= targets.length)
-                    throw $.ioore(0);
-                  dx = $.$sub$n($.$add$ns($.$mul$n($.get$x$x(targets[0]), t1), t2), center.x);
-                  if (0 >= targets.length)
-                    throw $.ioore(0);
-                  dy = $.$sub$n($.$add$ns($.$mul$n($.get$y$x(targets[0]), t1), t2), center.y);
-                  t3 = this.buildings;
-                  if (t >= t3.length)
-                    throw $.ioore(t);
-                  t3 = t3[t];
-                  if (typeof dy !== "number")
-                    $.throwExpression(new $.ArgumentError(dy));
-                  if (typeof dx !== "number")
-                    $.throwExpression(new $.ArgumentError(dx));
-                  t4 = Math.floor((Math.atan2(dy, dx) + 1.5707963267948966) * 57.29577951308232);
-                  if (isNaN(t4))
-                    $.throwExpression(new $.UnsupportedError("NaN"));
-                  if (t4 == Infinity || t4 == -Infinity)
-                    $.throwExpression(new $.UnsupportedError("Infinity"));
-                  truncated = t4 < 0 ? Math.ceil(t4) : Math.floor(t4);
-                  t3.set$targetAngle(truncated == -0.0 ? 0 : truncated);
-                  t3 = this.buildings;
-                  if (t >= t3.length)
-                    throw $.ioore(t);
-                  t3 = t3[t];
-                  if (0 >= targets.length)
-                    throw $.ioore(0);
-                  t4 = targets[0];
-                  t5 = $.getInterceptor$x(t4);
-                  t3.set$weaponTargetPosition(new $.Vector(t5.get$x(t4), t5.get$y(t4)));
-                  t4 = this.buildings;
-                  if (t >= t4.length)
-                    throw $.ioore(t);
-                  t4[t].set$rotating(true);
-                }
-              } else {
-                t4 = t3.get$angle();
-                t5 = t3.get$targetAngle();
-                if (t4 !== t5) {
-                  t3 = $.getInterceptor$n(t5);
-                  absoluteDelta = Math.abs(t3.$sub(t5, t4));
-                  turnRate = absoluteDelta < 5 ? absoluteDelta : 5;
-                  if (absoluteDelta <= 180) {
-                    t4 = this.buildings;
-                    if (t >= t4.length)
-                      throw $.ioore(t);
-                    t4 = t4[t];
-                    t6 = t4.get$angle();
-                    if (t3.$lt(t5, t6))
-                      t4.set$angle(t6 - turnRate);
-                    else
-                      t4.set$angle(t6 + turnRate);
-                  } else {
-                    t4 = this.buildings;
-                    if (t >= t4.length)
-                      throw $.ioore(t);
-                    t4 = t4[t];
-                    t6 = t4.get$angle();
-                    if (t3.$lt(t5, t6))
-                      t4.set$angle(t6 + turnRate);
-                    else
-                      t4.set$angle(t6 - turnRate);
-                  }
-                  t3 = this.buildings;
-                  if (t >= t3.length)
-                    throw $.ioore(t);
-                  t3 = t3[t];
-                  t4 = t3.get$angle();
-                  if (t4 > 180)
-                    t3.set$angle(t4 - 360);
-                  t3 = this.buildings;
-                  if (t >= t3.length)
-                    throw $.ioore(t);
-                  t3 = t3[t];
-                  t4 = t3.get$angle();
-                  if (t4 < -180)
-                    t3.set$angle(t4 + 360);
-                } else {
-                  t4 = this.world.tiles;
-                  t3 = t3.get$weaponTargetPosition();
-                  t5 = $.getInterceptor$x(t3);
-                  t6 = t5.get$x(t3);
-                  if (t6 >>> 0 !== t6 || t6 >= t4.length)
-                    throw $.ioore(t6);
-                  t3 = $.$index$asx($.$index$asx(t4[t6], t5.get$y(t3)), 0);
-                  t3.set$creep($.$sub$n(t3.get$creep(), 10));
-                  t3 = this.world.tiles;
-                  t4 = this.buildings;
-                  if (t >= t4.length)
-                    throw $.ioore(t);
-                  t4 = t4[t].get$weaponTargetPosition();
-                  t5 = $.getInterceptor$x(t4);
-                  t6 = t5.get$x(t4);
-                  if (t6 >>> 0 !== t6 || t6 >= t3.length)
-                    throw $.ioore(t6);
-                  if ($.$lt$n($.$index$asx($.$index$asx(t3[t6], t5.get$y(t4)), 0).get$creep(), 0)) {
-                    t3 = this.world.tiles;
-                    t4 = this.buildings;
-                    if (t >= t4.length)
-                      throw $.ioore(t);
-                    t4 = t4[t].get$weaponTargetPosition();
-                    t5 = $.getInterceptor$x(t4);
-                    t6 = t5.get$x(t4);
-                    if (t6 >>> 0 !== t6 || t6 >= t3.length)
-                      throw $.ioore(t6);
-                    $.$index$asx($.$index$asx(t3[t6], t5.get$y(t4)), 0).set$creep(0);
-                  }
-                  t3 = this.buildings;
-                  if (t >= t3.length)
-                    throw $.ioore(t);
-                  t3[t].set$rotating(false);
-                  t3 = this.buildings;
-                  if (t >= t3.length)
-                    throw $.ioore(t);
-                  t3 = t3[t];
-                  t3.set$energy(t3.get$energy() - 1);
-                  t3 = this.buildings;
-                  if (t >= t3.length)
-                    throw $.ioore(t);
-                  t3[t].set$operating(true);
-                  t3 = this.smokes;
-                  t4 = this.buildings;
-                  if (t >= t4.length)
-                    throw $.ioore(t);
-                  $.$add$ns($.$mul$n($.get$x$x(t4[t].get$weaponTargetPosition()), t1), t2);
-                  t4 = this.buildings;
-                  if (t >= t4.length)
-                    throw $.ioore(t);
-                  $.$add$ns($.$mul$n($.get$y$x(t4[t].get$weaponTargetPosition()), t1), t2);
-                  t4 = new $.Smoke(null, null, null);
-                  t4.frame = 0;
-                  t4.imageID = "smoke";
-                  t3.push(t4);
-                  $.engine.playSound$2("laser", position);
-                }
-              }
-            } else {
-              t3 = this.buildings;
-              if (t >= t3.length)
-                throw $.ioore(t);
-              if ($.$eq(t3[t].get$imageID(), "mortar")) {
-                t3 = this.buildings;
-                if (t >= t3.length)
-                  throw $.ioore(t);
-                t3 = t3[t];
-                t3 = t3.get$energy() > 0 && t3.get$energyTimer() > 200;
-              } else
-                t3 = false;
-              if (t3) {
-                t3 = this.buildings;
-                if (t >= t3.length)
-                  throw $.ioore(t);
-                t3[t].set$energyTimer(0);
-                t3 = $.getInterceptor$x(position);
-                t4 = t3.get$x(position);
-                t5 = this.buildings;
-                if (t >= t5.length)
-                  throw $.ioore(t);
-                i = $.$sub$n(t4, t5[t].get$weaponRadius());
-                if (i !== (i | 0))
-                  return this.checkOperating$0$bailout(7, position, t, center, i, 0, t2, t1, 0, 0, 0, 0, t3);
-                target = null;
-                highestCreep = 0;
-                while (true) {
-                  t4 = t3.get$x(position);
-                  t5 = this.buildings;
-                  if (t >= t5.length)
-                    throw $.ioore(t);
-                  if (!$.JSNumber_methods.$le(i, $.$add$ns(t4, t5[t].get$weaponRadius())))
-                    break;
-                  t4 = t3.get$y(position);
-                  t5 = this.buildings;
-                  if (t >= t5.length)
-                    throw $.ioore(t);
-                  j = $.$sub$n(t4, t5[t].get$weaponRadius());
-                  if (typeof j !== "number")
-                    return this.checkOperating$0$bailout(8, position, t, center, i, 0, t2, t1, $.JSNumber_methods, target, 0, j, t3, 0, 0, 0, 0, 0, 0, highestCreep);
-                  t5 = i * t1 + t2;
-                  while (true) {
-                    t4 = t3.get$y(position);
-                    t6 = this.buildings;
-                    if (t >= t6.length)
-                      throw $.ioore(t);
-                    if (!$.JSNumber_methods.$le(j, $.$add$ns(t4, t6[t].get$weaponRadius())))
-                      break;
-                    if (this.withinWorld$2(i, j)) {
-                      t4 = center.x;
-                      if (typeof t4 !== "number")
-                        throw $.iae(t4);
-                      t4 = t5 - t4;
-                      t4 = Math.pow(t4, 2);
-                      t6 = center.y;
-                      if (typeof t6 !== "number")
-                        throw $.iae(t6);
-                      t6 = j * t1 + t2 - t6;
-                      t6 = Math.pow(t6, 2);
-                      t7 = this.buildings;
-                      if (t >= t7.length)
-                        throw $.ioore(t);
-                      t7 = t7[t].get$weaponRadius() * t1;
-                      if (t4 + t6 <= Math.pow(t7, 2)) {
-                        t4 = this.world.tiles;
-                        if (i < 0 || i >= t4.length)
-                          throw $.ioore(i);
-                        t4 = t4[i];
-                        if (typeof t4 !== "string" && (typeof t4 !== "object" || t4 === null || t4.constructor !== Array && !$.isJsIndexable(t4, t4[$.dispatchPropertyName])))
-                          return this.checkOperating$0$bailout(9, position, t, center, i, t4, t2, t1, $.JSNumber_methods, target, 0, j, t3, $.JSNumber_methods, 0, 0, 0, 0, 0, highestCreep);
-                        if (j >>> 0 !== j || j >= t4.length)
-                          throw $.ioore(j);
-                        if ($.$gt$n($.$index$asx(t4[j], 0).get$creep(), 0)) {
-                          t4 = this.world.tiles;
-                          if (i >= t4.length)
-                            throw $.ioore(i);
-                          t4 = t4[i];
-                          if (typeof t4 !== "string" && (typeof t4 !== "object" || t4 === null || t4.constructor !== Array && !$.isJsIndexable(t4, t4[$.dispatchPropertyName])))
-                            return this.checkOperating$0$bailout(10, position, t, center, i, t4, t2, t1, $.JSNumber_methods, target, 0, j, t3, $.JSNumber_methods, 0, 0, 0, 0, 0, highestCreep);
-                          if (j >= t4.length)
-                            throw $.ioore(j);
-                          t4 = $.$ge$n($.$index$asx(t4[j], 0).get$creep(), highestCreep);
-                        } else
-                          t4 = false;
-                      } else
-                        t4 = false;
-                      if (t4) {
-                        t4 = this.world.tiles;
-                        if (i < 0 || i >= t4.length)
-                          throw $.ioore(i);
-                        t4 = t4[i];
-                        if (typeof t4 !== "string" && (typeof t4 !== "object" || t4 === null || t4.constructor !== Array && !$.isJsIndexable(t4, t4[$.dispatchPropertyName])))
-                          return this.checkOperating$0$bailout(11, position, t, center, i, t4, t2, t1, $.JSNumber_methods, 0, 0, j, t3, $.JSNumber_methods);
-                        if (j >>> 0 !== j || j >= t4.length)
-                          throw $.ioore(j);
-                        highestCreep = $.$index$asx(t4[j], 0).get$creep();
-                        target = new $.Vector(i, j);
-                      }
-                    }
-                    ++j;
-                  }
-                  ++i;
-                }
-                if (target != null) {
-                  $.engine.playSound$2("shot", position);
-                  shell = new $.Shell(center, new $.Vector($.$add$ns($.$mul$n(target.x, t1), t2), $.$add$ns($.$mul$n(target.y, t1), t2)), new $.Vector(0, 0), "shell", false, 0, 0);
-                  shell.init$0();
-                  this.shells.push(shell);
-                  t3 = this.buildings;
-                  if (t >= t3.length)
-                    throw $.ioore(t);
-                  t3 = t3[t];
-                  t3.set$energy(t3.get$energy() - 1);
-                }
-              } else {
-                t3 = this.buildings;
-                if (t >= t3.length)
-                  throw $.ioore(t);
-                if ($.$eq(t3[t].get$imageID(), "beam")) {
-                  t3 = this.buildings;
-                  if (t >= t3.length)
-                    throw $.ioore(t);
-                  t3 = t3[t];
-                  t3 = t3.get$energy() > 0 && t3.get$energyTimer() > 0;
-                } else
-                  t3 = false;
-                if (t3) {
-                  t3 = this.buildings;
-                  if (t >= t3.length)
-                    throw $.ioore(t);
-                  t3[t].set$energyTimer(0);
-                  for (i = 0; t3 = this.spores, i < t3.length; ++i) {
-                    sporeCenter = t3[i].getCenter$0();
-                    t3 = $.$sub$n(sporeCenter.x, center.x);
-                    if (typeof t3 !== "number")
-                      $.throwExpression(new $.ArgumentError(t3));
-                    t3 = Math.pow(t3, 2);
-                    t4 = $.$sub$n(sporeCenter.y, center.y);
-                    if (typeof t4 !== "number")
-                      $.throwExpression(new $.ArgumentError(t4));
-                    t4 = Math.pow(t4, 2);
-                    t5 = this.buildings;
-                    if (t >= t5.length)
-                      throw $.ioore(t);
-                    t5 = t5[t].get$weaponRadius() * t1;
-                    if (t3 + t4 <= Math.pow(t5, 2)) {
-                      t3 = this.buildings;
-                      if (t >= t3.length)
-                        throw $.ioore(t);
-                      t3[t].set$weaponTargetPosition(sporeCenter);
-                      t3 = this.buildings;
-                      if (t >= t3.length)
-                        throw $.ioore(t);
-                      t3 = t3[t];
-                      t3.set$energy(t3.get$energy() - 0.1);
-                      t3 = this.buildings;
-                      if (t >= t3.length)
-                        throw $.ioore(t);
-                      t3[t].set$operating(true);
-                      t3 = this.spores;
-                      if (i >= t3.length)
-                        throw $.ioore(i);
-                      t3 = t3[i];
-                      t3.set$health(t3.get$health() - 2);
-                      t3 = this.spores;
-                      if (i >= t3.length)
-                        throw $.ioore(i);
-                      t3 = t3[i];
-                      if (t3.get$health() <= 0) {
-                        $.set$remove$ax(t3, true);
-                        t3 = $.engine;
-                        t4 = this.spores;
-                        if (i >= t4.length)
-                          throw $.ioore(i);
-                        t4 = $.get$position$x(t4[i]);
-                        t5 = $.getInterceptor$x(t4);
-                        t6 = Math.floor($.$div$n(t5.get$x(t4), $.game.tileSize));
-                        if (isNaN(t6))
-                          $.throwExpression(new $.UnsupportedError("NaN"));
-                        if (t6 == Infinity || t6 == -Infinity)
-                          $.throwExpression(new $.UnsupportedError("Infinity"));
-                        truncated = t6 < 0 ? $.JSNumber_methods.ceilToDouble$0(t6) : $.JSNumber_methods.floorToDouble$0(t6);
-                        t6 = truncated == -0.0 ? 0 : truncated;
-                        t4 = Math.floor($.$div$n(t5.get$y(t4), $.game.tileSize));
-                        if (isNaN(t4))
-                          $.throwExpression(new $.UnsupportedError("NaN"));
-                        if (t4 == Infinity || t4 == -Infinity)
-                          $.throwExpression(new $.UnsupportedError("Infinity"));
-                        truncated = t4 < 0 ? $.JSNumber_methods.ceilToDouble$0(t4) : $.JSNumber_methods.floorToDouble$0(t4);
-                        t4 = truncated == -0.0 ? 0 : truncated;
-                        t3.playSound$2("explosion", new $.Vector(t6, t4));
-                        t4 = this.explosions;
-                        t6 = new $.Explosion(null, null, null);
-                        t6.frame = 0;
-                        t6.imageID = "explosion";
-                        t4.push(t6);
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  checkOperating$0$bailout: function(state0, position, t, center, i, t4, t2, t1, t6, target, lowestTile, j, t3, t7, tileHeight, targets, radius, r, height, highestCreep) {
-    switch (state0) {
-      case 0:
-        t1 = this.tileSize;
-        t2 = t1 / 2;
-        t = 0;
-      default:
-        var emitterCenter, t5, t8, terraformElement, tilesToRedraw, dx, dy, truncated, absoluteDelta, turnRate, shell, sporeCenter;
-        L0:
-          while (true)
-            switch (state0) {
-              case 0:
-                t3 = this.buildings;
-                if (!(t < t3.length))
-                  break L0;
-                t3[t].set$operating(false);
-                t3 = this.buildings;
-                if (t >= t3.length)
-                  throw $.ioore(t);
-                t3 = t3[t];
-              default:
-                if (state0 === 11 || state0 === 10 || state0 === 9 || state0 === 8 || state0 === 7 || state0 === 6 || state0 === 5 || state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && t3.get$needsEnergy() && t3.get$active() && $.get$status$x(t3) === "IDLE")
-                  switch (state0) {
-                    case 0:
-                      t3.set$energyTimer(t3.get$energyTimer() + 1);
-                      t3 = this.buildings;
-                      if (t >= t3.length)
-                        throw $.ioore(t);
-                      position = $.get$position$x(t3[t]);
-                      t3 = this.buildings;
-                      if (t >= t3.length)
-                        throw $.ioore(t);
-                      center = t3[t].getCenter$0();
-                      t3 = this.buildings;
-                      if (t >= t3.length)
-                        throw $.ioore(t);
-                      if ($.$eq(t3[t].get$imageID(), "analyzer")) {
-                        t3 = this.buildings;
-                        if (t >= t3.length)
-                          throw $.ioore(t);
-                        t3 = t3[t].get$energy() > 0;
-                      } else
-                        t3 = false;
-                      if (t3) {
-                        t3 = this.buildings;
-                        if (t >= t3.length)
-                          throw $.ioore(t);
-                        t3 = t3[t];
-                        if (t3.get$weaponTargetPosition() == null)
-                          for (i = 0; t3 = this.emitters, i < t3.length; ++i) {
-                            emitterCenter = t3[i].getCenter$0();
-                            t3 = $.$sub$n(emitterCenter.x, center.x);
-                            if (typeof t3 !== "number")
-                              $.throwExpression(new $.ArgumentError(t3));
-                            t3 = Math.pow(t3, 2);
-                            t4 = $.$sub$n(emitterCenter.y, center.y);
-                            if (typeof t4 !== "number")
-                              $.throwExpression(new $.ArgumentError(t4));
-                            t4 = Math.pow(t4, 2);
-                            t5 = this.buildings;
-                            if (t >= t5.length)
-                              throw $.ioore(t);
-                            t5 = t5[t].get$weaponRadius() * t1;
-                            if (t3 + t4 <= Math.pow(t5, 2)) {
-                              t3 = this.emitters;
-                              if (i >= t3.length)
-                                throw $.ioore(i);
-                              t3 = t3[i];
-                              if (t3.get$building() == null) {
-                                t4 = this.buildings;
-                                if (t >= t4.length)
-                                  throw $.ioore(t);
-                                t3.set$building(t4[t]);
-                                t4 = this.buildings;
-                                if (t >= t4.length)
-                                  throw $.ioore(t);
-                                t4 = t4[t];
-                                t3 = this.emitters;
-                                if (i >= t3.length)
-                                  throw $.ioore(i);
-                                t4.set$weaponTargetPosition($.get$position$x(t3[i]));
-                                break;
-                              }
-                            }
-                          }
-                        else {
-                          if (t3.get$energyTimer() > 20) {
-                            t3.set$energyTimer(0);
-                            t3 = this.buildings;
-                            if (t >= t3.length)
-                              throw $.ioore(t);
-                            t3 = t3[t];
-                            t3.set$energy(t3.get$energy() - 1);
-                          }
-                          t3 = this.buildings;
-                          if (t >= t3.length)
-                            throw $.ioore(t);
-                          t3[t].set$operating(true);
-                        }
-                      }
-                      t3 = this.buildings;
-                      if (t >= t3.length)
-                        throw $.ioore(t);
-                      if ($.$eq(t3[t].get$imageID(), "terp")) {
-                        t3 = this.buildings;
-                        if (t >= t3.length)
-                          throw $.ioore(t);
-                        t3 = t3[t].get$energy() > 0;
-                      } else
-                        t3 = false;
-                    default:
-                      if (state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && t3)
-                        switch (state0) {
-                          case 0:
-                            t3 = this.buildings;
-                            if (t >= t3.length)
-                              throw $.ioore(t);
-                            t3 = t3[t];
-                          default:
-                            if (state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && t3.get$weaponTargetPosition() == null)
-                              switch (state0) {
-                                case 0:
-                                  t4 = $.getInterceptor$x(position);
-                                  i = $.$sub$n(t4.get$x(position), t3.get$weaponRadius());
-                                case 1:
-                                  state0 = 0;
-                                  target = null;
-                                  lowestTile = 10;
-                                default:
-                                  L1:
-                                    while (true)
-                                      switch (state0) {
-                                        case 0:
-                                          t3 = t4.get$x(position);
-                                          t5 = this.buildings;
-                                          if (t >= t5.length)
-                                            throw $.ioore(t);
-                                          t6 = $.getInterceptor$n(i);
-                                          if (!t6.$le(i, $.$add$ns(t3, t5[t].get$weaponRadius())))
-                                            break L1;
-                                          t3 = t4.get$y(position);
-                                          t5 = this.buildings;
-                                          if (t >= t5.length)
-                                            throw $.ioore(t);
-                                          j = $.$sub$n(t3, t5[t].get$weaponRadius());
-                                        case 2:
-                                          state0 = 0;
-                                        case 3:
-                                          L2:
-                                            while (true)
-                                              switch (state0) {
-                                                case 0:
-                                                  t3 = t4.get$y(position);
-                                                  t5 = this.buildings;
-                                                  if (t >= t5.length)
-                                                    throw $.ioore(t);
-                                                  t7 = $.getInterceptor$n(j);
-                                                  if (!t7.$le(j, $.$add$ns(t3, t5[t].get$weaponRadius())))
-                                                    break L2;
-                                                case 3:
-                                                  if (state0 === 3 || state0 === 0 && this.withinWorld$2(i, j))
-                                                    switch (state0) {
-                                                      case 0:
-                                                        t3 = $.$sub$n($.$add$ns(t6.$mul(i, t1), t2), center.x);
-                                                        if (typeof t3 !== "number")
-                                                          $.throwExpression(new $.ArgumentError(t3));
-                                                        t3 = Math.pow(t3, 2);
-                                                        t5 = $.$sub$n($.$add$ns(t7.$mul(j, t1), t2), center.y);
-                                                        if (typeof t5 !== "number")
-                                                          $.throwExpression(new $.ArgumentError(t5));
-                                                        t5 = Math.pow(t5, 2);
-                                                        tileHeight = this.getHighestTerrain$1(new $.Vector(i, j));
-                                                        t8 = this.buildings;
-                                                        if (t >= t8.length)
-                                                          throw $.ioore(t);
-                                                        t8 = t8[t].get$weaponRadius() * t1;
-                                                      case 3:
-                                                        if (state0 === 3 || state0 === 0 && t3 + t5 <= Math.pow(t8, 2))
-                                                          switch (state0) {
-                                                            case 0:
-                                                              t3 = this.world.terraform;
-                                                              if (i >>> 0 !== i || i >= t3.length)
-                                                                throw $.ioore(i);
-                                                              t3 = t3[i];
-                                                            case 3:
-                                                              state0 = 0;
-                                                              t3 = $.$gt$n($.$index$asx($.$index$asx(t3, j), "target"), -1) && tileHeight <= lowestTile;
-                                                          }
-                                                        else
-                                                          t3 = false;
-                                                        if (t3) {
-                                                          target = new $.Vector(i, j);
-                                                          lowestTile = tileHeight;
-                                                        }
-                                                    }
-                                                  j = t7.$add(j, 1);
-                                              }
-                                          i = t6.$add(i, 1);
-                                      }
-                                  if (target != null) {
-                                    t3 = this.buildings;
-                                    if (t >= t3.length)
-                                      throw $.ioore(t);
-                                    t3[t].set$weaponTargetPosition(target);
-                                  }
-                              }
-                            else {
-                              if (t3.get$energyTimer() > 20) {
-                                t3.set$energyTimer(0);
-                                t3 = this.buildings;
-                                if (t >= t3.length)
-                                  throw $.ioore(t);
-                                t3 = t3[t];
-                                t3.set$energy(t3.get$energy() - 1);
-                              }
-                              t3 = this.buildings;
-                              if (t >= t3.length)
-                                throw $.ioore(t);
-                              t3[t].set$operating(true);
-                              t3 = this.world.terraform;
-                              t4 = this.buildings;
-                              if (t >= t4.length)
-                                throw $.ioore(t);
-                              t4 = t4[t].get$weaponTargetPosition();
-                              t5 = $.getInterceptor$x(t4);
-                              t6 = t5.get$x(t4);
-                              if (t6 >>> 0 !== t6 || t6 >= t3.length)
-                                throw $.ioore(t6);
-                              terraformElement = $.$index$asx(t3[t6], t5.get$y(t4));
-                              t4 = $.getInterceptor$asx(terraformElement);
-                              t4.$indexSet(terraformElement, "progress", $.$add$ns(t4.$index(terraformElement, "progress"), 1));
-                              if ($.$eq(t4.$index(terraformElement, "progress"), 100)) {
-                                t4.$indexSet(terraformElement, "progress", 0);
-                                t3 = this.buildings;
-                                if (t >= t3.length)
-                                  throw $.ioore(t);
-                                height = this.getHighestTerrain$1(t3[t].get$weaponTargetPosition());
-                                tilesToRedraw = $.List_List($);
-                                t3 = $.JSNumber_methods.$lt(height, t4.$index(terraformElement, "target"));
-                                t5 = this.world;
-                                t6 = this.buildings;
-                                if (t3) {
-                                  t3 = t5.tiles;
-                                  if (t >= t6.length)
-                                    throw $.ioore(t);
-                                  t6 = t6[t].get$weaponTargetPosition();
-                                  t5 = $.getInterceptor$x(t6);
-                                  t7 = t5.get$x(t6);
-                                  if (t7 >>> 0 !== t7 || t7 >= t3.length)
-                                    throw $.ioore(t7);
-                                  t8 = height + 1;
-                                  $.$index$asx($.$index$asx(t3[t7], t5.get$y(t6)), t8).set$full(true);
-                                  t6 = this.buildings;
-                                  if (t >= t6.length)
-                                    throw $.ioore(t);
-                                  t6 = t6[t].get$weaponTargetPosition();
-                                  t5 = $.getInterceptor$x(t6);
-                                  tilesToRedraw.push(new $.Vector3(t5.get$x(t6), t5.get$y(t6), t8));
-                                  t6 = this.buildings;
-                                  if (t >= t6.length)
-                                    throw $.ioore(t);
-                                  t6 = $.$sub$n($.get$x$x(t6[t].get$weaponTargetPosition()), 1);
-                                  t5 = this.buildings;
-                                  if (t >= t5.length)
-                                    throw $.ioore(t);
-                                  tilesToRedraw.push(new $.Vector3(t6, $.get$y$x(t5[t].get$weaponTargetPosition()), t8));
-                                  t5 = this.buildings;
-                                  if (t >= t5.length)
-                                    throw $.ioore(t);
-                                  t5 = t5[t].get$weaponTargetPosition();
-                                  t6 = $.getInterceptor$x(t5);
-                                  tilesToRedraw.push(new $.Vector3(t6.get$x(t5), $.$sub$n(t6.get$y(t5), 1), t8));
-                                  t5 = this.buildings;
-                                  if (t >= t5.length)
-                                    throw $.ioore(t);
-                                  t5 = $.$add$ns($.get$x$x(t5[t].get$weaponTargetPosition()), 1);
-                                  t6 = this.buildings;
-                                  if (t >= t6.length)
-                                    throw $.ioore(t);
-                                  tilesToRedraw.push(new $.Vector3(t5, $.get$y$x(t6[t].get$weaponTargetPosition()), t8));
-                                  t6 = this.buildings;
-                                  if (t >= t6.length)
-                                    throw $.ioore(t);
-                                  t6 = t6[t].get$weaponTargetPosition();
-                                  t5 = $.getInterceptor$x(t6);
-                                  tilesToRedraw.push(new $.Vector3(t5.get$x(t6), $.$add$ns(t5.get$y(t6), 1), t8));
-                                } else {
-                                  t3 = t5.tiles;
-                                  if (t >= t6.length)
-                                    throw $.ioore(t);
-                                  t6 = t6[t].get$weaponTargetPosition();
-                                  t5 = $.getInterceptor$x(t6);
-                                  t7 = t5.get$x(t6);
-                                  if (t7 >>> 0 !== t7 || t7 >= t3.length)
-                                    throw $.ioore(t7);
-                                  $.$index$asx($.$index$asx(t3[t7], t5.get$y(t6)), height).set$full(false);
-                                  t6 = this.buildings;
-                                  if (t >= t6.length)
-                                    throw $.ioore(t);
-                                  t6 = t6[t].get$weaponTargetPosition();
-                                  t5 = $.getInterceptor$x(t6);
-                                  tilesToRedraw.push(new $.Vector3(t5.get$x(t6), t5.get$y(t6), height));
-                                  t6 = this.buildings;
-                                  if (t >= t6.length)
-                                    throw $.ioore(t);
-                                  t6 = $.$sub$n($.get$x$x(t6[t].get$weaponTargetPosition()), 1);
-                                  t5 = this.buildings;
-                                  if (t >= t5.length)
-                                    throw $.ioore(t);
-                                  tilesToRedraw.push(new $.Vector3(t6, $.get$y$x(t5[t].get$weaponTargetPosition()), height));
-                                  t5 = this.buildings;
-                                  if (t >= t5.length)
-                                    throw $.ioore(t);
-                                  t5 = t5[t].get$weaponTargetPosition();
-                                  t6 = $.getInterceptor$x(t5);
-                                  tilesToRedraw.push(new $.Vector3(t6.get$x(t5), $.$sub$n(t6.get$y(t5), 1), height));
-                                  t5 = this.buildings;
-                                  if (t >= t5.length)
-                                    throw $.ioore(t);
-                                  t5 = $.$add$ns($.get$x$x(t5[t].get$weaponTargetPosition()), 1);
-                                  t6 = this.buildings;
-                                  if (t >= t6.length)
-                                    throw $.ioore(t);
-                                  tilesToRedraw.push(new $.Vector3(t5, $.get$y$x(t6[t].get$weaponTargetPosition()), height));
-                                  t6 = this.buildings;
-                                  if (t >= t6.length)
-                                    throw $.ioore(t);
-                                  t6 = t6[t].get$weaponTargetPosition();
-                                  t5 = $.getInterceptor$x(t6);
-                                  tilesToRedraw.push(new $.Vector3(t5.get$x(t6), $.$add$ns(t5.get$y(t6), 1), height));
-                                }
-                                this.redrawTile$1(tilesToRedraw);
-                                t3 = this.buildings;
-                                if (t >= t3.length)
-                                  throw $.ioore(t);
-                                if (this.getHighestTerrain$1(t3[t].get$weaponTargetPosition()) === t4.$index(terraformElement, "target")) {
-                                  t3 = this.world.terraform;
-                                  t4 = this.buildings;
-                                  if (t >= t4.length)
-                                    throw $.ioore(t);
-                                  t4 = t4[t].get$weaponTargetPosition();
-                                  t5 = $.getInterceptor$x(t4);
-                                  t6 = t5.get$x(t4);
-                                  if (t6 >>> 0 !== t6 || t6 >= t3.length)
-                                    throw $.ioore(t6);
-                                  $.$indexSet$ax($.$index$asx(t3[t6], t5.get$y(t4)), "progress", 0);
-                                  t4 = this.world.terraform;
-                                  t5 = this.buildings;
-                                  if (t >= t5.length)
-                                    throw $.ioore(t);
-                                  t5 = t5[t].get$weaponTargetPosition();
-                                  t6 = $.getInterceptor$x(t5);
-                                  t3 = t6.get$x(t5);
-                                  if (t3 >>> 0 !== t3 || t3 >= t4.length)
-                                    throw $.ioore(t3);
-                                  $.$indexSet$ax($.$index$asx(t4[t3], t6.get$y(t5)), "target", -1);
-                                }
-                                t3 = this.buildings;
-                                if (t >= t3.length)
-                                  throw $.ioore(t);
-                                t3[t].set$weaponTargetPosition(null);
-                                t3 = this.buildings;
-                                if (t >= t3.length)
-                                  throw $.ioore(t);
-                                t3[t].set$operating(false);
-                              }
-                            }
-                        }
-                      else
-                        switch (state0) {
-                          case 0:
-                            t3 = this.buildings;
-                            if (t >= t3.length)
-                              throw $.ioore(t);
-                            if ($.$eq(t3[t].get$imageID(), "shield")) {
-                              t3 = this.buildings;
-                              if (t >= t3.length)
-                                throw $.ioore(t);
-                              t3 = t3[t].get$energy() > 0;
-                            } else
-                              t3 = false;
-                          default:
-                            if (state0 === 0 && t3) {
-                              t3 = this.buildings;
-                              if (t >= t3.length)
-                                throw $.ioore(t);
-                              t3 = t3[t];
-                              if (t3.get$energyTimer() > 20) {
-                                t3.set$energyTimer(0);
-                                t3 = this.buildings;
-                                if (t >= t3.length)
-                                  throw $.ioore(t);
-                                t3 = t3[t];
-                                t3.set$energy(t3.get$energy() - 1);
-                              }
-                              t3 = this.buildings;
-                              if (t >= t3.length)
-                                throw $.ioore(t);
-                              t3[t].set$operating(true);
-                            } else
-                              switch (state0) {
-                                case 0:
-                                  t3 = this.buildings;
-                                  if (t >= t3.length)
-                                    throw $.ioore(t);
-                                  if ($.$eq(t3[t].get$imageID(), "cannon")) {
-                                    t3 = this.buildings;
-                                    if (t >= t3.length)
-                                      throw $.ioore(t);
-                                    t3 = t3[t];
-                                    t3 = t3.get$energy() > 0 && t3.get$energyTimer() > 10;
-                                  } else
-                                    t3 = false;
-                                default:
-                                  if (state0 === 6 || state0 === 5 || state0 === 4 || state0 === 0 && t3)
-                                    switch (state0) {
-                                      case 0:
-                                        t3 = this.buildings;
-                                        if (t >= t3.length)
-                                          throw $.ioore(t);
-                                        t3 = t3[t];
-                                      default:
-                                        if (state0 === 6 || state0 === 5 || state0 === 4 || state0 === 0 && !t3.get$rotating())
-                                          switch (state0) {
-                                            case 0:
-                                              t3.set$energyTimer(0);
-                                              t3 = this.buildings;
-                                              if (t >= t3.length)
-                                                throw $.ioore(t);
-                                              height = this.getHighestTerrain$1($.get$position$x(t3[t]));
-                                              targets = $.List_List($);
-                                              t3 = $.getInterceptor$x(position);
-                                              r = 0;
-                                            default:
-                                              L3:
-                                                while (true)
-                                                  switch (state0) {
-                                                    case 0:
-                                                      t4 = this.buildings;
-                                                      if (t >= t4.length)
-                                                        throw $.ioore(t);
-                                                      t4 = t4[t].get$weaponRadius();
-                                                      if (!(r < t4 + 1))
-                                                        break L3;
-                                                      radius = r * t1;
-                                                      i = $.$sub$n(t3.get$x(position), t4);
-                                                    case 4:
-                                                      state0 = 0;
-                                                    default:
-                                                      L4:
-                                                        while (true)
-                                                          switch (state0) {
-                                                            case 0:
-                                                              t4 = t3.get$x(position);
-                                                              t5 = this.buildings;
-                                                              if (t >= t5.length)
-                                                                throw $.ioore(t);
-                                                              t6 = $.getInterceptor$n(i);
-                                                              if (!t6.$le(i, $.$add$ns(t4, t5[t].get$weaponRadius())))
-                                                                break L4;
-                                                              t4 = t3.get$y(position);
-                                                              t5 = this.buildings;
-                                                              if (t >= t5.length)
-                                                                throw $.ioore(t);
-                                                              j = $.$sub$n(t4, t5[t].get$weaponRadius());
-                                                            case 5:
-                                                              state0 = 0;
-                                                            case 6:
-                                                              L5:
-                                                                while (true)
-                                                                  switch (state0) {
-                                                                    case 0:
-                                                                      t4 = t3.get$y(position);
-                                                                      t5 = this.buildings;
-                                                                      if (t >= t5.length)
-                                                                        throw $.ioore(t);
-                                                                      t7 = $.getInterceptor$n(j);
-                                                                      if (!t7.$le(j, $.$add$ns(t4, t5[t].get$weaponRadius())))
-                                                                        break L5;
-                                                                    case 6:
-                                                                      if (state0 === 6 || state0 === 0 && this.withinWorld$2(i, j))
-                                                                        switch (state0) {
-                                                                          case 0:
-                                                                          case 6:
-                                                                            if (state0 === 6 || state0 === 0 && this.getHighestTerrain$1(new $.Vector(i, j)) <= height)
-                                                                              switch (state0) {
-                                                                                case 0:
-                                                                                  t4 = $.$sub$n($.$add$ns(t6.$mul(i, t1), t2), center.x);
-                                                                                  if (typeof t4 !== "number")
-                                                                                    $.throwExpression(new $.ArgumentError(t4));
-                                                                                  t4 = Math.pow(t4, 2);
-                                                                                  t5 = $.$sub$n($.$add$ns(t7.$mul(j, t1), t2), center.y);
-                                                                                  if (typeof t5 !== "number")
-                                                                                    $.throwExpression(new $.ArgumentError(t5));
-                                                                                  t5 = Math.pow(t5, 2);
-                                                                                case 6:
-                                                                                  if (state0 === 6 || state0 === 0 && t4 + t5 <= Math.pow(radius, 2))
-                                                                                    switch (state0) {
-                                                                                      case 0:
-                                                                                        t4 = this.world.tiles;
-                                                                                        if (i >>> 0 !== i || i >= t4.length)
-                                                                                          throw $.ioore(i);
-                                                                                        t4 = t4[i];
-                                                                                      case 6:
-                                                                                        state0 = 0;
-                                                                                        t4 = $.$gt$n($.$index$asx($.$index$asx(t4, j), 0).get$creep(), 0);
-                                                                                    }
-                                                                                  else
-                                                                                    t4 = false;
-                                                                                  if (t4)
-                                                                                    targets.push(new $.Vector(i, j));
-                                                                              }
-                                                                        }
-                                                                      j = t7.$add(j, 1);
-                                                                  }
-                                                              i = t6.$add(i, 1);
-                                                          }
-                                                      ++r;
-                                                  }
-                                              if (targets.length > 0) {
-                                                $.Helper_shuffle(targets);
-                                                if (0 >= targets.length)
-                                                  throw $.ioore(0);
-                                                dx = $.$sub$n($.$add$ns($.$mul$n($.get$x$x(targets[0]), t1), t2), center.x);
-                                                if (0 >= targets.length)
-                                                  throw $.ioore(0);
-                                                dy = $.$sub$n($.$add$ns($.$mul$n($.get$y$x(targets[0]), t1), t2), center.y);
-                                                t3 = this.buildings;
-                                                if (t >= t3.length)
-                                                  throw $.ioore(t);
-                                                t3 = t3[t];
-                                                if (typeof dy !== "number")
-                                                  $.throwExpression(new $.ArgumentError(dy));
-                                                if (typeof dx !== "number")
-                                                  $.throwExpression(new $.ArgumentError(dx));
-                                                t4 = Math.floor((Math.atan2(dy, dx) + 1.5707963267948966) * 57.29577951308232);
-                                                if (isNaN(t4))
-                                                  $.throwExpression(new $.UnsupportedError("NaN"));
-                                                if (t4 == Infinity || t4 == -Infinity)
-                                                  $.throwExpression(new $.UnsupportedError("Infinity"));
-                                                truncated = t4 < 0 ? Math.ceil(t4) : Math.floor(t4);
-                                                t3.set$targetAngle(truncated == -0.0 ? 0 : truncated);
-                                                t3 = this.buildings;
-                                                if (t >= t3.length)
-                                                  throw $.ioore(t);
-                                                t3 = t3[t];
-                                                if (0 >= targets.length)
-                                                  throw $.ioore(0);
-                                                t4 = targets[0];
-                                                t5 = $.getInterceptor$x(t4);
-                                                t3.set$weaponTargetPosition(new $.Vector(t5.get$x(t4), t5.get$y(t4)));
-                                                t4 = this.buildings;
-                                                if (t >= t4.length)
-                                                  throw $.ioore(t);
-                                                t4[t].set$rotating(true);
-                                              }
-                                          }
-                                        else {
-                                          t4 = t3.get$angle();
-                                          t5 = t3.get$targetAngle();
-                                          if (t4 !== t5) {
-                                            t3 = $.getInterceptor$n(t5);
-                                            absoluteDelta = Math.abs(t3.$sub(t5, t4));
-                                            turnRate = absoluteDelta < 5 ? absoluteDelta : 5;
-                                            if (absoluteDelta <= 180) {
-                                              t4 = this.buildings;
-                                              if (t >= t4.length)
-                                                throw $.ioore(t);
-                                              t4 = t4[t];
-                                              t6 = t4.get$angle();
-                                              if (t3.$lt(t5, t6))
-                                                t4.set$angle(t6 - turnRate);
-                                              else
-                                                t4.set$angle(t6 + turnRate);
-                                            } else {
-                                              t4 = this.buildings;
-                                              if (t >= t4.length)
-                                                throw $.ioore(t);
-                                              t4 = t4[t];
-                                              t6 = t4.get$angle();
-                                              if (t3.$lt(t5, t6))
-                                                t4.set$angle(t6 + turnRate);
-                                              else
-                                                t4.set$angle(t6 - turnRate);
-                                            }
-                                            t3 = this.buildings;
-                                            if (t >= t3.length)
-                                              throw $.ioore(t);
-                                            t3 = t3[t];
-                                            t4 = t3.get$angle();
-                                            if (t4 > 180)
-                                              t3.set$angle(t4 - 360);
-                                            t3 = this.buildings;
-                                            if (t >= t3.length)
-                                              throw $.ioore(t);
-                                            t3 = t3[t];
-                                            t4 = t3.get$angle();
-                                            if (t4 < -180)
-                                              t3.set$angle(t4 + 360);
-                                          } else {
-                                            t4 = this.world.tiles;
-                                            t3 = t3.get$weaponTargetPosition();
-                                            t5 = $.getInterceptor$x(t3);
-                                            t6 = t5.get$x(t3);
-                                            if (t6 >>> 0 !== t6 || t6 >= t4.length)
-                                              throw $.ioore(t6);
-                                            t3 = $.$index$asx($.$index$asx(t4[t6], t5.get$y(t3)), 0);
-                                            t3.set$creep($.$sub$n(t3.get$creep(), 10));
-                                            t3 = this.world.tiles;
-                                            t4 = this.buildings;
-                                            if (t >= t4.length)
-                                              throw $.ioore(t);
-                                            t4 = t4[t].get$weaponTargetPosition();
-                                            t5 = $.getInterceptor$x(t4);
-                                            t6 = t5.get$x(t4);
-                                            if (t6 >>> 0 !== t6 || t6 >= t3.length)
-                                              throw $.ioore(t6);
-                                            if ($.$lt$n($.$index$asx($.$index$asx(t3[t6], t5.get$y(t4)), 0).get$creep(), 0)) {
-                                              t3 = this.world.tiles;
-                                              t4 = this.buildings;
-                                              if (t >= t4.length)
-                                                throw $.ioore(t);
-                                              t4 = t4[t].get$weaponTargetPosition();
-                                              t5 = $.getInterceptor$x(t4);
-                                              t6 = t5.get$x(t4);
-                                              if (t6 >>> 0 !== t6 || t6 >= t3.length)
-                                                throw $.ioore(t6);
-                                              $.$index$asx($.$index$asx(t3[t6], t5.get$y(t4)), 0).set$creep(0);
-                                            }
-                                            t3 = this.buildings;
-                                            if (t >= t3.length)
-                                              throw $.ioore(t);
-                                            t3[t].set$rotating(false);
-                                            t3 = this.buildings;
-                                            if (t >= t3.length)
-                                              throw $.ioore(t);
-                                            t3 = t3[t];
-                                            t3.set$energy(t3.get$energy() - 1);
-                                            t3 = this.buildings;
-                                            if (t >= t3.length)
-                                              throw $.ioore(t);
-                                            t3[t].set$operating(true);
-                                            t3 = this.smokes;
-                                            t4 = this.buildings;
-                                            if (t >= t4.length)
-                                              throw $.ioore(t);
-                                            $.$add$ns($.$mul$n($.get$x$x(t4[t].get$weaponTargetPosition()), t1), t2);
-                                            t4 = this.buildings;
-                                            if (t >= t4.length)
-                                              throw $.ioore(t);
-                                            $.$add$ns($.$mul$n($.get$y$x(t4[t].get$weaponTargetPosition()), t1), t2);
-                                            t4 = new $.Smoke(null, null, null);
-                                            t4.frame = 0;
-                                            t4.imageID = "smoke";
-                                            t3.push(t4);
-                                            $.engine.playSound$2("laser", position);
-                                          }
-                                        }
-                                    }
-                                  else
-                                    switch (state0) {
-                                      case 0:
-                                        t3 = this.buildings;
-                                        if (t >= t3.length)
-                                          throw $.ioore(t);
-                                        if ($.$eq(t3[t].get$imageID(), "mortar")) {
-                                          t3 = this.buildings;
-                                          if (t >= t3.length)
-                                            throw $.ioore(t);
-                                          t3 = t3[t];
-                                          t3 = t3.get$energy() > 0 && t3.get$energyTimer() > 200;
-                                        } else
-                                          t3 = false;
-                                      default:
-                                        if (state0 === 11 || state0 === 10 || state0 === 9 || state0 === 8 || state0 === 7 || state0 === 0 && t3)
-                                          switch (state0) {
-                                            case 0:
-                                              t3 = this.buildings;
-                                              if (t >= t3.length)
-                                                throw $.ioore(t);
-                                              t3[t].set$energyTimer(0);
-                                              t3 = $.getInterceptor$x(position);
-                                              t4 = t3.get$x(position);
-                                              t5 = this.buildings;
-                                              if (t >= t5.length)
-                                                throw $.ioore(t);
-                                              i = $.$sub$n(t4, t5[t].get$weaponRadius());
-                                            case 7:
-                                              state0 = 0;
-                                              target = null;
-                                              highestCreep = 0;
-                                            default:
-                                              L6:
-                                                while (true)
-                                                  switch (state0) {
-                                                    case 0:
-                                                      t4 = t3.get$x(position);
-                                                      t5 = this.buildings;
-                                                      if (t >= t5.length)
-                                                        throw $.ioore(t);
-                                                      t6 = $.getInterceptor$n(i);
-                                                      if (!t6.$le(i, $.$add$ns(t4, t5[t].get$weaponRadius())))
-                                                        break L6;
-                                                      t4 = t3.get$y(position);
-                                                      t5 = this.buildings;
-                                                      if (t >= t5.length)
-                                                        throw $.ioore(t);
-                                                      j = $.$sub$n(t4, t5[t].get$weaponRadius());
-                                                    case 8:
-                                                      state0 = 0;
-                                                    default:
-                                                      L7:
-                                                        while (true)
-                                                          switch (state0) {
-                                                            case 0:
-                                                              t4 = t3.get$y(position);
-                                                              t5 = this.buildings;
-                                                              if (t >= t5.length)
-                                                                throw $.ioore(t);
-                                                              t7 = $.getInterceptor$n(j);
-                                                              if (!t7.$le(j, $.$add$ns(t4, t5[t].get$weaponRadius())))
-                                                                break L7;
-                                                            default:
-                                                              if (state0 === 11 || state0 === 10 || state0 === 9 || state0 === 0 && this.withinWorld$2(i, j))
-                                                                switch (state0) {
-                                                                  case 0:
-                                                                    t4 = $.$sub$n($.$add$ns(t6.$mul(i, t1), t2), center.x);
-                                                                    if (typeof t4 !== "number")
-                                                                      $.throwExpression(new $.ArgumentError(t4));
-                                                                    t4 = Math.pow(t4, 2);
-                                                                    t5 = $.$sub$n($.$add$ns(t7.$mul(j, t1), t2), center.y);
-                                                                    if (typeof t5 !== "number")
-                                                                      $.throwExpression(new $.ArgumentError(t5));
-                                                                    t5 = Math.pow(t5, 2);
-                                                                    t8 = this.buildings;
-                                                                    if (t >= t8.length)
-                                                                      throw $.ioore(t);
-                                                                    t8 = t8[t].get$weaponRadius() * t1;
-                                                                  default:
-                                                                    if (state0 === 10 || state0 === 9 || state0 === 0 && t4 + t5 <= Math.pow(t8, 2))
-                                                                      switch (state0) {
-                                                                        case 0:
-                                                                          t4 = this.world.tiles;
-                                                                          if (i >>> 0 !== i || i >= t4.length)
-                                                                            throw $.ioore(i);
-                                                                          t4 = t4[i];
-                                                                        case 9:
-                                                                          state0 = 0;
-                                                                        case 10:
-                                                                          if (state0 === 10 || state0 === 0 && $.$gt$n($.$index$asx($.$index$asx(t4, j), 0).get$creep(), 0))
-                                                                            switch (state0) {
-                                                                              case 0:
-                                                                                t4 = this.world.tiles;
-                                                                                if (i >= t4.length)
-                                                                                  throw $.ioore(i);
-                                                                                t4 = t4[i];
-                                                                              case 10:
-                                                                                state0 = 0;
-                                                                                t4 = $.$ge$n($.$index$asx($.$index$asx(t4, j), 0).get$creep(), highestCreep);
-                                                                            }
-                                                                          else
-                                                                            t4 = false;
-                                                                      }
-                                                                    else
-                                                                      t4 = false;
-                                                                  case 11:
-                                                                    if (state0 === 11 || state0 === 0 && t4)
-                                                                      switch (state0) {
-                                                                        case 0:
-                                                                          t4 = this.world.tiles;
-                                                                          if (i >>> 0 !== i || i >= t4.length)
-                                                                            throw $.ioore(i);
-                                                                          t4 = t4[i];
-                                                                        case 11:
-                                                                          state0 = 0;
-                                                                          highestCreep = $.$index$asx($.$index$asx(t4, j), 0).get$creep();
-                                                                          target = new $.Vector(i, j);
-                                                                      }
-                                                                }
-                                                              j = t7.$add(j, 1);
-                                                          }
-                                                      i = t6.$add(i, 1);
-                                                  }
-                                              if (target != null) {
-                                                $.engine.playSound$2("shot", position);
-                                                shell = new $.Shell(center, new $.Vector($.$add$ns($.$mul$n(target.x, t1), t2), $.$add$ns($.$mul$n(target.y, t1), t2)), new $.Vector(0, 0), "shell", false, 0, 0);
-                                                shell.init$0();
-                                                this.shells.push(shell);
-                                                t3 = this.buildings;
-                                                if (t >= t3.length)
-                                                  throw $.ioore(t);
-                                                t3 = t3[t];
-                                                t3.set$energy(t3.get$energy() - 1);
-                                              }
-                                          }
-                                        else {
-                                          t3 = this.buildings;
-                                          if (t >= t3.length)
-                                            throw $.ioore(t);
-                                          if ($.$eq(t3[t].get$imageID(), "beam")) {
-                                            t3 = this.buildings;
-                                            if (t >= t3.length)
-                                              throw $.ioore(t);
-                                            t3 = t3[t];
-                                            t3 = t3.get$energy() > 0 && t3.get$energyTimer() > 0;
-                                          } else
-                                            t3 = false;
-                                          if (t3) {
-                                            t3 = this.buildings;
-                                            if (t >= t3.length)
-                                              throw $.ioore(t);
-                                            t3[t].set$energyTimer(0);
-                                            for (i = 0; t3 = this.spores, i < t3.length; ++i) {
-                                              sporeCenter = t3[i].getCenter$0();
-                                              t3 = $.$sub$n(sporeCenter.x, center.x);
-                                              if (typeof t3 !== "number")
-                                                $.throwExpression(new $.ArgumentError(t3));
-                                              t3 = Math.pow(t3, 2);
-                                              t4 = $.$sub$n(sporeCenter.y, center.y);
-                                              if (typeof t4 !== "number")
-                                                $.throwExpression(new $.ArgumentError(t4));
-                                              t4 = Math.pow(t4, 2);
-                                              t5 = this.buildings;
-                                              if (t >= t5.length)
-                                                throw $.ioore(t);
-                                              t5 = t5[t].get$weaponRadius() * t1;
-                                              if (t3 + t4 <= Math.pow(t5, 2)) {
-                                                t3 = this.buildings;
-                                                if (t >= t3.length)
-                                                  throw $.ioore(t);
-                                                t3[t].set$weaponTargetPosition(sporeCenter);
-                                                t3 = this.buildings;
-                                                if (t >= t3.length)
-                                                  throw $.ioore(t);
-                                                t3 = t3[t];
-                                                t3.set$energy(t3.get$energy() - 0.1);
-                                                t3 = this.buildings;
-                                                if (t >= t3.length)
-                                                  throw $.ioore(t);
-                                                t3[t].set$operating(true);
-                                                t3 = this.spores;
-                                                if (i >= t3.length)
-                                                  throw $.ioore(i);
-                                                t3 = t3[i];
-                                                t3.set$health(t3.get$health() - 2);
-                                                t3 = this.spores;
-                                                if (i >= t3.length)
-                                                  throw $.ioore(i);
-                                                t3 = t3[i];
-                                                if (t3.get$health() <= 0) {
-                                                  $.set$remove$ax(t3, true);
-                                                  t3 = $.engine;
-                                                  t4 = this.spores;
-                                                  if (i >= t4.length)
-                                                    throw $.ioore(i);
-                                                  t4 = $.get$position$x(t4[i]);
-                                                  t5 = $.getInterceptor$x(t4);
-                                                  t6 = Math.floor($.$div$n(t5.get$x(t4), $.game.tileSize));
-                                                  if (isNaN(t6))
-                                                    $.throwExpression(new $.UnsupportedError("NaN"));
-                                                  if (t6 == Infinity || t6 == -Infinity)
-                                                    $.throwExpression(new $.UnsupportedError("Infinity"));
-                                                  truncated = t6 < 0 ? $.JSNumber_methods.ceilToDouble$0(t6) : $.JSNumber_methods.floorToDouble$0(t6);
-                                                  t6 = truncated == -0.0 ? 0 : truncated;
-                                                  t4 = Math.floor($.$div$n(t5.get$y(t4), $.game.tileSize));
-                                                  if (isNaN(t4))
-                                                    $.throwExpression(new $.UnsupportedError("NaN"));
-                                                  if (t4 == Infinity || t4 == -Infinity)
-                                                    $.throwExpression(new $.UnsupportedError("Infinity"));
-                                                  truncated = t4 < 0 ? $.JSNumber_methods.ceilToDouble$0(t4) : $.JSNumber_methods.floorToDouble$0(t4);
-                                                  t4 = truncated == -0.0 ? 0 : truncated;
-                                                  t3.playSound$2("explosion", new $.Vector(t6, t4));
-                                                  t4 = this.explosions;
-                                                  t6 = new $.Explosion(null, null, null);
-                                                  t6.frame = 0;
-                                                  t6.imageID = "explosion";
-                                                  t4.push(t6);
-                                                }
-                                              }
-                                            }
-                                          }
-                                        }
-                                    }
-                              }
-                        }
-                  }
-                ++t;
-            }
     }
   },
   updateCollection$2: function(building, action) {
@@ -8856,7 +7922,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     }
   },
   updateCreeper$0: function() {
-    var i, t1, t2, j, i0, height, height2, t3, t4, j0, t5;
+    var i, t1, t2, i0, j, height, height2, t3, t4, j0, t5;
     for (i = 0; t1 = this.sporetowers, i < t1.length; ++i)
       t1[i].update$0();
     this.spawnTimer = this.spawnTimer + 1;
@@ -8870,17 +7936,6 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     t2 = 25 / this.speed;
     if (t1 > t2) {
       this.creeperTimer = t1 - t2;
-      for (i = 0; $.JSNumber_methods.$lt(i, this.world.size.x); ++i)
-        for (j = 0; t1 = this.world, $.JSNumber_methods.$lt(j, t1.size.y); ++j) {
-          t1 = t1.tiles;
-          if (i >= t1.length)
-            throw $.ioore(i);
-          t1 = $.$index$asx($.$index$asx(t1[i], j), 0);
-          t2 = this.world.tiles;
-          if (i >= t2.length)
-            throw $.ioore(i);
-          t1.set$newcreep($.$index$asx($.$index$asx(t2[i], j), 0).get$creep());
-        }
       for (i = 0; $.JSNumber_methods.$lt(i, this.world.size.x); i = i0)
         for (t1 = i - 1, t2 = t1 > -1, i0 = i + 1, j = 0; $.JSNumber_methods.$lt(j, this.world.size.y); j = j0) {
           height = this.getHighestTerrain$1(new $.Vector(i, j));
@@ -8949,31 +8004,39 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
             if (i >= t1.length)
               throw $.ioore(i);
             $.$index$asx($.$index$asx(t1[i], j), 0).set$creep(10);
+          } else {
+            t1 = this.world.tiles;
+            if (i >= t1.length)
+              throw $.ioore(i);
+            if ($.$lt$n($.$index$asx($.$index$asx(t1[i], j), 0).get$creep(), 0.01)) {
+              t1 = this.world.tiles;
+              if (i >= t1.length)
+                throw $.ioore(i);
+              $.$index$asx($.$index$asx(t1[i], j), 0).set$creep(0);
+            }
           }
           t1 = this.world.tiles;
           if (i >= t1.length)
             throw $.ioore(i);
-          if ($.$lt$n($.$index$asx($.$index$asx(t1[i], j), 0).get$creep(), 0.01)) {
-            t1 = this.world.tiles;
-            if (i >= t1.length)
-              throw $.ioore(i);
-            $.$index$asx($.$index$asx(t1[i], j), 0).set$creep(0);
-          }
+          t1 = $.$index$asx($.$index$asx(t1[i], j), 0);
+          t2 = this.world.tiles;
+          if (i >= t2.length)
+            throw $.ioore(i);
+          t1.set$newcreep($.$index$asx($.$index$asx(t2[i], j), 0).get$creep());
         }
-      this.drawCreeper$0();
     }
   },
   transferCreeper$4: function(height, height2, source, target) {
-    var sourceAmount, sourceTotal, targetAmount, targetTotal, delta, adjustedDelta, t1;
-    sourceAmount = source.get$creep();
-    if (typeof sourceAmount !== "number")
-      return this.transferCreeper$4$bailout(1, height, height2, source, target, sourceAmount);
-    sourceTotal = height + sourceAmount;
-    if (height2 > -1) {
+    var sourceAmount, targetAmount, sourceTotal, targetTotal, delta, adjustedDelta, t1;
+    if (height > -1 && height2 > -1) {
+      sourceAmount = source.get$creep();
+      if (typeof sourceAmount !== "number")
+        return this.transferCreeper$4$bailout(1, height, height2, source, target, sourceAmount);
       targetAmount = target.get$creep();
       if (typeof targetAmount !== "number")
-        return this.transferCreeper$4$bailout(2, 0, height2, source, target, sourceAmount, targetAmount, sourceTotal);
+        return this.transferCreeper$4$bailout(2, height, height2, source, target, sourceAmount, targetAmount);
       if (sourceAmount > 0 || targetAmount > 0) {
+        sourceTotal = height + sourceAmount;
         targetTotal = height2 + targetAmount;
         if (sourceTotal > targetTotal) {
           delta = sourceTotal - targetTotal;
@@ -8982,30 +8045,27 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
           adjustedDelta = delta * 0.25;
           t1 = source.get$newcreep();
           if (typeof t1 !== "number")
-            return this.transferCreeper$4$bailout(3, 0, 0, source, target, 0, 0, 0, t1, adjustedDelta);
+            return this.transferCreeper$4$bailout(3, 0, 0, source, target, 0, 0, adjustedDelta, t1);
           source.set$newcreep(t1 - adjustedDelta);
           t1 = target.get$newcreep();
           if (typeof t1 !== "number")
-            return this.transferCreeper$4$bailout(4, 0, 0, 0, target, 0, 0, 0, t1, adjustedDelta);
+            return this.transferCreeper$4$bailout(4, 0, 0, 0, target, 0, 0, adjustedDelta, t1);
           target.set$newcreep(t1 + adjustedDelta);
         }
       }
     }
   },
-  transferCreeper$4$bailout: function(state0, height, height2, source, target, sourceAmount, targetAmount, sourceTotal, t1, adjustedDelta) {
+  transferCreeper$4$bailout: function(state0, height, height2, source, target, sourceAmount, targetAmount, adjustedDelta, t1) {
     switch (state0) {
       case 0:
-        sourceAmount = source.get$creep();
-      case 1:
-        state0 = 0;
-        if (typeof sourceAmount !== "number")
-          throw $.iae(sourceAmount);
-        sourceTotal = height + sourceAmount;
       default:
-        var targetTotal, delta;
-        if (state0 === 4 || state0 === 3 || state0 === 2 || state0 === 0 && height2 > -1)
+        var sourceTotal, targetTotal, delta;
+        if (state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && height > -1 && height2 > -1)
           switch (state0) {
             case 0:
+              sourceAmount = source.get$creep();
+            case 1:
+              state0 = 0;
               targetAmount = target.get$creep();
             case 2:
               state0 = 0;
@@ -9013,6 +8073,9 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
               if (state0 === 4 || state0 === 3 || state0 === 0 && ($.$gt$n(sourceAmount, 0) || $.$gt$n(targetAmount, 0)))
                 switch (state0) {
                   case 0:
+                    if (typeof sourceAmount !== "number")
+                      throw $.iae(sourceAmount);
+                    sourceTotal = height + sourceAmount;
                     if (typeof targetAmount !== "number")
                       throw $.iae(targetAmount);
                     targetTotal = height2 + targetAmount;
@@ -9036,70 +8099,36 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     }
   },
   getNeighbours$2: function(node, target) {
-    var neighbours, t1, t2, allowedDistance, allowedDistance0, centerI, centerNode, i, t3, t4, distance;
+    var neighbours, t1, allowedDistance, allowedDistance0, centerI, centerNode, i, t2, t3, t4, distance;
     neighbours = $.List_List($);
-    for (t1 = $.getInterceptor$x(node), t2 = this.tileSize, allowedDistance = 20 * t2, allowedDistance0 = 10 * t2, centerI = null, centerNode = null, i = 0; t2 = this.buildings, i < t2.length; ++i) {
-      if ($.$eq($.get$x$x($.get$position$x(t2[i])), $.get$x$x(t1.get$position(node)))) {
+    for (t1 = this.tileSize, allowedDistance = 20 * t1, allowedDistance0 = 10 * t1, t1 = $.getInterceptor$x(node), centerI = null, centerNode = null, i = 0; t2 = this.buildings, i < t2.length; ++i) {
+      if (!$.$eq($.get$x$x($.get$position$x(t2[i])), $.get$x$x(t1.get$position(node)))) {
         t2 = this.buildings;
         if (i >= t2.length)
           throw $.ioore(i);
-        t2 = $.$eq($.get$y$x($.get$position$x(t2[i])), $.get$y$x(t1.get$position(node)));
+        t2 = !$.$eq($.get$y$x($.get$position$x(t2[i])), $.get$y$x(t1.get$position(node)));
       } else
         t2 = false;
-      if (t2)
-        ;
-      else {
+      if (t2) {
         t2 = this.buildings;
         if (i >= t2.length)
           throw $.ioore(i);
         t2 = t2[i];
-        if ($.get$status$x(t2) === "IDLE")
+        if ($.get$status$x(t2) === "IDLE") {
           if (!$.$eq(t2, target)) {
             t2 = this.buildings;
             if (i >= t2.length)
               throw $.ioore(i);
-            t2 = t2[i];
-            if (t2.get$built()) {
-              centerI = t2.getCenter$0();
-              centerNode = node.getCenter$0();
-              t2 = centerI.x;
-              if (typeof t2 !== "number")
-                return this.getNeighbours$2$bailout(1, allowedDistance0, node, target, t1, allowedDistance, neighbours, t2, centerI, centerNode, i);
-              t3 = centerNode.x;
-              if (typeof t3 !== "number")
-                return this.getNeighbours$2$bailout(2, allowedDistance0, node, target, t1, allowedDistance, neighbours, t2, centerI, centerNode, i, t3);
-              t3 = t2 - t3;
-              t2 = Math.pow(t3, 2);
-              t3 = centerI.y;
-              if (typeof t3 !== "number")
-                return this.getNeighbours$2$bailout(3, allowedDistance0, node, target, t1, allowedDistance, neighbours, t2, centerI, centerNode, i, t3);
-              t4 = centerNode.y;
-              if (typeof t4 !== "number")
-                return this.getNeighbours$2$bailout(4, allowedDistance0, node, target, t1, allowedDistance, neighbours, t2, centerI, centerNode, i, t3, t4);
-              t4 = t3 - t4;
-              t2 += Math.pow(t4, 2);
-              distance = Math.sqrt(t2);
-              t2 = node.get$imageID();
-              if (typeof t2 !== "string")
-                return this.getNeighbours$2$bailout(5, allowedDistance0, node, target, t1, allowedDistance, neighbours, t2, centerI, centerNode, i, 0, 0, distance);
-              if (t2 === "relay") {
-                t2 = this.buildings;
-                if (i >= t2.length)
-                  throw $.ioore(i);
-                t2 = t2[i].get$imageID();
-                if (typeof t2 !== "string")
-                  return this.getNeighbours$2$bailout(6, allowedDistance0, node, target, t1, allowedDistance, neighbours, t2, centerI, centerNode, i, 0, 0, distance);
-                t2 = t2 === "relay";
-              } else
-                t2 = false;
-              if (distance <= (t2 ? allowedDistance : allowedDistance0)) {
-                t2 = this.buildings;
-                if (i >= t2.length)
-                  throw $.ioore(i);
-                neighbours.push(t2[i]);
-              }
-            }
-          } else {
+            if (!$.$eq(t2[i], target)) {
+              t2 = this.buildings;
+              if (i >= t2.length)
+                throw $.ioore(i);
+              t2 = t2[i].get$built();
+            } else
+              t2 = false;
+          } else
+            t2 = true;
+          if (t2) {
             t2 = this.buildings;
             if (i >= t2.length)
               throw $.ioore(i);
@@ -9107,31 +8136,31 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
             centerNode = node.getCenter$0();
             t2 = centerI.x;
             if (typeof t2 !== "number")
-              return this.getNeighbours$2$bailout(7, allowedDistance0, node, target, t1, allowedDistance, neighbours, t2, centerI, centerNode, i);
+              return this.getNeighbours$2$bailout(1, node, target, t1, t2, centerI, neighbours, centerNode, allowedDistance0, allowedDistance, i);
             t3 = centerNode.x;
             if (typeof t3 !== "number")
-              return this.getNeighbours$2$bailout(8, allowedDistance0, node, target, t1, allowedDistance, neighbours, t2, centerI, centerNode, i, t3);
+              return this.getNeighbours$2$bailout(2, node, target, t1, t2, centerI, neighbours, centerNode, allowedDistance0, allowedDistance, i, t3);
             t3 = t2 - t3;
             t2 = Math.pow(t3, 2);
             t3 = centerI.y;
             if (typeof t3 !== "number")
-              return this.getNeighbours$2$bailout(9, allowedDistance0, node, target, t1, allowedDistance, neighbours, t2, centerI, centerNode, i, t3);
+              return this.getNeighbours$2$bailout(3, node, target, t1, t2, centerI, neighbours, centerNode, allowedDistance0, allowedDistance, i, t3);
             t4 = centerNode.y;
             if (typeof t4 !== "number")
-              return this.getNeighbours$2$bailout(10, allowedDistance0, node, target, t1, allowedDistance, neighbours, t2, centerI, centerNode, i, t3, t4);
+              return this.getNeighbours$2$bailout(4, node, target, t1, t2, centerI, neighbours, centerNode, allowedDistance0, allowedDistance, i, t3, t4);
             t4 = t3 - t4;
             t2 += Math.pow(t4, 2);
             distance = Math.sqrt(t2);
             t2 = node.get$imageID();
             if (typeof t2 !== "string")
-              return this.getNeighbours$2$bailout(11, allowedDistance0, node, target, t1, allowedDistance, neighbours, t2, centerI, centerNode, i, 0, 0, distance);
+              return this.getNeighbours$2$bailout(5, node, target, t1, t2, centerI, neighbours, centerNode, allowedDistance0, allowedDistance, i, 0, 0, distance);
             if (t2 === "relay") {
               t2 = this.buildings;
               if (i >= t2.length)
                 throw $.ioore(i);
               t2 = t2[i].get$imageID();
               if (typeof t2 !== "string")
-                return this.getNeighbours$2$bailout(12, allowedDistance0, node, target, t1, allowedDistance, neighbours, t2, centerI, centerNode, i, 0, 0, distance);
+                return this.getNeighbours$2$bailout(6, node, target, t1, t2, centerI, neighbours, centerNode, allowedDistance0, allowedDistance, i, 0, 0, distance);
               t2 = t2 === "relay";
             } else
               t2 = false;
@@ -9142,18 +8171,19 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
               neighbours.push(t2[i]);
             }
           }
+        }
       }
     }
     return neighbours;
   },
-  getNeighbours$2$bailout: function(state0, allowedDistance0, node, target, t1, allowedDistance, neighbours, t2, centerI, centerNode, i, t3, t4, distance) {
+  getNeighbours$2$bailout: function(state0, node, target, t1, t2, centerI, neighbours, centerNode, allowedDistance0, allowedDistance, i, t3, t4, distance) {
     switch (state0) {
       case 0:
         neighbours = $.List_List($);
+        t1 = this.tileSize;
+        allowedDistance = 20 * t1;
+        allowedDistance0 = 10 * t1;
         t1 = $.getInterceptor$x(node);
-        t2 = this.tileSize;
-        allowedDistance = 20 * t2;
-        allowedDistance0 = 10 * t2;
         centerI = null;
         centerNode = null;
         i = 0;
@@ -9165,17 +8195,15 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                 t2 = this.buildings;
                 if (!(i < t2.length))
                   break L0;
-                if ($.$eq($.get$x$x($.get$position$x(t2[i])), $.get$x$x(t1.get$position(node)))) {
+                if (!$.$eq($.get$x$x($.get$position$x(t2[i])), $.get$x$x(t1.get$position(node)))) {
                   t2 = this.buildings;
                   if (i >= t2.length)
                     throw $.ioore(i);
-                  t2 = $.$eq($.get$y$x($.get$position$x(t2[i])), $.get$y$x(t1.get$position(node)));
+                  t2 = !$.$eq($.get$y$x($.get$position$x(t2[i])), $.get$y$x(t1.get$position(node)));
                 } else
                   t2 = false;
               default:
-                if (state0 === 0 && t2)
-                  ;
-                else
+                if (state0 === 6 || state0 === 5 || state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && t2)
                   switch (state0) {
                     case 0:
                       t2 = this.buildings;
@@ -9183,70 +8211,24 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                         throw $.ioore(i);
                       t2 = t2[i];
                     default:
-                      if (state0 === 12 || state0 === 11 || state0 === 10 || state0 === 9 || state0 === 8 || state0 === 7 || state0 === 6 || state0 === 5 || state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && $.get$status$x(t2) === "IDLE")
+                      if (state0 === 6 || state0 === 5 || state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && $.get$status$x(t2) === "IDLE")
                         switch (state0) {
                           case 0:
+                            if (!$.$eq(t2, target)) {
+                              t2 = this.buildings;
+                              if (i >= t2.length)
+                                throw $.ioore(i);
+                              if (!$.$eq(t2[i], target)) {
+                                t2 = this.buildings;
+                                if (i >= t2.length)
+                                  throw $.ioore(i);
+                                t2 = t2[i].get$built();
+                              } else
+                                t2 = false;
+                            } else
+                              t2 = true;
                           default:
-                            if (state0 === 6 || state0 === 5 || state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && !$.$eq(t2, target))
-                              switch (state0) {
-                                case 0:
-                                  t2 = this.buildings;
-                                  if (i >= t2.length)
-                                    throw $.ioore(i);
-                                  t2 = t2[i];
-                                default:
-                                  if (state0 === 6 || state0 === 5 || state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && t2.get$built())
-                                    switch (state0) {
-                                      case 0:
-                                        centerI = t2.getCenter$0();
-                                        centerNode = node.getCenter$0();
-                                        t2 = centerI.x;
-                                      case 1:
-                                        state0 = 0;
-                                        t3 = centerNode.x;
-                                      case 2:
-                                        state0 = 0;
-                                        t3 = $.$sub$n(t2, t3);
-                                        if (typeof t3 !== "number")
-                                          $.throwExpression(new $.ArgumentError(t3));
-                                        t2 = Math.pow(t3, 2);
-                                        t3 = centerI.y;
-                                      case 3:
-                                        state0 = 0;
-                                        t4 = centerNode.y;
-                                      case 4:
-                                        state0 = 0;
-                                        t4 = $.$sub$n(t3, t4);
-                                        if (typeof t4 !== "number")
-                                          $.throwExpression(new $.ArgumentError(t4));
-                                        t2 += Math.pow(t4, 2);
-                                        distance = Math.sqrt(t2);
-                                        t2 = node.get$imageID();
-                                      case 5:
-                                        state0 = 0;
-                                      case 6:
-                                        if (state0 === 6 || state0 === 0 && $.$eq(t2, "relay"))
-                                          switch (state0) {
-                                            case 0:
-                                              t2 = this.buildings;
-                                              if (i >= t2.length)
-                                                throw $.ioore(i);
-                                              t2 = t2[i].get$imageID();
-                                            case 6:
-                                              state0 = 0;
-                                              t2 = $.$eq(t2, "relay");
-                                          }
-                                        else
-                                          t2 = false;
-                                        if (distance <= (t2 ? allowedDistance : allowedDistance0)) {
-                                          t2 = this.buildings;
-                                          if (i >= t2.length)
-                                            throw $.ioore(i);
-                                          neighbours.push(t2[i]);
-                                        }
-                                    }
-                              }
-                            else
+                            if (state0 === 6 || state0 === 5 || state0 === 4 || state0 === 3 || state0 === 2 || state0 === 1 || state0 === 0 && t2)
                               switch (state0) {
                                 case 0:
                                   t2 = this.buildings;
@@ -9255,20 +8237,20 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                                   centerI = t2[i].getCenter$0();
                                   centerNode = node.getCenter$0();
                                   t2 = centerI.x;
-                                case 7:
+                                case 1:
                                   state0 = 0;
                                   t3 = centerNode.x;
-                                case 8:
+                                case 2:
                                   state0 = 0;
                                   t3 = $.$sub$n(t2, t3);
                                   if (typeof t3 !== "number")
                                     $.throwExpression(new $.ArgumentError(t3));
                                   t2 = Math.pow(t3, 2);
                                   t3 = centerI.y;
-                                case 9:
+                                case 3:
                                   state0 = 0;
                                   t4 = centerNode.y;
-                                case 10:
+                                case 4:
                                   state0 = 0;
                                   t4 = $.$sub$n(t3, t4);
                                   if (typeof t4 !== "number")
@@ -9276,17 +8258,17 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                                   t2 += Math.pow(t4, 2);
                                   distance = Math.sqrt(t2);
                                   t2 = node.get$imageID();
-                                case 11:
+                                case 5:
                                   state0 = 0;
-                                case 12:
-                                  if (state0 === 12 || state0 === 0 && $.$eq(t2, "relay"))
+                                case 6:
+                                  if (state0 === 6 || state0 === 0 && $.$eq(t2, "relay"))
                                     switch (state0) {
                                       case 0:
                                         t2 = this.buildings;
                                         if (i >= t2.length)
                                           throw $.ioore(i);
                                         t2 = t2[i].get$imageID();
-                                      case 12:
+                                      case 6:
                                         state0 = 0;
                                         t2 = $.$eq(t2, "relay");
                                     }
@@ -10357,11 +9339,17 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
   },
   updateBuildings$0: function() {
     var i, t1;
-    this.checkOperating$0();
-    for (i = 0; t1 = this.buildings, i < t1.length; ++i)
+    for (i = 0; t1 = this.buildings, i < t1.length; ++i) {
       t1[i].move$0();
-    for (i = 0; t1 = this.buildings, i < t1.length; ++i)
+      t1 = this.buildings;
+      if (i >= t1.length)
+        throw $.ioore(i);
+      t1[i].checkOperating$0();
+      t1 = this.buildings;
+      if (i >= t1.length)
+        throw $.ioore(i);
       t1[i].shield$0();
+    }
     this.damageTimer = this.damageTimer + 1;
     if (this.damageTimer > 100) {
       this.damageTimer = 0;
@@ -10628,7 +9616,6 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     if (this.scrollingLeft || this.scrollingRight || this.scrollingUp || this.scrollingDown) {
       this.copyTerrain$0();
       this.drawCollection$0();
-      this.drawCreeper$0();
     }
   },
   drawRangeBoxes$4: function(position, type, rad, size) {
@@ -11513,31 +10500,6 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       }
     }
   },
-  drawAttackSymbol$0: function() {
-    var position, t1, t2, t3, t4, t5, t6;
-    if (this.mode === "SHIP_SELECTED") {
-      position = $.Helper_tiled2screen(this.getHoveredTilePosition$0());
-      t1 = $.engine.canvas;
-      t1 = t1.$index(t1, "buffer").get$context();
-      t2 = $.engine.images;
-      t2 = t2.$index(t2, "targetcursor");
-      t3 = position.x;
-      t4 = this.tileSize;
-      t5 = this.zoom;
-      if (typeof t5 !== "number")
-        throw $.iae(t5);
-      t5 = $.$sub$n(t3, t4 * t5);
-      t3 = position.y;
-      t6 = this.zoom;
-      if (typeof t6 !== "number")
-        throw $.iae(t6);
-      t6 = $.$sub$n(t3, t4 * t6);
-      t4 = this.zoom;
-      if (typeof t4 !== "number")
-        throw $.iae(t4);
-      $.drawImageScaled$5$x(t1, t2, t5, t6, 48 * t4, 48 * t4);
-    }
-  },
   drawGUI$0: function() {
     var t1, context, position, i, t2, t3, total;
     t1 = $.engine.canvas;
@@ -11579,7 +10541,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     }
   },
   draw$1: function(_) {
-    var t1, context, t2, t3, truncated, timesX, timesY, i, j, t4, j0, t5, iS, jS, t6, t7, t8, t9, t10, allowedDistance, allowedDistance0, centerI, drawCenterI, centerJ, drawCenterJ, allowedDistance1, drawPosition;
+    var t1, context, t2, t3, truncated, timesX, timesY, i, j, t4, j0, t5, iS, jS, t6, t7, t8, t9, t10, allowedDistance, allowedDistance0, centerI, drawCenterI, centerJ, drawCenterJ, allowedDistance1, position, drawPosition;
     t1 = $.engine.canvas;
     context = t1.$index(t1, "buffer").get$context();
     this.drawGUI$0();
@@ -11621,7 +10583,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
           throw $.iae(t5);
         iS = i + t5;
         if (iS !== (iS | 0))
-          return this.draw$1$bailout(1, i, t3, j, timesX, iS, t1, t4, timesY, context, t2, j0);
+          return this.draw$1$bailout(1, i, timesX, t1, t3, timesY, context, iS, t4, j, t2, j0);
         t5 = t3.y;
         if (typeof t5 !== "number")
           throw $.iae(t5);
@@ -11632,12 +10594,12 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
             throw $.ioore(iS);
           t5 = t5[iS];
           if (typeof t5 !== "string" && (typeof t5 !== "object" || t5 === null || t5.constructor !== Array && !$.isJsIndexable(t5, t5[$.dispatchPropertyName])))
-            return this.draw$1$bailout(2, i, t3, j, timesX, iS, t1, t4, timesY, context, t2, j0, jS, t5);
+            return this.draw$1$bailout(2, i, timesX, t1, t3, timesY, context, iS, t4, j, t2, j0, jS, t5);
           if (jS >>> 0 !== jS || jS >= t5.length)
             throw $.ioore(jS);
           t5 = $.$index$asx(t5[jS], "target");
           if (typeof t5 !== "number")
-            return this.draw$1$bailout(3, i, t3, j, timesX, iS, t1, t4, timesY, context, t2, j0, jS, t5);
+            return this.draw$1$bailout(3, i, timesX, t1, t3, timesY, context, iS, t4, j, t2, j0, jS, t5);
           if (t5 > -1) {
             t5 = $.engine.images;
             t5 = t5.$index(t5, "numbers");
@@ -11646,12 +10608,12 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
               throw $.ioore(iS);
             t6 = t6[iS];
             if (typeof t6 !== "string" && (typeof t6 !== "object" || t6 === null || t6.constructor !== Array && !$.isJsIndexable(t6, t6[$.dispatchPropertyName])))
-              return this.draw$1$bailout(4, i, t3, j, timesX, 0, t1, t4, timesY, context, t2, j0, jS, t5, t6);
+              return this.draw$1$bailout(4, i, timesX, t1, t3, timesY, context, 0, t4, j, t2, j0, jS, t5, t6);
             if (jS >= t6.length)
               throw $.ioore(jS);
             t6 = $.$index$asx(t6[jS], "target");
             if (typeof t6 !== "number")
-              return this.draw$1$bailout(5, i, t3, j, timesX, 0, t1, t4, timesY, context, t2, j0, 0, t5, t6);
+              return this.draw$1$bailout(5, i, timesX, t1, t3, timesY, context, 0, t4, j, t2, j0, 0, t5, t6);
             t7 = $.engine;
             t8 = t7.halfWidth;
             t9 = this.zoom;
@@ -11687,31 +10649,31 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
               throw $.ioore(i);
             t5 = t3[i].get$imageID();
             if (typeof t5 !== "string")
-              return this.draw$1$bailout(6, i, t5, j, 0, 0, t1, 0, 0, context, t2, 0, 0, 0, 0, allowedDistance0, centerJ, drawCenterJ, allowedDistance, centerI, drawCenterI);
+              return this.draw$1$bailout(6, i, 0, t1, t5, 0, context, 0, 0, j, t2, 0, 0, 0, 0, centerJ, drawCenterJ, allowedDistance0, centerI, drawCenterI, allowedDistance);
             if (t5 === "relay") {
               if (j >= t4)
                 throw $.ioore(j);
               t3 = t3[j].get$imageID();
               if (typeof t3 !== "string")
-                return this.draw$1$bailout(7, i, t3, j, 0, 0, t1, 0, 0, context, t2, 0, 0, 0, 0, allowedDistance0, centerJ, drawCenterJ, allowedDistance, centerI, drawCenterI);
+                return this.draw$1$bailout(7, i, 0, t1, t3, 0, context, 0, 0, j, t2, 0, 0, 0, 0, centerJ, drawCenterJ, allowedDistance0, centerI, drawCenterI, allowedDistance);
               t3 = t3 === "relay";
             } else
               t3 = false;
             allowedDistance1 = t3 ? allowedDistance : allowedDistance0;
             t3 = centerJ.x;
             if (typeof t3 !== "number")
-              return this.draw$1$bailout(8, i, t3, j, 0, 0, t1, 0, 0, context, t2, 0, 0, 0, 0, allowedDistance0, centerJ, drawCenterJ, allowedDistance, centerI, drawCenterI, allowedDistance1);
+              return this.draw$1$bailout(8, i, 0, t1, t3, 0, context, 0, 0, j, t2, 0, 0, 0, 0, centerJ, drawCenterJ, allowedDistance0, centerI, drawCenterI, allowedDistance, allowedDistance1);
             t4 = centerI.x;
             if (typeof t4 !== "number")
-              return this.draw$1$bailout(9, i, t3, j, 0, 0, t1, t4, 0, context, t2, 0, 0, 0, 0, allowedDistance0, centerJ, drawCenterJ, allowedDistance, centerI, drawCenterI, allowedDistance1);
+              return this.draw$1$bailout(9, i, 0, t1, t3, 0, context, 0, t4, j, t2, 0, 0, 0, 0, centerJ, drawCenterJ, allowedDistance0, centerI, drawCenterI, allowedDistance, allowedDistance1);
             t4 = t3 - t4;
             t3 = Math.pow(t4, 2);
             t4 = centerJ.y;
             if (typeof t4 !== "number")
-              return this.draw$1$bailout(10, i, t3, j, 0, 0, t1, t4, 0, context, t2, 0, 0, 0, 0, allowedDistance0, 0, drawCenterJ, allowedDistance, centerI, drawCenterI, allowedDistance1);
+              return this.draw$1$bailout(10, i, 0, t1, t3, 0, context, 0, t4, j, t2, 0, 0, 0, 0, 0, drawCenterJ, allowedDistance0, centerI, drawCenterI, allowedDistance, allowedDistance1);
             t5 = centerI.y;
             if (typeof t5 !== "number")
-              return this.draw$1$bailout(11, i, t3, j, 0, 0, t1, t4, 0, context, t2, 0, 0, t5, 0, allowedDistance0, 0, drawCenterJ, allowedDistance, centerI, drawCenterI, allowedDistance1);
+              return this.draw$1$bailout(11, i, 0, t1, t3, 0, context, 0, t4, j, t2, 0, 0, t5, 0, 0, drawCenterJ, allowedDistance0, centerI, drawCenterI, allowedDistance, allowedDistance1);
             t5 = t4 - t5;
             t4 = Math.pow(t5, 2);
             if (t3 + t4 <= Math.pow(allowedDistance1, 2)) {
@@ -11721,7 +10683,6 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
               t1.moveTo$2(context, drawCenterI.x, drawCenterI.y);
               t1.lineTo$2(context, drawCenterJ.x, drawCenterJ.y);
               t1.stroke$0(context);
-              t1.set$strokeStyle(context, "#fff");
               t3 = this.buildings;
               t4 = t3.length;
               if (i >= t4)
@@ -11734,6 +10695,8 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                 t3 = true;
               if (t3)
                 t1.set$strokeStyle(context, "#777");
+              else
+                t1.set$strokeStyle(context, "#fff");
               t1.set$lineWidth(context, 2);
               t1.beginPath$0(context);
               t1.moveTo$2(context, drawCenterI.x, drawCenterI.y);
@@ -11758,7 +10721,25 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     if ($.engine.mouse.active) {
       for (i = 0; t3 = this.buildings, i < t3.length; ++i)
         t3[i].drawRepositionInfo$0();
-      this.drawAttackSymbol$0();
+      if (this.mode === "SHIP_SELECTED") {
+        position = $.Helper_tiled2screen(this.getHoveredTilePosition$0());
+        t3 = $.engine.canvas;
+        t3 = t3.$index(t3, "buffer").get$context();
+        t4 = $.engine.images;
+        t4 = t4.$index(t4, "targetcursor");
+        t5 = position.x;
+        if (typeof t5 !== "number")
+          return this.draw$1$bailout(12, 0, 0, t1, t3, 0, context, 0, t4, 0, t2, 0, 0, t5, 0, 0, 0, 0, 0, 0, 0, 0, position);
+        t6 = this.zoom;
+        if (typeof t6 !== "number")
+          throw $.iae(t6);
+        t5 -= t2 * t6;
+        t7 = position.y;
+        if (typeof t7 !== "number")
+          return this.draw$1$bailout(13, 0, 0, t1, t3, 0, context, 0, t4, 0, t2, 0, 0, t7, t5);
+        t8 = 48 * t6;
+        $.drawImageScaled$5$x(t3, t4, t5, t7 - t2 * t6, t8, t8);
+      }
       if (this.activeSymbol !== -1)
         this.drawPositionInfo$0();
       if (this.mode === "TERRAFORM") {
@@ -11782,7 +10763,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
         t1.beginPath$0(context);
         t7 = drawPosition.y;
         if (typeof t7 !== "number")
-          return this.draw$1$bailout(12, 0, 0, 0, 0, 0, t1, 0, 0, context, t2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, drawPosition, t7);
+          return this.draw$1$bailout(14, 0, 0, t1, 0, 0, context, 0, 0, 0, t2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, t7, drawPosition);
         t6 = this.zoom;
         if (typeof t6 !== "number")
           throw $.iae(t6);
@@ -11790,7 +10771,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
         t6 = $.engine.width;
         t7 = drawPosition.y;
         if (typeof t7 !== "number")
-          return this.draw$1$bailout(13, 0, 0, 0, 0, 0, t1, 0, 0, context, t2, 0, 0, 0, t6, 0, 0, 0, 0, 0, 0, 0, drawPosition, t7);
+          return this.draw$1$bailout(15, 0, 0, t1, 0, 0, context, 0, 0, 0, t2, 0, 0, 0, t6, 0, 0, 0, 0, 0, 0, 0, 0, t7, drawPosition);
         t5 = this.zoom;
         if (typeof t5 !== "number")
           throw $.iae(t5);
@@ -11807,14 +10788,14 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
         t1.beginPath$0(context);
         t7 = drawPosition.x;
         if (typeof t7 !== "number")
-          return this.draw$1$bailout(14, 0, 0, 0, 0, 0, t1, 0, 0, context, t2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, drawPosition, t7);
+          return this.draw$1$bailout(16, 0, 0, t1, 0, 0, context, 0, 0, 0, t2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, t7, drawPosition);
         t5 = this.zoom;
         if (typeof t5 !== "number")
           throw $.iae(t5);
         t1.moveTo$2(context, t7 + t2 * t5, 0);
         t5 = drawPosition.x;
         if (typeof t5 !== "number")
-          return this.draw$1$bailout(15, 0, 0, 0, 0, 0, t1, 0, 0, context, t2, 0, 0, t5);
+          return this.draw$1$bailout(17, 0, 0, t1, 0, 0, context, 0, 0, 0, t2, 0, 0, t5);
         t7 = this.zoom;
         if (typeof t7 !== "number")
           throw $.iae(t7);
@@ -11832,6 +10813,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       t1[i].draw$0();
     for (i = 0; t1 = this.buildings, i < t1.length; ++i)
       t1[i].drawBox$0();
+    this.drawCreeper$0();
     t1 = $.engine.canvas;
     t1 = t1.$index(t1, "main").get$context();
     t2 = $.engine.canvas;
@@ -11841,7 +10823,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     $.Window_methods._ensureRequestAnimationFrame$0(t2);
     $.Window_methods._requestAnimationFrame$1(t2, t1);
   },
-  draw$1$bailout: function(state0, i, t3, j, timesX, iS, t1, t4, timesY, context, t2, j0, jS, t5, t6, allowedDistance0, centerJ, drawCenterJ, allowedDistance, centerI, drawCenterI, allowedDistance1, drawPosition, t7) {
+  draw$1$bailout: function(state0, i, timesX, t1, t3, timesY, context, iS, t4, j, t2, j0, jS, t5, t6, centerJ, drawCenterJ, allowedDistance0, centerI, drawCenterI, allowedDistance, allowedDistance1, position, t7, drawPosition) {
     switch (state0) {
       case 0:
         t1 = $.engine.canvas;
@@ -12050,7 +11032,6 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                                       t1.moveTo$2(context, drawCenterI.x, drawCenterI.y);
                                       t1.lineTo$2(context, drawCenterJ.x, drawCenterJ.y);
                                       t1.stroke$0(context);
-                                      t1.set$strokeStyle(context, "#fff");
                                       t3 = this.buildings;
                                       t4 = t3.length;
                                       if (i >= t4)
@@ -12063,6 +11044,8 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                                         t3 = true;
                                       if (t3)
                                         t1.set$strokeStyle(context, "#777");
+                                      else
+                                        t1.set$strokeStyle(context, "#fff");
                                       t1.set$lineWidth(context, 2);
                                       t1.beginPath$0(context);
                                       t1.moveTo$2(context, drawCenterI.x, drawCenterI.y);
@@ -12091,17 +11074,49 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       case 13:
       case 14:
       case 15:
+      case 16:
+      case 17:
         var truncated, t8, t9, t10;
-        if (state0 === 15 || state0 === 14 || state0 === 13 || state0 === 12 || state0 === 0 && $.engine.mouse.active)
+        if (state0 === 17 || state0 === 16 || state0 === 15 || state0 === 14 || state0 === 13 || state0 === 12 || state0 === 0 && $.engine.mouse.active)
           switch (state0) {
             case 0:
               for (i = 0; t3 = this.buildings, i < t3.length; ++i)
                 t3[i].drawRepositionInfo$0();
-              this.drawAttackSymbol$0();
+            default:
+              if (state0 === 13 || state0 === 12 || state0 === 0 && this.mode === "SHIP_SELECTED")
+                switch (state0) {
+                  case 0:
+                    position = $.Helper_tiled2screen(this.getHoveredTilePosition$0());
+                    t3 = $.engine.canvas;
+                    t3 = t3.$index(t3, "buffer").get$context();
+                    t4 = $.engine.images;
+                    t4 = t4.$index(t4, "targetcursor");
+                    t5 = position.x;
+                  case 12:
+                    state0 = 0;
+                    t6 = this.zoom;
+                    if (typeof t6 !== "number")
+                      throw $.iae(t6);
+                    t6 = $.$sub$n(t5, t2 * t6);
+                    t5 = position.y;
+                  case 13:
+                    state0 = 0;
+                    t7 = this.zoom;
+                    if (typeof t7 !== "number")
+                      throw $.iae(t7);
+                    t7 = $.$sub$n(t5, t2 * t7);
+                    t5 = this.zoom;
+                    if (typeof t5 !== "number")
+                      throw $.iae(t5);
+                    $.drawImageScaled$5$x(t3, t4, t6, t7, 48 * t5, 48 * t5);
+                }
               if (this.activeSymbol !== -1)
                 this.drawPositionInfo$0();
-            default:
-              if (state0 === 15 || state0 === 14 || state0 === 13 || state0 === 12 || state0 === 0 && this.mode === "TERRAFORM")
+            case 14:
+            case 15:
+            case 16:
+            case 17:
+              if (state0 === 17 || state0 === 16 || state0 === 15 || state0 === 14 || state0 === 0 && this.mode === "TERRAFORM")
                 switch (state0) {
                   case 0:
                     drawPosition = $.Helper_tiled2screen(this.getHoveredTilePosition$0());
@@ -12122,7 +11137,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                     t1.stroke$0(context);
                     t1.beginPath$0(context);
                     t7 = drawPosition.y;
-                  case 12:
+                  case 14:
                     state0 = 0;
                     t6 = this.zoom;
                     if (typeof t6 !== "number")
@@ -12130,7 +11145,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                     t1.moveTo$2(context, 0, $.$add$ns(t7, t2 * t6));
                     t6 = $.engine.width;
                     t7 = drawPosition.y;
-                  case 13:
+                  case 15:
                     state0 = 0;
                     t5 = this.zoom;
                     if (typeof t5 !== "number")
@@ -12147,14 +11162,14 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                     t1.stroke$0(context);
                     t1.beginPath$0(context);
                     t7 = drawPosition.x;
-                  case 14:
+                  case 16:
                     state0 = 0;
                     t5 = this.zoom;
                     if (typeof t5 !== "number")
                       throw $.iae(t5);
                     t1.moveTo$2(context, $.$add$ns(t7, t2 * t5), 0);
                     t5 = drawPosition.x;
-                  case 15:
+                  case 17:
                     state0 = 0;
                     t7 = this.zoom;
                     if (typeof t7 !== "number")
@@ -12174,6 +11189,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
           t1[i].draw$0();
         for (i = 0; t1 = this.buildings, i < t1.length; ++i)
           t1[i].drawBox$0();
+        this.drawCreeper$0();
         t1 = $.engine.canvas;
         t1 = t1.$index(t1, "main").get$context();
         t2 = $.engine.canvas;
@@ -12681,100 +11697,24 @@ Shell: {"": "Object;position>,targetPosition,speed,imageID<,remove*,rotation,tra
     return this.remove.call$0();
   },
   init$0: function() {
-    var t1, t2, t3, t4, t5, t6, t7, delta, distance;
+    var t1, delta, t2, t3, distance;
     t1 = this.targetPosition;
-    t2 = t1.x;
-    if (typeof t2 !== "number")
-      return this.init$0$bailout(1, t1, t2);
-    t3 = this.position;
-    t4 = t3.x;
-    if (typeof t4 !== "number")
-      return this.init$0$bailout(2, t1, t2, t4);
-    t5 = t2 - t4;
-    t6 = t1.y;
-    if (typeof t6 !== "number")
-      return this.init$0$bailout(3, t1, t6, t5);
-    t7 = t3.y;
-    if (typeof t7 !== "number")
-      return this.init$0$bailout(4, t1, t6, t5, t7);
-    delta = new $.Vector(t5, t6 - t7);
-    t4 = t2 - t4;
-    t2 = Math.pow(t4, 2);
-    t1 = t1.y;
-    if (typeof t1 !== "number")
-      return this.init$0$bailout(7, t1, t2, 0, t3, delta);
-    t3 = t3.y;
+    delta = new $.Vector($.$sub$n(t1.x, this.position.x), $.$sub$n(t1.y, this.position.y));
+    t2 = this.position;
+    t3 = $.$sub$n(t1.x, t2.x);
     if (typeof t3 !== "number")
-      return this.init$0$bailout(8, t1, t2, 0, t3, delta);
-    t3 = t1 - t3;
-    t1 = t2 + Math.pow(t3, 2);
+      $.throwExpression(new $.ArgumentError(t3));
+    t3 = Math.pow(t3, 2);
+    t2 = $.$sub$n(t1.y, t2.y);
+    if (typeof t2 !== "number")
+      $.throwExpression(new $.ArgumentError(t2));
+    t1 = t3 + Math.pow(t2, 2);
     distance = Math.sqrt(t1);
     t1 = this.speed;
-    t2 = delta.x;
-    if (typeof t2 !== "number")
-      throw t2.$div();
+    t2 = $.$div$n(delta.x, distance);
     t3 = $.game;
-    t1.x = t2 / distance * t3.shellSpeed * t3.speed;
-    t2 = this.speed;
-    t1 = delta.y;
-    if (typeof t1 !== "number")
-      throw t1.$div();
-    t2.y = t1 / distance * t3.shellSpeed * t3.speed;
-  },
-  init$0$bailout: function(state0, t1, t2, t3, t4, delta) {
-    switch (state0) {
-      case 0:
-        t1 = this.targetPosition;
-        t2 = t1.x;
-      case 1:
-        state0 = 0;
-        t3 = this.position.x;
-      case 2:
-        state0 = 0;
-        t3 = $.$sub$n(t2, t3);
-        t2 = t1.y;
-      case 3:
-        state0 = 0;
-        t4 = this.position.y;
-      case 4:
-        state0 = 0;
-        delta = new $.Vector(t3, $.$sub$n(t2, t4));
-        t4 = this.position;
-        t2 = t1.x;
-      case 5:
-        state0 = 0;
-        t3 = t4.x;
-      case 6:
-        state0 = 0;
-        t3 = $.$sub$n(t2, t3);
-        if (typeof t3 !== "number")
-          $.throwExpression(new $.ArgumentError(t3));
-        t2 = Math.pow(t3, 2);
-        t1 = t1.y;
-      case 7:
-        state0 = 0;
-        t4 = t4.y;
-      case 8:
-        var distance;
-        state0 = 0;
-        t4 = $.$sub$n(t1, t4);
-        if (typeof t4 !== "number")
-          $.throwExpression(new $.ArgumentError(t4));
-        t1 = t2 + Math.pow(t4, 2);
-        distance = Math.sqrt(t1);
-        t1 = this.speed;
-        t2 = delta.x;
-        if (typeof t2 !== "number")
-          throw t2.$div();
-        t2 = $.$div$n(t2, distance);
-        t3 = $.game;
-        t1.x = t2 * t3.shellSpeed * t3.speed;
-        t2 = this.speed;
-        t1 = delta.y;
-        if (typeof t1 !== "number")
-          throw t1.$div();
-        t2.y = $.$div$n(t1, distance) * t3.shellSpeed * t3.speed;
-    }
+    t1.x = t2 * t3.shellSpeed * t3.speed;
+    this.speed.y = $.$div$n(delta.y, distance) * t3.shellSpeed * t3.speed;
   },
   getCenter$0: function() {
     return new $.Vector($.$sub$n(this.position.x, 8), $.$sub$n(this.position.y, 8));
@@ -13093,7 +12033,7 @@ Shell: {"": "Object;position>,targetPosition,speed,imageID<,remove*,rotation,tra
   }
 },
 
-Ship: {"": "Object;position>,speed,targetPosition,imageID<,type,status*,remove*,hovered<,selected*,angle@,maxEnergy<,energy@,trailTimer,weaponTimer,scale,flightCounter,home",
+Ship: {"": "Object;position>,speed,targetPosition,imageID<,type,status*,remove*,hovered<,selected*,angle,maxEnergy<,energy@,trailTimer,weaponTimer,scale,flightCounter,home",
   remove$0: function($receiver) {
     return this.remove.call$0();
   },
@@ -14322,10 +13262,6 @@ onMouseUp: function(evt) {
           if (i >= t1.length)
             throw $.ioore(i);
           t1[i].set$moveTargetPosition(position);
-          t1 = $.game.buildings;
-          if (i >= t1.length)
-            throw $.ioore(i);
-          t1[i].calculateVector$0();
         }
       }
     }
@@ -18356,6 +17292,10 @@ FixedSizeListIterator: {"": "Object;_array,_liblib$_length,_position,_current",
   get$current: function() {
     return this._current;
   }
+},
+
+document: function() {
+  return document;
 },
 
 AudioElement_AudioElement: function(src) {

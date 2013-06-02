@@ -135,7 +135,9 @@ class Game {
 
   // Returns the position of the tile the mouse is hovering above
   Vector getHoveredTilePosition() {
-    return new Vector(((engine.mouse.x - engine.halfWidth) / (tileSize * zoom)).floor() + scroll.x, ((engine.mouse.y - engine.halfHeight) / (tileSize * zoom)).floor() + scroll.y);
+    return new Vector(
+        ((engine.mouse.x - engine.halfWidth) / (tileSize * zoom)).floor() + scroll.x,
+        ((engine.mouse.y - engine.halfHeight) / (tileSize * zoom)).floor() + scroll.y);
   }
 
   /**
@@ -222,7 +224,6 @@ class Game {
       zoom = double.parse(zoom.toStringAsFixed(2));
       copyTerrain();
       drawCollection();
-      drawCreeper();
       updateZoomElement();
     }
   }
@@ -233,7 +234,6 @@ class Game {
       zoom = double.parse(zoom.toStringAsFixed(2));
       copyTerrain();
       drawCollection();
-      drawCreeper();
       updateZoomElement();
     }
   }
@@ -296,8 +296,6 @@ class Game {
         }
       }
     }
-
-    calculateCollection();
 
     int number = Helper.randomInt(2, 3, seed);
     for (var l = 0; l < number; l++) {
@@ -373,6 +371,7 @@ class Game {
       building.maxEnergy = 20;
       building.canMove = true;
       building.needsEnergy = true;
+      building.weaponRadius = 9;
     }
     else if (building.imageID == "bomber") {
       building.maxHealth = 75;
@@ -499,18 +498,19 @@ class Game {
   }
 
   void setupUI() {
-    symbols.add(new UISymbol(new Vector(0, 0), "cannon", "Q", 3, 25, 8));
-    symbols.add(new UISymbol(new Vector(81, 0), "collector", "W", 3, 5, 6));
-    symbols.add(new UISymbol(new Vector(2 * 81, 0), "reactor", "E", 3, 50, 0));
-    symbols.add(new UISymbol(new Vector(3 * 81, 0), "storage", "R", 3, 8, 0));
-    symbols.add(new UISymbol(new Vector(4 * 81, 0), "shield", "T", 3, 75, 10));
-    symbols.add(new UISymbol(new Vector(5 * 81, 0), "analyzer", "Z", 3, 80, 10));
+    symbols
+      ..add(new UISymbol(new Vector(0, 0), "cannon", "Q", 3, 25, 8))
+      ..add(new UISymbol(new Vector(81, 0), "collector", "W", 3, 5, 6))
+      ..add(new UISymbol(new Vector(2 * 81, 0), "reactor", "E", 3, 50, 0))
+      ..add(new UISymbol(new Vector(3 * 81, 0), "storage", "R", 3, 8, 0))
+      ..add(new UISymbol(new Vector(4 * 81, 0), "shield", "T", 3, 75, 10))
+      ..add(new UISymbol(new Vector(5 * 81, 0), "analyzer", "Z", 3, 80, 10))
 
-    symbols.add(new UISymbol(new Vector(0, 56), "relay", "A", 3, 10, 8));
-    symbols.add(new UISymbol(new Vector(81, 56), "mortar", "S", 3, 40, 12));
-    symbols.add(new UISymbol(new Vector(2 * 81, 56), "beam", "D", 3, 20, 12));
-    symbols.add(new UISymbol(new Vector(3 * 81, 56), "bomber", "F", 3, 75, 0));
-    symbols.add(new UISymbol(new Vector(4 * 81, 56), "terp", "G", 3, 60, 12));
+      ..add(new UISymbol(new Vector(0, 56), "relay", "A", 3, 10, 8))
+      ..add(new UISymbol(new Vector(81, 56), "mortar", "S", 3, 40, 12))
+      ..add(new UISymbol(new Vector(2 * 81, 56), "beam", "D", 3, 20, 12))
+      ..add(new UISymbol(new Vector(3 * 81, 56), "bomber", "F", 3, 75, 0))
+      ..add(new UISymbol(new Vector(4 * 81, 56), "terp", "G", 3, 60, 12));
   }
 
   void drawTerrain() {
@@ -532,19 +532,21 @@ class Game {
             if (i - 1 < 0)left = 0; else if (world.tiles[i - 1][j][k].full)left = 1;
             if (i + 1 > world.size.x - 1)right = 0; else if (world.tiles[i + 1][j][k].full)right = 1;
 
-            // save index for later use
-            world.tiles[i][j][k].index = (8 * down) + (4 * left) + (2 * up) + right;
+            // save index
+            int index = world.tiles[i][j][k].index = (8 * down) + (4 * left) + (2 * up) + right;
 
-            int index = world.tiles[i][j][k].index;
-
-            // skip tiles that are identical to the one above
-            if (k + 1 < 10 && index == world.tiles[i][j][k + 1].index)
-              continue;
+            if (k < 9) {
+              int indexAbove = world.tiles[i][j][k + 1].index;
+              // skip tiles that are identical to the one above
+              if (index == indexAbove)
+                continue;
+              // skip tiles that are not visible
+              if (indexAbove == 5 || indexAbove == 7 || indexAbove == 10 || indexAbove == 11 ||
+                  indexAbove == 13 || indexAbove == 14 || indexAbove == 15)
+                continue;
+            }
 
             engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["mask"], index * (tileSize + 6) + 3, (tileSize + 6) + 3, tileSize, tileSize, i * tileSize, j * tileSize, tileSize, tileSize);
-
-            // don't draw anymore under tiles that don't have transparent parts
-            //if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)break;
           }
         }
       }
@@ -552,7 +554,7 @@ class Game {
 
     // 2nd pass - draw textures
     for (int i = 0; i < 10; i++) {
-      CanvasPattern  pattern = engine.canvas["level$i"].context.createPattern(engine.images["level$i"], 'repeat');
+      CanvasPattern pattern = engine.canvas["level$i"].context.createPattern(engine.images["level$i"], 'repeat');
       engine.canvas["level$i"].context.globalCompositeOperation = 'source-in';
       engine.canvas["level$i"].context.fillStyle = pattern;
       engine.canvas["level$i"].context.fillRect(0, 0, engine.canvas["level$i"].element.width, engine.canvas["level$i"].element.height);
@@ -567,12 +569,19 @@ class Game {
           if (world.tiles[i][j][k].full) {
 
             int index = world.tiles[i][j][k].index;
-
-            if (k + 1 < 10 && index == world.tiles[i][j][k + 1].index)continue;
+            
+            if (k < 9) {
+              int indexAbove = world.tiles[i][j][k + 1].index;
+              // skip tiles that are identical to the one above
+              if (index == indexAbove)
+                continue;
+              // skip tiles that are not visible
+              if (indexAbove == 5 || indexAbove == 7 || indexAbove == 10 || indexAbove == 11 ||
+                  indexAbove == 13 || indexAbove == 14 || indexAbove == 15)
+                continue;
+            }
 
             engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["borders"], index * (tileSize + 6) + 2, 2, tileSize + 2, tileSize + 2, i * tileSize, j * tileSize, (tileSize + 2), (tileSize + 2));
-
-            if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)break;
           }
         }
       }
@@ -656,14 +665,18 @@ class Game {
         if (world.tiles[iS][jS][t].full) {
           int index = world.tiles[iS][jS][t].index;
 
-          // skip tiles that are identical to the one above
-          if (t + 1 < 10 && index == world.tiles[iS][jS][t + 1].index)
-            continue;
-
+          if (t < 9) {
+            int indexAbove = world.tiles[iS][jS][t + 1].index;
+            // skip tiles that are identical to the one above
+            if (index == indexAbove)
+              continue;
+            // skip tiles that are not visible
+            if (indexAbove == 5 || indexAbove == 7 || indexAbove == 10 || indexAbove == 11 ||
+                indexAbove == 13 || indexAbove == 14 || indexAbove == 15)
+              continue;
+          }
+          
           tempContext[t].drawImageScaledFromSource(engine.images["mask"], index * (tileSize + 6) + 3, (tileSize + 6) + 3, tileSize, tileSize, 0, 0, tileSize, tileSize);
-
-          // don't draw anymore under tiles that don't have transparent parts
-          if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)break;
         }
       }
 
@@ -693,11 +706,18 @@ class Game {
         if (world.tiles[iS][jS][t].full) {
           int index = world.tiles[iS][jS][t].index;
 
-          if (index < 0 || (t + 1 < 10 && index == world.tiles[iS][jS][t + 1].index))continue;
-
+          if (t < 9) {
+            int indexAbove = world.tiles[iS][jS][t + 1].index;
+            // skip tiles that are identical to the one above
+            if (index == indexAbove)
+              continue;
+            // skip tiles that are not visible
+            if (indexAbove == 5 || indexAbove == 7 || indexAbove == 10 || indexAbove == 11 ||
+                indexAbove == 13 || indexAbove == 14 || indexAbove == 15)
+              continue;
+          }
+          
           tempContext[t].drawImageScaledFromSource(engine.images["borders"], index * (tileSize + 6) + 2, 2, tileSize + 2, tileSize + 2, 0, 0, (tileSize + 2), (tileSize + 2));
-
-          if (index == 5 || index == 7 || index == 10 || index == 11 || index == 13 || index == 14 || index == 15)break;
         }
       }
 
@@ -707,259 +727,6 @@ class Game {
       }
     }
     copyTerrain();
-  }
-
-  void checkOperating() {
-    for (int t = 0; t < buildings.length; t++) {
-      buildings[t].operating = false;
-      if (buildings[t].needsEnergy && buildings[t].active && buildings[t].status == "IDLE") {
-
-        buildings[t].energyTimer++;
-        Vector position = buildings[t].position;
-        Vector center = buildings[t].getCenter();
-
-        if (buildings[t].imageID == "analyzer" && buildings[t].energy > 0) {
-          // find emitter
-          if (buildings[t].weaponTargetPosition == null) {
-            for (int i = 0; i < emitters.length; i++) {
-              Vector emitterCenter = emitters[i].getCenter();
-              
-              num distance = pow(emitterCenter.x - center.x, 2) + pow(emitterCenter.y - center.y, 2);
-
-              if (distance <= pow(buildings[t].weaponRadius * tileSize, 2)) {
-                if (emitters[i].building == null) {
-                  emitters[i].building = buildings[t];
-                  buildings[t].weaponTargetPosition = emitters[i].position;
-                  break;
-                }
-              }
-                
-            }
-          }
-          else {
-            if (buildings[t].energyTimer > 20) {
-              buildings[t].energyTimer = 0;
-              buildings[t].energy -= 1;
-            }
-  
-            buildings[t].operating = true;
-          }
-        }
-        
-        if (buildings[t].imageID == "terp" && buildings[t].energy > 0) {
-          // find lowest target
-          if (buildings[t].weaponTargetPosition == null) {
-
-            // find lowest tile
-            Vector target = null;
-            int lowestTile = 10;
-            for (int i = position.x - buildings[t].weaponRadius; i <= position.x + buildings[t].weaponRadius; i++) {
-              for (int j = position.y - buildings[t].weaponRadius; j <= position.y + buildings[t].weaponRadius; j++) {
-
-                if (withinWorld(i, j)) {
-                  var distance = pow((i * tileSize + tileSize / 2) - center.x, 2) + pow((j * tileSize + tileSize / 2) - center.y, 2);
-                  var tileHeight = getHighestTerrain(new Vector(i, j));
-
-                  if (distance <= pow(buildings[t].weaponRadius * tileSize, 2) && world.terraform[i][j]["target"] > -1 && tileHeight <= lowestTile) {
-                    lowestTile = tileHeight;
-                    target = new Vector(i, j);
-                  }
-                }
-              }
-            }
-            if (target != null) {
-              buildings[t].weaponTargetPosition = target;
-            }
-          } else {
-            if (buildings[t].energyTimer > 20) {
-              buildings[t].energyTimer = 0;
-              buildings[t].energy -= 1;
-            }
-
-            buildings[t].operating = true;
-            var terraformElement = world.terraform[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y];
-            terraformElement["progress"] += 1;
-            if (terraformElement["progress"] == 100) {
-              terraformElement["progress"] = 0;
-
-              int height = getHighestTerrain(buildings[t].weaponTargetPosition);
-              List tilesToRedraw = new List();
-
-              if (height < terraformElement["target"]) {
-                world.tiles[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y][height + 1].full = true;
-                // reset index around tile
-                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x, buildings[t].weaponTargetPosition.y, height + 1));
-                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x - 1, buildings[t].weaponTargetPosition.y, height + 1));
-                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x, buildings[t].weaponTargetPosition.y - 1, height + 1));
-                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x + 1, buildings[t].weaponTargetPosition.y, height + 1));
-                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x, buildings[t].weaponTargetPosition.y + 1, height + 1));
-              } else {
-                world.tiles[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y][height].full = false;
-                // reset index around tile
-                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x, buildings[t].weaponTargetPosition.y, height));
-                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x - 1, buildings[t].weaponTargetPosition.y, height));
-                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x, buildings[t].weaponTargetPosition.y - 1, height));
-                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x + 1, buildings[t].weaponTargetPosition.y, height));
-                tilesToRedraw.add(new Vector3(buildings[t].weaponTargetPosition.x, buildings[t].weaponTargetPosition.y + 1, height));
-              }
-
-              redrawTile(tilesToRedraw);
-
-              height = getHighestTerrain(buildings[t].weaponTargetPosition);
-              if (height == terraformElement["target"]) {
-                world.terraform[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y]["progress"] = 0;
-                world.terraform[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y]["target"] = -1;
-              }
-
-              buildings[t].weaponTargetPosition = null;
-              buildings[t].operating = false;
-            }
-          }
-        }
-
-        else if (buildings[t].imageID == "shield" && buildings[t].energy > 0) {
-          if (buildings[t].energyTimer > 20) {
-            buildings[t].energyTimer = 0;
-            buildings[t].energy -= 1;
-          }
-          buildings[t].operating = true;
-        }
-
-        else if (buildings[t].imageID == "cannon" && buildings[t].energy > 0 && buildings[t].energyTimer > 10) {
-          if (!buildings[t].rotating) {
-          
-            buildings[t].energyTimer = 0;
-
-            int height = getHighestTerrain(buildings[t].position);
-
-            List targets = new List();            
-            // find closest random target
-            for (int r = 0; r < buildings[t].weaponRadius + 1; r++) {
-              int radius = r * tileSize;
-              for (int i = position.x - buildings[t].weaponRadius; i <= position.x + buildings[t].weaponRadius; i++) {
-                for (int j = position.y - buildings[t].weaponRadius; j <= position.y + buildings[t].weaponRadius; j++) {
-
-                  // cannons can only shoot at tiles not higher than themselves
-                  if (withinWorld(i, j)) {
-                    int tileHeight = getHighestTerrain(new Vector(i, j));
-                    if (tileHeight <= height) {
-                      var distance = pow((i * tileSize + tileSize / 2) - center.x, 2) + pow((j * tileSize + tileSize / 2) - center.y, 2);
-
-                      if (distance <= pow(radius, 2) && world.tiles[i][j][0].creep > 0) {
-                        targets.add(new Vector(i, j));
-                      }
-                    }
-                  }
-                }
-              }
-              if (targets.length > 0)
-                break;
-            }
-            
-            if (targets.length > 0) {
-              Helper.shuffle(targets);
-              
-              var dx = targets[0].x * tileSize + tileSize / 2 - center.x;
-              var dy = targets[0].y * tileSize + tileSize / 2 - center.y;
-              
-              buildings[t].targetAngle = Helper.rad2deg(atan2(dy, dx) + PI / 2).floor();
-              buildings[t].weaponTargetPosition = new Vector(targets[0].x, targets[0].y);
-              buildings[t].rotating = true;
-            }
-          }
-          else {
-            if (buildings[t].angle != buildings[t].targetAngle) {
-              // rotate to target
-              int angleToTarget = buildings[t].targetAngle;
-
-              int turnRate = 5;
-              int absoluteDelta = (angleToTarget - buildings[t].angle).abs();
-
-              if (absoluteDelta < turnRate)
-                turnRate = absoluteDelta;
-
-              if (absoluteDelta <= 180)
-                if (angleToTarget < buildings[t].angle)
-                  buildings[t].angle -= turnRate;
-                else
-                  buildings[t].angle += turnRate;
-              else
-                if (angleToTarget < buildings[t].angle)
-                  buildings[t].angle += turnRate;
-                else
-                  buildings[t].angle -= turnRate;
-
-              if (buildings[t].angle > 180)
-                buildings[t].angle -= 360;
-              if (buildings[t].angle < -180)
-                buildings[t].angle += 360;
-            }
-            else {
-              // shoot it
-              world.tiles[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y][0].creep -= 10;
-              if (world.tiles[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y][0].creep < 0)
-                world.tiles[buildings[t].weaponTargetPosition.x][buildings[t].weaponTargetPosition.y][0].creep = 0;
-                           
-              buildings[t].rotating = false;
-              buildings[t].energy -= 1;
-              buildings[t].operating = true;
-              smokes.add(new Smoke(new Vector(buildings[t].weaponTargetPosition.x * tileSize + tileSize / 2, buildings[t].weaponTargetPosition.y * tileSize + tileSize / 2)));
-              engine.playSound("laser", position);
-            }          
-          }
-        }
-
-        else if (buildings[t].imageID == "mortar" && buildings[t].energy > 0 && buildings[t].energyTimer > 200) {
-          buildings[t].energyTimer = 0;
-
-          // find most creep in range
-          Vector target = null;
-          var highestCreep = 0;
-          for (int i = position.x - buildings[t].weaponRadius; i <= position.x + buildings[t].weaponRadius; i++) {
-            for (int j = position.y - buildings[t].weaponRadius; j <= position.y + buildings[t].weaponRadius; j++) {
-              if (withinWorld(i, j)) {
-                var distance = pow((i * tileSize + tileSize / 2) - center.x, 2) + pow((j * tileSize + tileSize / 2) - center.y, 2);
-
-                if (distance <= pow(buildings[t].weaponRadius * tileSize, 2) && world.tiles[i][j][0].creep > 0 && world.tiles[i][j][0].creep >= highestCreep) {
-                  highestCreep = world.tiles[i][j][0].creep;
-                  target = new Vector(i, j);
-                }
-              }
-            }
-          }
-          if (target != null) {
-            engine.playSound("shot", position);
-            Shell shell = new Shell(center, "shell", new Vector(target.x * tileSize + tileSize / 2, target.y * tileSize + tileSize / 2));
-            shell.init();
-            shells.add(shell);
-            buildings[t].energy -= 1;
-          }
-        }
-
-        else if (buildings[t].imageID == "beam" && buildings[t].energy > 0 && buildings[t].energyTimer > 0) {
-          buildings[t].energyTimer = 0;
-
-          // find spore in range
-          for (int i = 0; i < spores.length; i++) {
-            Vector sporeCenter = spores[i].getCenter();
-            var distance = pow(sporeCenter.x - center.x, 2) + pow(sporeCenter.y - center.y, 2);
-
-            if (distance <= pow(buildings[t].weaponRadius * tileSize, 2)) {
-              buildings[t].weaponTargetPosition = sporeCenter;
-              buildings[t].energy -= .1;
-              buildings[t].operating = true;
-              spores[i].health -= 2;
-              if (spores[i].health <= 0) {
-                spores[i].remove = true;
-                engine.playSound("explosion", Helper.real2tiled(spores[i].position));
-                explosions.add(new Explosion(sporeCenter));
-              }
-            }
-          }
-        }
-        
-      }
-    }
   }
 
   /**
@@ -1023,7 +790,8 @@ class Game {
     for (int i = 0; i < world.size.x; i++) {
       for (int j = 0; j < world.size.y; j++) {
         for (int k = 0; k < 10; k++) {
-          if (world.tiles[i][j][k].collector != null)collection += 1;
+          if (world.tiles[i][j][k].collector != null)
+            collection += 1;
         }
       }
     }
@@ -1059,52 +827,44 @@ class Game {
 
       for (int i = 0; i < world.size.x; i++) {
         for (int j = 0; j < world.size.y; j++) {
-          world.tiles[i][j][0].newcreep = world.tiles[i][j][0].creep;
-        }
-      }
-
-      for (int i = 0; i < world.size.x; i++) {
-        for (int j = 0; j < world.size.y; j++) {
 
           int height = getHighestTerrain(new Vector(i, j));
-          //if (i - 1 > -1 && i + 1 < world.size.x && j - 1 > -1 && j + 1 < world.size.y) {
-            //if (height >= 0) {
-            // right neighbour
-            if (i + 1 < world.size.x) {
-              int height2 = getHighestTerrain(new Vector(i + 1, j));
-              transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i + 1][j][0]);
-            }
-            // bottom right neighbour
-            if (i - 1 > -1) {
-              int height2 = getHighestTerrain(new Vector(i - 1, j));
-              transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i - 1][j][0]);
-            }
-            // bottom neighbour
-            if (j + 1 < world.size.y) {
-              int height2 = getHighestTerrain(new Vector(i, j + 1));
-              transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i][j + 1][0]);
-            }
-            // bottom left neighbour
-            if (j - 1 > -1) {
-              int height2 = getHighestTerrain(new Vector(i, j - 1));
-              transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i][j - 1][0]);
-            }
-          //}
+
+          // right neighbour
+          if (i + 1 < world.size.x) {
+            int height2 = getHighestTerrain(new Vector(i + 1, j));
+            transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i + 1][j][0]);
+          }
+          // left neighbour
+          if (i - 1 > -1) {
+            int height2 = getHighestTerrain(new Vector(i - 1, j));
+            transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i - 1][j][0]);
+          }
+          // bottom neighbour
+          if (j + 1 < world.size.y) {
+            int height2 = getHighestTerrain(new Vector(i, j + 1));
+            transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i][j + 1][0]);
+          }
+          // top neighbour
+          if (j - 1 > -1) {
+            int height2 = getHighestTerrain(new Vector(i, j - 1));
+            transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i][j - 1][0]);
+          }
 
         }
       }
-
+      
+      // clamp creeper
       for (int i = 0; i < world.size.x; i++) {
         for (int j = 0; j < world.size.y; j++) {
           world.tiles[i][j][0].creep = world.tiles[i][j][0].newcreep;
           if (world.tiles[i][j][0].creep > 10)
             world.tiles[i][j][0].creep = 10;
-          if (world.tiles[i][j][0].creep < minimum)
+          else if (world.tiles[i][j][0].creep < minimum)
             world.tiles[i][j][0].creep = 0;
+          world.tiles[i][j][0].newcreep = world.tiles[i][j][0].creep;
         }
       }
-
-      drawCreeper();
 
     }
   }
@@ -1112,12 +872,11 @@ class Game {
   void transferCreeper(num height, num height2, Tile source, Tile target) {
     num transferRate = .25;
 
-    num sourceAmount = source.creep;
-    num sourceTotal = height + source.creep;
-
-    if (height2 > -1) {
+    if (height > -1 && height2 > -1) {
+      num sourceAmount = source.creep;     
       num targetAmount = target.creep;
       if (sourceAmount > 0 || targetAmount > 0) {
+        num sourceTotal = height + source.creep;
         num targetTotal = height2 + target.creep;
         num delta = 0;
         if (sourceTotal > targetTotal) {
@@ -1127,14 +886,14 @@ class Game {
           source.newcreep -= adjustedDelta;
           target.newcreep += adjustedDelta;
         }
-    /*else {
-                      delta = targetTotal - sourceTotal;
-                      if (delta > targetAmount)
-                          delta = targetAmount;
-                      var adjustedDelta = delta * transferRate;
-                      source.newcreep += adjustedDelta;
-                      target.newcreep -= adjustedDelta;
-                  }*/
+        /*else {
+          delta = targetTotal - sourceTotal;
+          if (delta > targetAmount)
+              delta = targetAmount;
+          var adjustedDelta = delta * transferRate;
+          source.newcreep += adjustedDelta;
+          target.newcreep -= adjustedDelta;
+        }*/
       }
     }
   }
@@ -1420,15 +1179,10 @@ class Game {
   }
 
   void updateBuildings() {
-    checkOperating();
 
-    // move
     for (int i = 0; i < buildings.length; i++) {
       buildings[i].move();
-    }
-
-    // push away creeper (shield)
-    for (int i = 0; i < buildings.length; i++) {
+      buildings[i].checkOperating();
       buildings[i].shield();
     }
 
@@ -1632,7 +1386,6 @@ class Game {
     if (scrollingLeft || scrollingRight || scrollingUp || scrollingDown) {
       copyTerrain();
       drawCollection();
-      drawCreeper();
     }
   }
 
@@ -1758,28 +1511,32 @@ class Game {
         int jS = j + scroll.y;
 
         if (withinWorld(iS, jS)) {
-
           if (world.tiles[iS][jS][0].creep > 0) {
             num creep = (world.tiles[iS][jS][0].creep).ceil();
 
             int up = 0, down = 0, left = 0, right = 0;
-            if (jS - 1 < 0)up = 0; else if ((world.tiles[iS][jS - 1][0].creep).ceil() >= creep)up = 1;
-            if (jS + 1 > world.size.y - 1)down = 0; else if ((world.tiles[iS][jS + 1][0].creep).ceil() >= creep)down = 1;
-            if (iS - 1 < 0)left = 0; else if ((world.tiles[iS - 1][jS][0].creep).ceil() >= creep)left = 1;
-            if (iS + 1 > world.size.x - 1)right = 0; else if ((world.tiles[iS + 1][jS][0].creep).ceil() >= creep)right = 1;
+            if (jS - 1 < 0)
+              up = 0;
+            else if ((world.tiles[iS][jS - 1][0].creep).ceil() >= creep)
+              up = 1;
+            if (jS + 1 > world.size.y - 1)
+              down = 0;
+            else if ((world.tiles[iS][jS + 1][0].creep).ceil() >= creep)
+              down = 1;
+            if (iS - 1 < 0)
+              left = 0;
+            else if ((world.tiles[iS - 1][jS][0].creep).ceil() >= creep)
+              left = 1;
+            if (iS + 1 > world.size.x - 1)
+              right = 0;
+            else if ((world.tiles[iS + 1][jS][0].creep).ceil() >= creep)
+              right = 1;
 
             int index = (8 * down) + (4 * left) + (2 * up) + right;
             engine.canvas["creeper"].context.drawImageScaledFromSource(engine.images["creep"], index * tileSize, (creep - 1) * tileSize, tileSize, tileSize, engine.halfWidth + i * tileSize * zoom, engine.halfHeight + j * tileSize * zoom, tileSize * zoom, tileSize * zoom);
           }
-
-        // creep value
-        //engine.canvas["buffer"].context.textAlign = 'left';
-        //engine.canvas["buffer"].context.fillText((world.tiles[i][j].creep).floor(), i * tileSize + 2, j * tileSize + 10);
-        
-        // height value
-        //engine.canvas["buffer"].context.textAlign = 'left';
-        //engine.canvas["buffer"].context.fillText(world.tiles[i][j].height, i * tileSize + 2, j * tileSize + 10);
         }
+        
       }
     }
   }
@@ -2017,10 +1774,11 @@ class Game {
               context.moveTo(drawCenterI.x, drawCenterI.y);
               context.lineTo(drawCenterJ.x, drawCenterJ.y);
               context.stroke();
-
-              context.strokeStyle = '#fff';
+              
               if (!buildings[i].built || !buildings[j].built)
                 context.strokeStyle = '#777';
+              else
+                context.strokeStyle = '#fff';
               context.lineWidth = 2;
               context.beginPath();
               context.moveTo(drawCenterI.x, drawCenterI.y);
@@ -2126,6 +1884,8 @@ class Game {
     for (int i = 0; i < buildings.length; i++) {
       buildings[i].drawBox();
     }
+    
+    drawCreeper();
 
     engine.canvas["main"].context.drawImage(engine.canvas["buffer"].element, 0, 0);
 
