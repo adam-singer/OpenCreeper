@@ -871,6 +871,8 @@ class Game {
                   }
                 }
               }
+              if (targets.length > 0)
+                break;
             }
             
             if (targets.length > 0) {
