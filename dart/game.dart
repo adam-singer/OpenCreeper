@@ -299,41 +299,47 @@ class Game {
 
     this.calculateCollection();
 
-    // create emitter
-    randomPosition = new Vector(
-        Helper.randomInt(0, this.world.size.x - 3, this.seed + 2),
-        Helper.randomInt(0, this.world.size.y - 3, this.seed + 2));
-
-    Emitter emitter = new Emitter(randomPosition, 5);
-    this.emitters.add(emitter);
-
-    height = this.getHighestTerrain(new Vector(emitter.position.x + 1, emitter.position.y + 1));
-    if (height < 0)
-      height = 0;
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 3; j++) {
-        for (int k = 0; k < height; k++) {
-          this.world.tiles[emitter.position.x + i][emitter.position.y + j][k].full = true;
+    int number = Helper.randomInt(2, 3, seed);
+    for (var l = 0; l < number; l++) {
+      // create emitter
+      
+      randomPosition = new Vector(
+          Helper.randomInt(0, this.world.size.x - 3, this.seed + Helper.randomInt(1, 1000, seed + l)),
+          Helper.randomInt(0, this.world.size.y - 3, this.seed + Helper.randomInt(1, 1000, seed + 1 + l)));
+  
+      Emitter emitter = new Emitter(randomPosition, 5);
+      this.emitters.add(emitter);
+  
+      height = this.getHighestTerrain(new Vector(emitter.position.x + 1, emitter.position.y + 1));
+      if (height < 0)
+        height = 0;
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+          for (int k = 0; k < height; k++) {
+            this.world.tiles[emitter.position.x + i][emitter.position.y + j][k].full = true;
+          }
         }
       }
     }
 
-    // create sporetower
-    randomPosition = new Vector(
-        Helper.randomInt(0, this.world.size.x - 3, this.seed + 3),
-        Helper.randomInt(0, this.world.size.y - 3, this.seed + 3));
-
-    Sporetower sporetower = new Sporetower(randomPosition);
-    sporetower.reset();
-    this.sporetowers.add(sporetower);
-
-    height = this.getHighestTerrain(new Vector(sporetower.position.x + 1, sporetower.position.y + 1));
-    if (height < 0)
-      height = 0;
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 3; j++) {
-        for (int k = 0; k < height; k++) {
-          this.world.tiles[sporetower.position.x + i][sporetower.position.y + j][k].full = true;
+    number = Helper.randomInt(1, 2, seed + 1);
+    for (var l = 0; l < number; l++) {
+      // create sporetower
+      randomPosition = new Vector(
+          Helper.randomInt(0, this.world.size.x - 3, this.seed + 3 + Helper.randomInt(1, 1000, seed + 2 + l)),
+          Helper.randomInt(0, this.world.size.y - 3, this.seed + 3 + Helper.randomInt(1, 1000, seed + 3 + l)));
+  
+      Sporetower sporetower = new Sporetower(randomPosition);
+      this.sporetowers.add(sporetower);
+  
+      height = this.getHighestTerrain(new Vector(sporetower.position.x + 1, sporetower.position.y + 1));
+      if (height < 0)
+        height = 0;
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+          for (int k = 0; k < height; k++) {
+            this.world.tiles[sporetower.position.x + i][sporetower.position.y + j][k].full = true;
+          }
         }
       }
     }

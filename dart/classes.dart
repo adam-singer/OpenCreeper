@@ -39,6 +39,7 @@ class Sporetower {
 
   Sporetower(this.position) {
     this.imageID = "sporetower";
+    this.reset();
   }
 
   void reset() {
