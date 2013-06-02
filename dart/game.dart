@@ -353,83 +353,64 @@ class Game {
 
   void addBuilding(Vector position, String type) {
     Building building = new Building(position, type);
-    building.health = 0;
 
     if (building.imageID == "analyzer") {
       building.maxHealth = 80;
       building.maxEnergy = 20;
-      building.energy = 0;
-      building.size = 3;
       building.canMove = true;
       building.needsEnergy = true;
       building.weaponRadius = 10;
     }
-    if (building.imageID == "terp") {
+    else if (building.imageID == "terp") {
       building.maxHealth = 60;
       building.maxEnergy = 20;
-      building.energy = 0;
-      building.size = 3;
       building.canMove = true;
       building.needsEnergy = true;
       building.weaponRadius = 12;
     }
-    if (building.imageID == "shield") {
+    else if (building.imageID == "shield") {
       building.maxHealth = 75;
       building.maxEnergy = 20;
-      building.energy = 0;
-      building.size = 3;
       building.canMove = true;
       building.needsEnergy = true;
     }
-    if (building.imageID == "bomber") {
+    else if (building.imageID == "bomber") {
       building.maxHealth = 75;
       building.maxEnergy = 15;
-      building.energy = 0;
-      building.size = 3;
       building.needsEnergy = true;
     }
-    if (building.imageID == "storage") {
+    else if (building.imageID == "storage") {
       building.maxHealth = 8;
-      building.size = 3;
     }
-    if (building.imageID == "reactor") {
+    else if (building.imageID == "reactor") {
       building.maxHealth = 50;
-      building.size = 3;
     }
-    if (building.imageID == "collector") {
+    else if (building.imageID == "collector") {
       building.maxHealth = 5;
-      building.size = 3;
     }
-    if (building.imageID == "relay") {
+    else if (building.imageID == "relay") {
       building.maxHealth = 10;
-      building.size = 3;
     }
-    if (building.imageID == "cannon") {
+    else if (building.imageID == "cannon") {
       building.maxHealth = 25;
       building.maxEnergy = 40;
-      building.energy = 0;
       building.weaponRadius = 8;
       building.canMove = true;
       building.needsEnergy = true;
-      building.size = 3;
     }
-    if (building.imageID == "mortar") {
+    else if (building.imageID == "mortar") {
       building.maxHealth = 40;
       building.maxEnergy = 20;
-      building.energy = 0;
       building.weaponRadius = 12;
       building.canMove = true;
       building.needsEnergy = true;
-      building.size = 3;
     }
-    if (building.imageID == "beam") {
+    else if (building.imageID == "beam") {
       building.maxHealth = 20;
       building.maxEnergy = 10;
-      building.energy = 0;
       building.weaponRadius = 12;
       building.canMove = true;
       building.needsEnergy = true;
-      building.size = 3;
     }
 
     buildings.add(building);
@@ -1168,17 +1149,14 @@ class Game {
   List getNeighbours(Building node, Building target) {
     List neighbours = new List();
     Vector centerI, centerNode;
-    //if (node.built) {
+    
     for (int i = 0; i < buildings.length; i++) {
-      if (buildings[i].position.x == node.position.x && buildings[i].position.y == node.position.y) {
-        // console.log("is me");
-      } else {
-        // if the node is not the target AND built it is a valid neighbour
-        // also the neighbour must not be moving
+      // must not be the same building
+      if (buildings[i].position.x != node.position.x && buildings[i].position.y != node.position.y) {
+        // must be idle
         if (buildings[i].status == "IDLE") {
-          // && buildings[i].imageID != "base") {
-          if (buildings[i] != target) {
-            if (buildings[i].built) {
+          // if its the target its ok, if its not it must be built
+          if (buildings[i] == target || (buildings[i] != target && buildings[i].built)) {
               centerI = buildings[i].getCenter();
               centerNode = node.getCenter();
               num distance = Helper.distance(centerI, centerNode);
@@ -1190,26 +1168,10 @@ class Game {
               if (distance <= allowedDistance) {
                 neighbours.add(buildings[i]);
               }
-            }
-          }
-          // if it is the target it is a valid neighbour
-          else {
-            centerI = buildings[i].getCenter();
-            centerNode = node.getCenter();
-            num distance = Helper.distance(centerI, centerNode);
-
-            int allowedDistance = 10 * tileSize;
-            if (node.imageID == "relay" && buildings[i].imageID == "relay") {
-              allowedDistance = 20 * tileSize;
-            }
-            if (distance <= allowedDistance) {
-              neighbours.add(buildings[i]);
-            }
           }
         }
       }
     }
-    //}
     return neighbours;
   }
 
@@ -1956,17 +1918,6 @@ class Game {
   }
 
   /**
-     * Draws the attack symbols of ships.
-     */
-
-  void drawAttackSymbol() {
-    if (mode == "SHIP_SELECTED") {
-      Vector position = Helper.tiled2screen(getHoveredTilePosition());
-      engine.canvas["buffer"].context.drawImageScaled(engine.images["targetcursor"], position.x - tileSize * zoom, position.y - tileSize * zoom, 48 * zoom, 48 * zoom);
-    }
-  }
-
-  /**
      * Draws the GUI with symbols, height and creep meter.
      */
 
@@ -2119,7 +2070,10 @@ class Game {
       }
 
       // draw attack symbol
-      drawAttackSymbol();
+      if (mode == "SHIP_SELECTED") {
+        Vector position = Helper.tiled2screen(getHoveredTilePosition());
+        engine.canvas["buffer"].context.drawImageScaled(engine.images["targetcursor"], position.x - tileSize * zoom, position.y - tileSize * zoom, 48 * zoom, 48 * zoom);
+      }
 
       if (activeSymbol != -1) {
         drawPositionInfo();

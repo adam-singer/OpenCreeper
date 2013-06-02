@@ -4,11 +4,15 @@ class Building {
   Vector position, moveTargetPosition, weaponTargetPosition, speed = new Vector(0, 0);
   String imageID, status = "IDLE"; // MOVING, RISING, FALLING
   bool operating = false, selected = false, hovered = false, built = false, active = true, canMove = false, needsEnergy = false, rotating = false;
-  num health = 0, maxHealth = 0, energy = 0, maxEnergy = 0, energyTimer = 0, healthRequests = 0, energyRequests = 0, requestTimer = 0, weaponRadius = 0, size = 0, collectedEnergy = 0, flightCounter = 0, scale = 1;
+  num health, maxHealth = 0, energy, maxEnergy = 0, energyTimer = 0, healthRequests = 0, energyRequests = 0, requestTimer = 0, weaponRadius = 0, size, collectedEnergy = 0, flightCounter = 0, scale = 1;
   int angle = 0, targetAngle;
   Ship ship;
 
-  Building(this.position, this.imageID);
+  Building(this.position, this.imageID) {
+    health = 0;
+    size = 3;
+    energy = 0;
+  }
 
   bool updateHoverState() {
     Vector realPosition = Helper.tiled2screen(position);
