@@ -335,6 +335,7 @@ void doneResizing() {
   engine.canvas["levelfinal"].updateRect(width, height);
   engine.canvas["buffer"].updateRect(width, height);
   engine.canvas["collection"].updateRect(width, height);
+  engine.canvas["creeperbuffer"].updateRect(width, height);
   engine.canvas["creeper"].updateRect(width, height);
 
   engine.canvas["gui"].top = engine.canvas["gui"].element.offsetTop;

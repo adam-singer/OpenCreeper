@@ -65,6 +65,7 @@ class Engine {
     query('#canvasContainer').children.add(canvas["collection"].element);
 
     // creeper
+    canvas["creeperbuffer"] = new Canvas(new CanvasElement(), width, height);
     canvas["creeper"] = new Canvas(new CanvasElement(), width, height);
     query('#canvasContainer').children.add(canvas["creeper"].element);
 
@@ -77,7 +78,9 @@ class Engine {
     addSound("laser", "wav");
 
     // load images
-    imageSrcs = ["analyzer", "numbers", "level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon", "cannongun", "base", "collector", "reactor", "storage", "terp", "packet_collection", "packet_energy", "packet_health", "relay", "emitter", "creep", "mortar", "shell", "beam", "spore", "bomber", "bombership", "smoke", "explosion", "targetcursor", "sporetower", "forcefield", "shield"];
+    imageSrcs = ["analyzer", "numbers", "level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon",
+                 "cannongun", "base", "collector", "reactor", "storage", "terp", "packet_collection", "packet_energy", "packet_health", "relay", "emitter", "creeper",
+                 "mortar", "shell", "beam", "spore", "bomber", "bombership", "smoke", "explosion", "targetcursor", "sporetower", "forcefield", "shield"];
 
     query('#terraform').onClick.listen((event) => game.toggleTerraform());
     //query('#slower').onClick.listen((event) => game.slower());

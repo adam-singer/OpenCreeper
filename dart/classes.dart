@@ -177,8 +177,6 @@ class Canvas {
   }
   
   void updateRect(int width, int height) {
-    //element.attributes['width'] = width.toString();
-    //element.attributes['height'] = height.toString();
     element.width = width;
     element.height = height;
     top = element.offset.top;
