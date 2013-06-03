@@ -551,11 +551,30 @@ class Game {
       for (int j = 0; j < world.size.y; j++) {
         int indexAbove = -1;
         for (int k = 9; k > -1; k--) {
+           
+          if (k <= world.tiles[i][j].height) {
 
-          if (k == world.tiles[i][j].height) {
-
-            int index = world.tiles[i][j].index;
+            // calculate index
+            int up = 0, down = 0, left = 0, right = 0;
+            if (j - 1 < 0)
+              up = 0;
+            else if (world.tiles[i][j - 1].height >= k)
+              up = 1;
+            if (j + 1 > world.size.y - 1)
+              down = 0;
+            else if (world.tiles[i][j + 1].height >= k)
+              down = 1;
+            if (i - 1 < 0)
+              left = 0;
+            else if (world.tiles[i - 1][j].height >= k)
+              left = 1;
+            if (i + 1 > world.size.x - 1)
+              right = 0;
+            else if (world.tiles[i + 1][j].height >= k)
+              right = 1;
             
+            int index = (8 * down) + (4 * left) + (2 * up) + right;
+          
             if (k < 9) {
               // skip tiles that are identical to the one above
               if (index == indexAbove)
@@ -567,7 +586,7 @@ class Game {
             }
             
             indexAbove = index;
-
+  
             engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["borders"], index * (tileSize + 6) + 2, 2, tileSize + 2, tileSize + 2, i * tileSize, j * tileSize, (tileSize + 2), (tileSize + 2));
           }
         }
@@ -1478,7 +1497,7 @@ class Game {
   }
 
   void drawCreeper() {
-    engine.canvas["creeper"].clear();
+    engine.canvas["creeperbuffer"].clear();
 
     int timesX = (engine.halfWidth / tileSize / zoom).ceil();
     int timesY = (engine.halfHeight / tileSize / zoom).ceil();
@@ -1490,34 +1509,42 @@ class Game {
         int jS = j + scroll.y;
 
         if (withinWorld(iS, jS)) {
-          if (world.tiles[iS][jS].creep > 0) {
-            num creep = (world.tiles[iS][jS].creep).ceil();
+          
+          num creep = (world.tiles[iS][jS].creep).ceil();
+          
+          for (var t = 0; t <= 9; t++) {
 
-            int up = 0, down = 0, left = 0, right = 0;
-            if (jS - 1 < 0)
-              up = 0;
-            else if ((world.tiles[iS][jS - 1].creep).ceil() >= creep)
-              up = 1;
-            if (jS + 1 > world.size.y - 1)
-              down = 0;
-            else if ((world.tiles[iS][jS + 1].creep).ceil() >= creep)
-              down = 1;
-            if (iS - 1 < 0)
-              left = 0;
-            else if ((world.tiles[iS - 1][jS].creep).ceil() >= creep)
-              left = 1;
-            if (iS + 1 > world.size.x - 1)
-              right = 0;
-            else if ((world.tiles[iS + 1][jS].creep).ceil() >= creep)
-              right = 1;
-
-            int index = (8 * down) + (4 * left) + (2 * up) + right;
-            engine.canvas["creeper"].context.drawImageScaledFromSource(engine.images["creep"], index * tileSize, (creep - 1) * tileSize, tileSize, tileSize, engine.halfWidth + i * tileSize * zoom, engine.halfHeight + j * tileSize * zoom, tileSize * zoom, tileSize * zoom);
+            if (world.tiles[iS][jS].creep > t) {
+              
+              int up = 0, down = 0, left = 0, right = 0;
+              if (jS - 1 < 0)
+                up = 0;
+              else if ((world.tiles[iS][jS - 1].creep) > t)
+                up = 1;
+              if (jS + 1 > world.size.y - 1)
+                down = 0;
+              else if ((world.tiles[iS][jS + 1].creep) > t)
+                down = 1;
+              if (iS - 1 < 0)
+                left = 0;
+              else if ((world.tiles[iS - 1][jS].creep) > t)
+                left = 1;
+              if (iS + 1 > world.size.x - 1)
+                right = 0;
+              else if ((world.tiles[iS + 1][jS].creep) > t)
+                right = 1;
+  
+              int index = (8 * down) + (4 * left) + (2 * up) + right;
+              engine.canvas["creeperbuffer"].context.drawImageScaledFromSource(engine.images["creeper"], index * tileSize, 0, tileSize, tileSize, engine.halfWidth + i * tileSize * zoom, engine.halfHeight + j * tileSize * zoom, tileSize * zoom, tileSize * zoom);
+            }
           }
         }
         
       }
     }
+    
+    engine.canvas["creeper"].clear();
+    engine.canvas["creeper"].context.drawImage(engine.canvas["creeperbuffer"].element, 0, 0);
   }
 
   /**

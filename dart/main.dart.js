@@ -5696,24 +5696,34 @@ Engine: {"": "Object;FPS,delta,fps_delta,fps_frames,fps_totalTime,fps_updateTime
     t4.set$position;
     $.setProperty$3$x(t4, "position", "absolute", "");
     t1.context = $.getContext$1$x(t3, "2d");
-    t2.$indexSet(t2, "creeper", t1);
-    t1 = $.get$children$x(document.querySelector("#canvasContainer"));
-    t2 = this.canvas;
-    t1.add$1(t1, t2.$index(t2, "creeper").get$element());
+    t2.$indexSet(t2, "creeperbuffer", t1);
+    t1 = this.canvas;
+    t2 = $.CanvasElement_CanvasElement(null, null);
+    t2 = new $.Canvas(t2, null, null, null, null, null);
+    t2.updateRect$2(this.width, this.height);
+    t3 = t2.element;
+    t4 = t3.style;
+    t4.set$position;
+    $.setProperty$3$x(t4, "position", "absolute", "");
+    t2.context = $.getContext$1$x(t3, "2d");
+    t1.$indexSet(t1, "creeper", t2);
+    t2 = $.get$children$x(document.querySelector("#canvasContainer"));
+    t1 = this.canvas;
+    t2.add$1(t2, t1.$index(t1, "creeper").get$element());
     this.addSound$2("shot", "wav");
     this.addSound$2("click", "wav");
     this.addSound$2("explosion", "wav");
     this.addSound$2("failure", "wav");
     this.addSound$2("energy", "wav");
     this.addSound$2("laser", "wav");
-    this.imageSrcs = ["analyzer", "numbers", "level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon", "cannongun", "base", "collector", "reactor", "storage", "terp", "packet_collection", "packet_energy", "packet_health", "relay", "emitter", "creep", "mortar", "shell", "beam", "spore", "bomber", "bombership", "smoke", "explosion", "targetcursor", "sporetower", "forcefield", "shield"];
-    t2 = document.querySelector("#terraform");
-    t2.get$onClick;
-    t2 = $.EventStreamProvider_click.forTarget$1(t2);
-    t2 = new $._EventStreamSubscription(0, t2._target, t2._eventType, new $.Engine_init_closure(), t2._useCapture);
-    t1 = t2._onData;
-    if (t1 != null && !t2.get$isPaused())
-      $.$$dom_addEventListener$3$x(t2._target, t2._eventType, t1, t2._useCapture);
+    this.imageSrcs = ["analyzer", "numbers", "level0", "level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "borders", "mask", "cannon", "cannongun", "base", "collector", "reactor", "storage", "terp", "packet_collection", "packet_energy", "packet_health", "relay", "emitter", "creeper", "mortar", "shell", "beam", "spore", "bomber", "bombership", "smoke", "explosion", "targetcursor", "sporetower", "forcefield", "shield"];
+    t1 = document.querySelector("#terraform");
+    t1.get$onClick;
+    t1 = $.EventStreamProvider_click.forTarget$1(t1);
+    t1 = new $._EventStreamSubscription(0, t1._target, t1._eventType, new $.Engine_init_closure(), t1._useCapture);
+    t2 = t1._onData;
+    if (t2 != null && !t1.get$isPaused())
+      $.$$dom_addEventListener$3$x(t1._target, t1._eventType, t2, t1._useCapture);
     t1 = document.querySelector("#restart");
     t1.get$onClick;
     t1 = $.EventStreamProvider_click.forTarget$1(t1);
@@ -7506,27 +7516,56 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
       t5 = $.engine.canvas;
       $.set$globalCompositeOperation$x(t5.$index(t5, "level" + i).get$context(), "source-over");
     }
-    for (t3 = t1 + 2, i = 0; $.JSNumber_methods.$lt(i, this.world.size.x); ++i)
-      for (t4 = i * t1, j = 0; $.JSNumber_methods.$lt(j, this.world.size.y); ++j)
-        for (t5 = j * t1, indexAbove = -1, k = 9; k > -1; --k) {
-          t6 = this.world.tiles;
-          if (i >= t6.length)
+    for (t3 = t1 + 2, i = 0; $.JSNumber_methods.$lt(i, this.world.size.x); i = i0)
+      for (i0 = i + 1, t4 = i - 1, t5 = t4 < 0, t6 = i * t1, j = 0; $.JSNumber_methods.$lt(j, this.world.size.y); j = j0)
+        for (j0 = j + 1, t7 = j - 1, t8 = t7 < 0, t9 = j * t1, indexAbove = -1, k = 9; k > -1; --k) {
+          t10 = this.world.tiles;
+          if (i >= t10.length)
             throw $.ioore(i);
-          if (k === $.get$height$x($.$index$asx(t6[i], j))) {
-            t6 = this.world.tiles;
-            if (i >= t6.length)
-              throw $.ioore(i);
-            index = $.get$index$x($.$index$asx(t6[i], j));
+          if ($.JSNumber_methods.$le(k, $.get$height$x($.$index$asx(t10[i], j)))) {
+            if (t8)
+              up = 0;
+            else {
+              t10 = this.world.tiles;
+              if (i >= t10.length)
+                throw $.ioore(i);
+              up = $.$ge$n($.get$height$x($.$index$asx(t10[i], t7)), k) ? 1 : 0;
+            }
+            if ($.JSNumber_methods.$gt(j0, $.$sub$n(this.world.size.y, 1)))
+              down = 0;
+            else {
+              t10 = this.world.tiles;
+              if (i >= t10.length)
+                throw $.ioore(i);
+              down = $.$ge$n($.get$height$x($.$index$asx(t10[i], j0)), k) ? 1 : 0;
+            }
+            if (t5)
+              left = 0;
+            else {
+              t10 = this.world.tiles;
+              if (t4 >= t10.length)
+                throw $.ioore(t4);
+              left = $.$ge$n($.get$height$x($.$index$asx(t10[t4], j)), k) ? 1 : 0;
+            }
+            if ($.JSNumber_methods.$gt(i0, $.$sub$n(this.world.size.x, 1)))
+              right = 0;
+            else {
+              t10 = this.world.tiles;
+              if (i0 >= t10.length)
+                throw $.ioore(i0);
+              right = $.$ge$n($.get$height$x($.$index$asx(t10[i0], j)), k) ? 1 : 0;
+            }
+            index = 8 * down + 4 * left + 2 * up + right;
             if (k < 9) {
-              if (index == null ? indexAbove == null : index === indexAbove)
+              if (index === indexAbove)
                 continue;
               if (indexAbove === 5 || indexAbove === 7 || indexAbove === 10 || indexAbove === 11 || indexAbove === 13 || indexAbove === 14 || indexAbove === 15)
                 continue;
             }
-            t6 = $.engine.canvas;
-            t6 = t6.$index(t6, "level" + k).get$context();
-            t7 = $.engine.images;
-            $.drawImageScaledFromSource$9$x(t6, t7.$index(t7, "borders"), $.$mul$n(index, t2) + 2, 2, t3, t3, t4, t5, t3, t3);
+            t10 = $.engine.canvas;
+            t10 = t10.$index(t10, "level" + k).get$context();
+            t11 = $.engine.images;
+            $.drawImageScaledFromSource$9$x(t10, t11.$index(t11, "borders"), index * t2 + 2, 2, t3, t3, t6, t9, t3, t3);
             indexAbove = index;
           }
         }
@@ -10152,9 +10191,9 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     $.restore$0$x(t1.$index(t1, "collection").get$context());
   },
   drawCreeper$0: function() {
-    var t1, t2, t3, truncated, timesX, timesY, i, j, j0, t4, iS, jS, creep, up, t5, down, left, right, t6, t7, t8, t9;
+    var t1, t2, t3, truncated, timesX, timesY, i, j, j0, t4, iS, jS, t5, t6, t7, t, t8, up, down, left, t9, right, t10, t11, t12, t13;
     t1 = $.engine.canvas;
-    $.clear$0$ax(t1.$index(t1, "creeper"));
+    $.clear$0$ax(t1.$index(t1, "creeperbuffer"));
     t1 = this.tileSize;
     t2 = $.$div$n($.engine.halfWidth, t1);
     t3 = this.zoom;
@@ -10192,91 +10231,74 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
           t4 = this.world.tiles;
           if (iS >>> 0 !== iS || iS >= t4.length)
             throw $.ioore(iS);
-          if ($.$index$asx(t4[iS], jS).get$creep() > 0) {
-            t4 = this.world.tiles;
-            if (iS >= t4.length)
+          t4 = Math.ceil($.$index$asx(t4[iS], jS).get$creep());
+          if (isNaN(t4))
+            $.throwExpression(new $.UnsupportedError("NaN"));
+          if (t4 == Infinity || t4 == -Infinity)
+            $.throwExpression(new $.UnsupportedError("Infinity"));
+          truncated = t4 < 0 ? Math.ceil(t4) : Math.floor(t4);
+          if (truncated == -0.0)
+            ;
+          for (t4 = j0 * t1, t5 = jS + 1, t6 = jS - 1, t7 = t6 < 0, t = 0; t <= 9; ++t) {
+            t8 = this.world.tiles;
+            if (iS >= t8.length)
               throw $.ioore(iS);
-            t4 = Math.ceil($.$index$asx(t4[iS], jS).get$creep());
-            if (isNaN(t4))
-              $.throwExpression(new $.UnsupportedError("NaN"));
-            if (t4 == Infinity || t4 == -Infinity)
-              $.throwExpression(new $.UnsupportedError("Infinity"));
-            truncated = t4 < 0 ? Math.ceil(t4) : Math.floor(t4);
-            creep = truncated == -0.0 ? 0 : truncated;
-            t4 = jS - 1;
-            if (t4 < 0)
-              up = 0;
-            else {
-              t5 = this.world.tiles;
-              if (iS >= t5.length)
-                throw $.ioore(iS);
-              t4 = Math.ceil($.$index$asx(t5[iS], t4).get$creep());
-              if (isNaN(t4))
-                $.throwExpression(new $.UnsupportedError("NaN"));
-              if (t4 == Infinity || t4 == -Infinity)
-                $.throwExpression(new $.UnsupportedError("Infinity"));
-              truncated = t4 < 0 ? Math.ceil(t4) : Math.floor(t4);
-              up = (truncated == -0.0 ? 0 : truncated) >= creep ? 1 : 0;
+            if ($.$index$asx(t8[iS], jS).get$creep() > t) {
+              if (t7)
+                up = 0;
+              else {
+                t8 = this.world.tiles;
+                if (iS >= t8.length)
+                  throw $.ioore(iS);
+                up = $.$index$asx(t8[iS], t6).get$creep() > t ? 1 : 0;
+              }
+              if ($.JSNumber_methods.$gt(t5, $.$sub$n(this.world.size.y, 1)))
+                down = 0;
+              else {
+                t8 = this.world.tiles;
+                if (iS >= t8.length)
+                  throw $.ioore(iS);
+                down = $.$index$asx(t8[iS], t5).get$creep() > t ? 1 : 0;
+              }
+              t8 = iS - 1;
+              if (t8 < 0)
+                left = 0;
+              else {
+                t9 = this.world.tiles;
+                if (t8 >= t9.length)
+                  throw $.ioore(t8);
+                left = $.$index$asx(t9[t8], jS).get$creep() > t ? 1 : 0;
+              }
+              t8 = iS + 1;
+              if ($.JSNumber_methods.$gt(t8, $.$sub$n(this.world.size.x, 1)))
+                right = 0;
+              else {
+                t9 = this.world.tiles;
+                if (t8 >= t9.length)
+                  throw $.ioore(t8);
+                right = $.$index$asx(t9[t8], jS).get$creep() > t ? 1 : 0;
+              }
+              t8 = $.engine.canvas;
+              t8 = t8.$index(t8, "creeperbuffer").get$context();
+              t9 = $.engine.images;
+              t9 = t9.$index(t9, "creeper");
+              t10 = $.engine;
+              t11 = t10.halfWidth;
+              t12 = this.zoom;
+              if (typeof t12 !== "number")
+                throw $.iae(t12);
+              t13 = t1 * t12;
+              $.drawImageScaledFromSource$9$x(t8, t9, (8 * down + 4 * left + 2 * up + right) * t1, 0, t1, t1, $.$add$ns(t11, t3 * t12), $.$add$ns(t10.halfHeight, t4 * t12), t13, t13);
             }
-            t4 = jS + 1;
-            if ($.JSNumber_methods.$gt(t4, $.$sub$n(this.world.size.y, 1)))
-              down = 0;
-            else {
-              t5 = this.world.tiles;
-              if (iS >= t5.length)
-                throw $.ioore(iS);
-              t4 = Math.ceil($.$index$asx(t5[iS], t4).get$creep());
-              if (isNaN(t4))
-                $.throwExpression(new $.UnsupportedError("NaN"));
-              if (t4 == Infinity || t4 == -Infinity)
-                $.throwExpression(new $.UnsupportedError("Infinity"));
-              truncated = t4 < 0 ? Math.ceil(t4) : Math.floor(t4);
-              down = (truncated == -0.0 ? 0 : truncated) >= creep ? 1 : 0;
-            }
-            t4 = iS - 1;
-            if (t4 < 0)
-              left = 0;
-            else {
-              t5 = this.world.tiles;
-              if (t4 >= t5.length)
-                throw $.ioore(t4);
-              t4 = Math.ceil($.$index$asx(t5[t4], jS).get$creep());
-              if (isNaN(t4))
-                $.throwExpression(new $.UnsupportedError("NaN"));
-              if (t4 == Infinity || t4 == -Infinity)
-                $.throwExpression(new $.UnsupportedError("Infinity"));
-              truncated = t4 < 0 ? Math.ceil(t4) : Math.floor(t4);
-              left = (truncated == -0.0 ? 0 : truncated) >= creep ? 1 : 0;
-            }
-            t4 = iS + 1;
-            if ($.JSNumber_methods.$gt(t4, $.$sub$n(this.world.size.x, 1)))
-              right = 0;
-            else {
-              t5 = this.world.tiles;
-              if (t4 >= t5.length)
-                throw $.ioore(t4);
-              t4 = Math.ceil($.$index$asx(t5[t4], jS).get$creep());
-              if (isNaN(t4))
-                $.throwExpression(new $.UnsupportedError("NaN"));
-              if (t4 == Infinity || t4 == -Infinity)
-                $.throwExpression(new $.UnsupportedError("Infinity"));
-              truncated = t4 < 0 ? Math.ceil(t4) : Math.floor(t4);
-              right = (truncated == -0.0 ? 0 : truncated) >= creep ? 1 : 0;
-            }
-            t4 = $.engine.canvas;
-            t4 = t4.$index(t4, "creeper").get$context();
-            t5 = $.engine.images;
-            t5 = t5.$index(t5, "creep");
-            t6 = $.engine;
-            t7 = t6.halfWidth;
-            t8 = this.zoom;
-            if (typeof t8 !== "number")
-              throw $.iae(t8);
-            t9 = t1 * t8;
-            $.drawImageScaledFromSource$9$x(t4, t5, (8 * down + 4 * left + 2 * up + right) * t1, (creep - 1) * t1, t1, t1, $.$add$ns(t7, t3 * t8), $.$add$ns(t6.halfHeight, j0 * t1 * t8), t9, t9);
           }
         }
       }
+    t1 = $.engine.canvas;
+    $.clear$0$ax(t1.$index(t1, "creeper"));
+    t1 = $.engine.canvas;
+    t1 = t1.$index(t1, "creeper").get$context();
+    t2 = $.engine.canvas;
+    $.drawImage$3$x(t1, t2.$index(t2, "creeperbuffer").get$element(), 0, 0);
   },
   drawPositionInfo$0: function() {
     var t1, t2, end, delta, t3, distance, buildingDistance, truncated, times, i, newX, newY, position, allowedDistance, allowedDistance0, j, t4, t5, positionScrolled, drawPosition, t6, t7, positionScrolledCenter, t8, t9, t10, center, drawCenter, allowedDistance1, lineToTarget, k;
@@ -13436,6 +13458,8 @@ doneResizing: function() {
   t1.$index(t1, "buffer").updateRect$2(width, height);
   t1 = $.engine.canvas;
   t1.$index(t1, "collection").updateRect$2(width, height);
+  t1 = $.engine.canvas;
+  t1.$index(t1, "creeperbuffer").updateRect$2(width, height);
   t1 = $.engine.canvas;
   t1.$index(t1, "creeper").updateRect$2(width, height);
   t1 = $.engine.canvas;
