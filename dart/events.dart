@@ -88,31 +88,29 @@ void onKeyDown(KeyboardEvent evt) {
 
   // lower terrain
   if (evt.keyCode == KeyCode.N) {
-    int height = game.getHighestTerrain(position);
-    if (height > -1) {
-      game.world.tiles[position.x][position.y][height].full = false;
+    if (game.world.tiles[position.x][position.y].height > -1) {
+      game.world.tiles[position.x][position.y].height--;
       List tilesToRedraw = new List();
-      tilesToRedraw.add(new Vector3(position.x, position.y, height));
-      tilesToRedraw.add(new Vector3(position.x - 1, position.y, height));
-      tilesToRedraw.add(new Vector3(position.x, position.y - 1, height));
-      tilesToRedraw.add(new Vector3(position.x + 1, position.y, height));
-      tilesToRedraw.add(new Vector3(position.x, position.y + 1, height));
+      tilesToRedraw.add(new Vector(position.x, position.y));
+      tilesToRedraw.add(new Vector(position.x - 1, position.y));
+      tilesToRedraw.add(new Vector(position.x, position.y - 1));
+      tilesToRedraw.add(new Vector(position.x + 1, position.y));
+      tilesToRedraw.add(new Vector(position.x, position.y + 1));
       game.redrawTile(tilesToRedraw);
     }
   }
 
   // raise terrain
   if (evt.keyCode == KeyCode.M) {
-    int height = game.getHighestTerrain(position);
-    if (height < 9) {
-      game.world.tiles[position.x][position.y][height + 1].full = true;
+    if (game.world.tiles[position.x][position.y].height < 9) {
+      game.world.tiles[position.x][position.y].height++;
       List tilesToRedraw = new List();
       // reset index around tile
-      tilesToRedraw.add(new Vector3(position.x, position.y, height + 1));
-      tilesToRedraw.add(new Vector3(position.x - 1, position.y, height + 1));
-      tilesToRedraw.add(new Vector3(position.x, position.y - 1, height + 1));
-      tilesToRedraw.add(new Vector3(position.x + 1, position.y, height + 1));
-      tilesToRedraw.add(new Vector3(position.x, position.y + 1, height + 1));
+      tilesToRedraw.add(new Vector(position.x, position.y));
+      tilesToRedraw.add(new Vector(position.x - 1, position.y));
+      tilesToRedraw.add(new Vector(position.x, position.y - 1));
+      tilesToRedraw.add(new Vector(position.x + 1, position.y));
+      tilesToRedraw.add(new Vector(position.x, position.y + 1));
       game.redrawTile(tilesToRedraw);
     }
   }
@@ -120,15 +118,15 @@ void onKeyDown(KeyboardEvent evt) {
   // clear terrain
   if (evt.keyCode == KeyCode.B) {
     List tilesToRedraw = new List();
-    for (int k = 0; k < 10; k++) {
-      game.world.tiles[position.x][position.y][k].full = false;
-    }
+    //for (int k = 0; k < 10; k++) {
+      game.world.tiles[position.x][position.y].height = -1;
+    //}
     // reset index around tile
-    tilesToRedraw.add(new Vector3(position.x, position.y, 0));
-    tilesToRedraw.add(new Vector3(position.x - 1, position.y, 0));
-    tilesToRedraw.add(new Vector3(position.x, position.y - 1, 0));
-    tilesToRedraw.add(new Vector3(position.x + 1, position.y, 0));
-    tilesToRedraw.add(new Vector3(position.x, position.y + 1, 0));
+    tilesToRedraw.add(new Vector(position.x, position.y));
+    tilesToRedraw.add(new Vector(position.x - 1, position.y));
+    tilesToRedraw.add(new Vector(position.x, position.y - 1));
+    tilesToRedraw.add(new Vector(position.x + 1, position.y));
+    tilesToRedraw.add(new Vector(position.x, position.y + 1));
     game.redrawTile(tilesToRedraw);
   }
 
@@ -137,8 +135,8 @@ void onKeyDown(KeyboardEvent evt) {
 
     // remove terraform number
     if (evt.keyCode == KeyCode.DELETE) {
-      game.world.terraform[position.x][position.y]["target"] = -1;
-      game.world.terraform[position.x][position.y]["progress"] = 0;
+      game.world.tiles[position.x][position.y].terraformTarget = -1;
+      game.world.tiles[position.x][position.y].terraformProgress = 0;
     }
 
     // set terraform value
@@ -225,8 +223,8 @@ void onMouseUp(MouseEvent evt) {
 
     // set terraforming target
     if (game.mode == "TERRAFORM") {
-      game.world.terraform[position.x][position.y]["target"] = game.terraformingHeight;
-      game.world.terraform[position.x][position.y]["progress"] = 0;
+      game.world.tiles[position.x][position.y].terraformTarget = game.terraformingHeight;
+      game.world.tiles[position.x][position.y].terraformProgress = 0;
     }
 
     // control ships

@@ -44,7 +44,7 @@ class Spore {
           if (game.withinWorld(i, j)) {
             num distance = pow((i * game.tileSize + game.tileSize / 2) - (targetPosition.x + game.tileSize), 2) + pow((j * game.tileSize + game.tileSize / 2) - (targetPosition.y + game.tileSize), 2);
             if (distance < pow(game.tileSize, 2)) {
-              game.world.tiles[i][j][0].creep += .05;
+              game.world.tiles[i][j].creep += .05;
             }
           }
         }

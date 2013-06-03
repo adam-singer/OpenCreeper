@@ -147,9 +147,9 @@ class Ship {
               if (game.withinWorld(i, j)) {
                 num distance = pow((i * game.tileSize + game.tileSize / 2) - (targetPosition.x + game.tileSize), 2) + pow((j * game.tileSize + game.tileSize / 2) - (targetPosition.y + game.tileSize), 2);
                 if (distance < pow(game.tileSize * 3, 2)) {
-                  game.world.tiles[i][j][0].creep -= 5;
-                  if (game.world.tiles[i][j][0].creep < 0) {
-                    game.world.tiles[i][j][0].creep = 0;
+                  game.world.tiles[i][j].creep -= 5;
+                  if (game.world.tiles[i][j].creep < 0) {
+                    game.world.tiles[i][j].creep = 0;
                   }
                 }
               }

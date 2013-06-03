@@ -3,7 +3,6 @@ part of creeper;
 class World {
   List tiles;
   Vector size;
-  List terraform;
   
   World(int seed) {
     size = new Vector(Helper.randomInt(64, 127, seed), Helper.randomInt(64, 127, seed));
@@ -140,20 +139,6 @@ class Game {
         ((engine.mouse.y - engine.halfHeight) / (tileSize * zoom)).floor() + scroll.y);
   }
 
-  /**
-   * @param {Vector} pVector The position of the tile to check
-   */
-  int getHighestTerrain(Vector pVector) {
-    int height = -1;
-    for (int i = 9; i > -1; i--) {
-      if (world.tiles[pVector.x][pVector.y][i].full) {
-        height = i;
-        break;
-      }
-    }
-    return height;
-  }
-
   void pause() {
     query('#paused').style.display = 'block';
     paused = true;
@@ -240,18 +225,10 @@ class Game {
 
   void createWorld() {
     world.tiles = new List(world.size.x);
-    world.terraform = new List(world.size.x);
     for (int i = 0; i < world. size.x; i++) {
       world.tiles[i] = new List(world.size.y);
-      world.terraform[i] = new List(world.size.y);
       for (int j = 0; j < world.size.y; j++) {
-        world.tiles[i][j] = [];
-        for (int k = 0; k < 10; k++) {
-          world.tiles[i][j].add(new Tile());
-        }
-        world.terraform[i][j] = {
-            "target": -1, "progress": 0
-        };
+        world.tiles[i][j] = new Tile();
       }
     }
 
@@ -263,9 +240,7 @@ class Game {
         int height = (heightmap.map[i][j] / 10).round();
         if (height > 10)
           height = 10;
-        for (int k = 0; k < height; k++) {
-          world.tiles[i][j][k].full = true;
-        }
+        world.tiles[i][j].height = height;
       }
     }
 
@@ -286,14 +261,12 @@ class Game {
     buildings.add(building);
     base = building;
 
-    int height = getHighestTerrain(new Vector(building.position.x + 4, building.position.y + 4));
+    int height = this.world.tiles[building.position.x + 4][building.position.y + 4].height;
     if (height < 0)
       height = 0;
     for (int i = 0; i < 9; i++) {
       for (int j = 0; j < 9; j++) {
-        for (int k = 0; k <= height; k++) {
-          world.tiles[building.position.x + i][building.position.y + j][k].full = true;
-        }
+        world.tiles[building.position.x + i][building.position.y + j].height = height;
       }
     }
 
@@ -308,14 +281,12 @@ class Game {
       Emitter emitter = new Emitter(randomPosition, 5);
       emitters.add(emitter);
   
-      height = getHighestTerrain(new Vector(emitter.position.x + 1, emitter.position.y + 1));
+      height = this.world.tiles[emitter.position.x + 1][emitter.position.y + 1].height;
       if (height < 0)
         height = 0;
       for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-          for (int k = 0; k < height; k++) {
-            world.tiles[emitter.position.x + i][emitter.position.y + j][k].full = true;
-          }
+          world.tiles[emitter.position.x + i][emitter.position.y + j].height = height;
         }
       }
     }
@@ -330,14 +301,12 @@ class Game {
       Sporetower sporetower = new Sporetower(randomPosition);
       sporetowers.add(sporetower);
   
-      height = getHighestTerrain(new Vector(sporetower.position.x + 1, sporetower.position.y + 1));
+      height = this.world.tiles[sporetower.position.x + 1][sporetower.position.y + 1].height;
       if (height < 0)
         height = 0;
       for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-          for (int k = 0; k < height; k++) {
-            world.tiles[sporetower.position.x + i][sporetower.position.y + j][k].full = true;
-          }
+          world.tiles[sporetower.position.x + i][sporetower.position.y + j].height = height;
         }
       }
     }
@@ -521,22 +490,36 @@ class Game {
     // 1st pass - draw masks
     for (int i = 0; i < world.size.x; i++) {
       for (int j = 0; j < world.size.y; j++) {
+        int indexAbove = -1;
         for (int k = 9; k > -1; k--) {
-
-          if (world.tiles[i][j][k].full) {
+        
+          if (k <= world.tiles[i][j].height) {
 
             // calculate index
             int up = 0, down = 0, left = 0, right = 0;
-            if (j - 1 < 0)up = 0; else if (world.tiles[i][j - 1][k].full)up = 1;
-            if (j + 1 > world.size.y - 1)down = 0; else if (world.tiles[i][j + 1][k].full)down = 1;
-            if (i - 1 < 0)left = 0; else if (world.tiles[i - 1][j][k].full)left = 1;
-            if (i + 1 > world.size.x - 1)right = 0; else if (world.tiles[i + 1][j][k].full)right = 1;
+            if (j - 1 < 0)
+              up = 0;
+            else if (world.tiles[i][j - 1].height >= k)
+              up = 1;
+            if (j + 1 > world.size.y - 1)
+              down = 0;
+            else if (world.tiles[i][j + 1].height >= k)
+              down = 1;
+            if (i - 1 < 0)
+              left = 0;
+            else if (world.tiles[i - 1][j].height >= k)
+              left = 1;
+            if (i + 1 > world.size.x - 1)
+              right = 0;
+            else if (world.tiles[i + 1][j].height >= k)
+              right = 1;
 
             // save index
-            int index = world.tiles[i][j][k].index = (8 * down) + (4 * left) + (2 * up) + right;
-
+            int index = (8 * down) + (4 * left) + (2 * up) + right;
+            if (k == world.tiles[i][j].height)
+              world.tiles[i][j].index = index;
+            
             if (k < 9) {
-              int indexAbove = world.tiles[i][j][k + 1].index;
               // skip tiles that are identical to the one above
               if (index == indexAbove)
                 continue;
@@ -545,6 +528,8 @@ class Game {
                   indexAbove == 13 || indexAbove == 14 || indexAbove == 15)
                 continue;
             }
+            
+            indexAbove = index;
 
             engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["mask"], index * (tileSize + 6) + 3, (tileSize + 6) + 3, tileSize, tileSize, i * tileSize, j * tileSize, tileSize, tileSize);
           }
@@ -564,14 +549,14 @@ class Game {
     // 3rd pass - draw borders
     for (int i = 0; i < world.size.x; i++) {
       for (int j = 0; j < world.size.y; j++) {
+        int indexAbove = -1;
         for (int k = 9; k > -1; k--) {
 
-          if (world.tiles[i][j][k].full) {
+          if (k == world.tiles[i][j].height) {
 
-            int index = world.tiles[i][j][k].index;
+            int index = world.tiles[i][j].index;
             
             if (k < 9) {
-              int indexAbove = world.tiles[i][j][k + 1].index;
               // skip tiles that are identical to the one above
               if (index == indexAbove)
                 continue;
@@ -580,6 +565,8 @@ class Game {
                   indexAbove == 13 || indexAbove == 14 || indexAbove == 15)
                 continue;
             }
+            
+            indexAbove = index;
 
             engine.canvas["level$k"].context.drawImageScaledFromSource(engine.images["borders"], index * (tileSize + 6) + 2, 2, tileSize + 2, tileSize + 2, i * tileSize, j * tileSize, (tileSize + 2), (tileSize + 2));
           }
@@ -642,31 +629,40 @@ class Game {
 
       int iS = tilesToRedraw[i].x;
       int jS = tilesToRedraw[i].y;
-      int k = tilesToRedraw[i].z;
 
       // recalculate index
-      if (world.tiles[iS][jS][k].full) {
-
-        int up = 0, down = 0, left = 0, right = 0;
-        if (jS - 1 < 0)up = 0; else if (world.tiles[iS][jS - 1][k].full)up = 1;
-        if (jS + 1 > world.size.y - 1)down = 0; else if (world.tiles[iS][jS + 1][k].full)down = 1;
-        if (iS - 1 < 0)left = 0; else if (world.tiles[iS - 1][jS][k].full)left = 1;
-        if (iS + 1 > world.size.x - 1)right = 0; else if (world.tiles[iS + 1][jS][k].full)right = 1;
-
-        // save index for later use
-        world.tiles[iS][jS][k].index = (8 * down) + (4 * left) + (2 * up) + right;
-      } else
-        world.tiles[iS][jS][k].index = -1;
-
-      // redraw mask
+      int index = -1;
+      int indexAbove = -1;
       for (int t = 9; t > -1; t--) {
-        tempContext[t].clearRect(0, 0, tileSize, tileSize);
-
-        if (world.tiles[iS][jS][t].full) {
-          int index = world.tiles[iS][jS][t].index;
-
+        if (t <= world.tiles[iS][jS].height) {
+  
+          int up = 0, down = 0, left = 0, right = 0;
+          if (jS - 1 < 0)
+            up = 0;
+          else if (world.tiles[iS][jS - 1].height >= t)
+            up = 1;
+          if (jS + 1 > world.size.y - 1)
+            down = 0;
+          else if (world.tiles[iS][jS + 1].height >= t)
+            down = 1;
+          if (iS - 1 < 0)
+            left = 0;
+          else if (world.tiles[iS - 1][jS].height >= t)
+            left = 1;
+          if (iS + 1 > world.size.x - 1)
+            right = 0;
+          else if (world.tiles[iS + 1][jS].height >= t)
+            right = 1;
+  
+          // save index for later use
+          index = (8 * down) + (4 * left) + (2 * up) + right;
+        }
+            
+        //if (index > -1) {
+          tempContext[t].clearRect(0, 0, tileSize, tileSize);
+          
+          // redraw mask          
           if (t < 9) {
-            int indexAbove = world.tiles[iS][jS][t + 1].index;
             // skip tiles that are identical to the one above
             if (index == indexAbove)
               continue;
@@ -677,13 +673,8 @@ class Game {
           }
           
           tempContext[t].drawImageScaledFromSource(engine.images["mask"], index * (tileSize + 6) + 3, (tileSize + 6) + 3, tileSize, tileSize, 0, 0, tileSize, tileSize);
-        }
-      }
 
-      // redraw pattern
-      for (int t = 9; t > -1; t--) {
-
-        if (world.tiles[iS][jS][t].full) {
+          // redraw pattern
           var pattern = tempContext[t].createPattern(engine.images["level$t"], 'repeat');
 
           tempContext[t].globalCompositeOperation = 'source-in';
@@ -698,16 +689,9 @@ class Game {
           tempContext[t].restore();
 
           tempContext[t].globalCompositeOperation = 'source-over';
-        }
-      }
 
-      // redraw borders
-      for (int t = 9; t > -1; t--) {
-        if (world.tiles[iS][jS][t].full) {
-          int index = world.tiles[iS][jS][t].index;
-
+          // redraw borders
           if (t < 9) {
-            int indexAbove = world.tiles[iS][jS][t + 1].index;
             // skip tiles that are identical to the one above
             if (index == indexAbove)
               continue;
@@ -717,8 +701,11 @@ class Game {
               continue;
           }
           
-          tempContext[t].drawImageScaledFromSource(engine.images["borders"], index * (tileSize + 6) + 2, 2, tileSize + 2, tileSize + 2, 0, 0, (tileSize + 2), (tileSize + 2));
-        }
+          tempContext[t].drawImageScaledFromSource(engine.images["borders"], index * (tileSize + 6) + 2, 2, tileSize + 2, tileSize + 2, 0, 0, (tileSize + 2), (tileSize + 2));         
+        //}
+        
+        // set above index
+        indexAbove = index;
       }
 
       engine.canvas["levelbuffer"].context.clearRect(iS * tileSize, jS * tileSize, tileSize, tileSize);
@@ -735,7 +722,7 @@ class Game {
      */
 
   void updateCollection(Building building, String action) {
-    int height = getHighestTerrain(building.position);
+    int height = game.world.tiles[building.position.x][building.position.y].height;
     Vector centerBuilding = building.getCenter();
 
     for (int i = -5; i < 7; i++) {
@@ -745,29 +732,29 @@ class Game {
 
         if (withinWorld(positionCurrent.x, positionCurrent.y)) {
           Vector positionCurrentCenter = new Vector(positionCurrent.x * tileSize + (tileSize / 2), positionCurrent.y * tileSize + (tileSize / 2));
-          int tileHeight = getHighestTerrain(positionCurrent);
+          int tileHeight = game.world.tiles[positionCurrent.x][positionCurrent.y].height;
 
           if (action == "add") {
             if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(tileSize * 6, 2)) {
               if (tileHeight == height) {
-                world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = building;
+                world.tiles[positionCurrent.x][positionCurrent.y].collector = building;
               }
             }
           } else if (action == "remove") {
 
             if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(tileSize * 6, 2)) {
               if (tileHeight == height) {
-                world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = null;
+                world.tiles[positionCurrent.x][positionCurrent.y].collector = null;
               }
             }
 
             for (int k = 0; k < buildings.length; k++) {
               if (buildings[k] != building && buildings[k].imageID == "collector") {
-                int heightK = getHighestTerrain(new Vector(buildings[k].position.x, buildings[k].position.y));
+                int heightK = game.world.tiles[buildings[k].position.x][buildings[k].position.y].height;
                 Vector centerBuildingK = buildings[k].getCenter();
                 if (pow(positionCurrentCenter.x - centerBuildingK.x, 2) + pow(positionCurrentCenter.y - centerBuildingK.y, 2) < pow(tileSize * 6, 2)) {
                   if (tileHeight == heightK) {
-                    world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector = buildings[k];
+                    world.tiles[positionCurrent.x][positionCurrent.y].collector = buildings[k];
                   }
                 }
               }
@@ -789,10 +776,10 @@ class Game {
 
     for (int i = 0; i < world.size.x; i++) {
       for (int j = 0; j < world.size.y; j++) {
-        for (int k = 0; k < 10; k++) {
-          if (world.tiles[i][j][k].collector != null)
+        //for (int k = 0; k < 10; k++) {
+          if (world.tiles[i][j].collector != null)
             collection += 1;
-        }
+        //}
       }
     }
 
@@ -826,27 +813,22 @@ class Game {
       for (int i = 0; i < world.size.x; i++) {
         for (int j = 0; j < world.size.y; j++) {
 
-          int height = getHighestTerrain(new Vector(i, j));
-
           // right neighbour
           if (i + 1 < world.size.x) {
-            int height2 = getHighestTerrain(new Vector(i + 1, j));
-            transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i + 1][j][0]);
+            transferCreeper(world.tiles[i][j], world.tiles[i + 1][j]);
           }
           // left neighbour
           if (i - 1 > -1) {
-            int height2 = getHighestTerrain(new Vector(i - 1, j));
-            transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i - 1][j][0]);
+
+            transferCreeper(world.tiles[i][j], world.tiles[i - 1][j]);
           }
           // bottom neighbour
           if (j + 1 < world.size.y) {
-            int height2 = getHighestTerrain(new Vector(i, j + 1));
-            transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i][j + 1][0]);
+            transferCreeper(world.tiles[i][j], world.tiles[i][j + 1]);
           }
           // top neighbour
           if (j - 1 > -1) {
-            int height2 = getHighestTerrain(new Vector(i, j - 1));
-            transferCreeper(height, height2, world.tiles[i][j][0], world.tiles[i][j - 1][0]);
+            transferCreeper(world.tiles[i][j], world.tiles[i][j - 1]);
           }
 
         }
@@ -855,26 +837,26 @@ class Game {
       // clamp creeper
       for (int i = 0; i < world.size.x; i++) {
         for (int j = 0; j < world.size.y; j++) {
-          if (world.tiles[i][j][0].newcreep > 10)
-            world.tiles[i][j][0].newcreep = 10;
-          else if (world.tiles[i][j][0].newcreep < .01)
-            world.tiles[i][j][0].newcreep = 0;
-          world.tiles[i][j][0].creep = world.tiles[i][j][0].newcreep;
+          if (world.tiles[i][j].newcreep > 10)
+            world.tiles[i][j].newcreep = 10;
+          else if (world.tiles[i][j].newcreep < .01)
+            world.tiles[i][j].newcreep = 0;
+          world.tiles[i][j].creep = world.tiles[i][j].newcreep;
         }
       }
 
     }
   }
 
-  void transferCreeper(num height, num height2, Tile source, Tile target) {
+  void transferCreeper(Tile source, Tile target) {
     num transferRate = .25;
 
-    if (height > -1 && height2 > -1) {
+    if (source.height > -1 && target.height > -1) {
       num sourceAmount = source.creep;     
       num targetAmount = target.creep;
       if (sourceAmount > 0 || targetAmount > 0) {
-        num sourceTotal = height + source.creep;
-        num targetTotal = height2 + target.creep;
+        num sourceTotal = source.height + source.creep;
+        num targetTotal = target.height + target.creep;
         num delta = 0;
         if (sourceTotal > targetTotal) {
           delta = sourceTotal - targetTotal;
@@ -1110,7 +1092,7 @@ class Game {
     bool collision = false;
 
     if (position.x > -1 && position.x < world.size.x - size + 1 && position.y > -1 && position.y < world.size.y - size + 1) {
-      int height = getHighestTerrain(position);
+      int height = game.world.tiles[position.x][position.y].height;
 
       // 1. check for collision with another building
       for (int i = 0; i < buildings.length; i++) {
@@ -1140,7 +1122,7 @@ class Game {
         for (int i = position.x; i < position.x + size; i++) {
           for (int j = position.y; j < position.y + size; j++) {
             if (withinWorld(i, j)) {
-              int tileHeight = getHighestTerrain(new Vector(i, j));
+              int tileHeight = game.world.tiles[i][j].height;
               if (tileHeight < 0) {
                 collision = true;
                 break;
@@ -1149,7 +1131,7 @@ class Game {
                 collision = true;
                 break;
               }
-              if (!(world.tiles[i][j][tileHeight].index == 7 || world.tiles[i][j][tileHeight].index == 11 || world.tiles[i][j][tileHeight].index == 13 || world.tiles[i][j][tileHeight].index == 14 || world.tiles[i][j][tileHeight].index == 15)) {
+              if (!(world.tiles[i][j].index == 7 || world.tiles[i][j].index == 11 || world.tiles[i][j].index == 13 || world.tiles[i][j].index == 14 || world.tiles[i][j].index == 15)) {
                 collision = true;
                 break;
               }
@@ -1223,7 +1205,7 @@ class Game {
       energyTimer -= (250 / speed);
       for (int k = 0; k < buildings.length; k++) {
         if (buildings[k].imageID == "collector" && buildings[k].built) {
-          int height = getHighestTerrain(buildings[k].position);
+          int height = game.world.tiles[buildings[k].position.x][buildings[k].position.y].height;
           Vector centerBuilding = buildings[k].getCenter();
 
           for (int i = -5; i < 7; i++) {
@@ -1232,11 +1214,11 @@ class Game {
 
               if (withinWorld(positionCurrent.x, positionCurrent.y)) {
                 Vector positionCurrentCenter = new Vector(positionCurrent.x * tileSize + (tileSize / 2), positionCurrent.y * tileSize + (tileSize / 2));
-                int tileHeight = getHighestTerrain(positionCurrent);
+                int tileHeight = game.world.tiles[positionCurrent.x][positionCurrent.y].height;
                 
                 if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(tileSize * 6, 2)) {
                   if (tileHeight == height) {
-                    if (world.tiles[positionCurrent.x][positionCurrent.y][tileHeight].collector == buildings[k])
+                    if (world.tiles[positionCurrent.x][positionCurrent.y].collector == buildings[k])
                       buildings[k].collectedEnergy += 1;
                   }
                 }
@@ -1397,7 +1379,7 @@ class Game {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;
     
     Vector positionCenter = new Vector(position.x * tileSize + (tileSize / 2) * size, position.y * tileSize + (tileSize / 2) * size);
-    int positionHeight = getHighestTerrain(position);
+    int positionHeight = game.world.tiles[position.x][position.y].height;
 
     if (canBePlaced(position, size, null) && (type == "collector" || type == "cannon" || type == "mortar" || type == "shield" || type == "beam" || type == "terp")) {
 
@@ -1415,7 +1397,7 @@ class Game {
           Vector drawPositionCurrent = Helper.tiled2screen(positionCurrent);
 
           if (withinWorld(positionCurrent.x, positionCurrent.y)) {
-            int positionCurrentHeight = getHighestTerrain(positionCurrent);
+            int positionCurrentHeight = game.world.tiles[positionCurrent.x][positionCurrent.y].height;
 
             if (pow(positionCurrentCenter.x - positionCenter.x, 2) + pow(positionCurrentCenter.y - positionCenter.y, 2) < pow(radius, 2)) {
               if (type == "collector") {
@@ -1465,30 +1447,30 @@ class Game {
 
         if (withinWorld(iS, jS)) {
 
-          for (int k = 0 ; k < 10; k++) {
-            if (world.tiles[iS][jS][k].collector != null) {
+          //for (int k = 0 ; k < 10; k++) {
+            if (world.tiles[iS][jS].collector != null) {
               int up = 0, down = 0, left = 0, right = 0;
               if (jS - 1 < 0)
                 up = 0;
               else
-                up = world.tiles[iS][jS - 1][k].collector != null ? 1 : 0;
+                up = world.tiles[iS][jS - 1].collector != null ? 1 : 0;
               if (jS + 1 > world.size.y - 1)
                 down = 0;
               else
-                down = world.tiles[iS][jS + 1][k].collector != null ? 1 : 0;
+                down = world.tiles[iS][jS + 1].collector != null ? 1 : 0;
               if (iS - 1 < 0)
                 left = 0;
               else
-                left = world.tiles[iS - 1][jS][k].collector != null ? 1 : 0;
+                left = world.tiles[iS - 1][jS].collector != null ? 1 : 0;
               if (iS + 1 > world.size.x - 1)
                 right = 0;
               else
-                right = world.tiles[iS + 1][jS][k].collector != null ? 1 : 0;
+                right = world.tiles[iS + 1][jS].collector != null ? 1 : 0;
 
               int index = (8 * down) + (4 * left) + (2 * up) + right;
               engine.canvas["collection"].context.drawImageScaledFromSource(engine.images["mask"], index * (tileSize + 6) + 3, (tileSize + 6) + 3, tileSize, tileSize, engine.halfWidth + i * tileSize * zoom, engine.halfHeight + j * tileSize * zoom, tileSize * zoom, tileSize * zoom);
             }
-          }
+          //}
         }
       }
     }
@@ -1508,25 +1490,25 @@ class Game {
         int jS = j + scroll.y;
 
         if (withinWorld(iS, jS)) {
-          if (world.tiles[iS][jS][0].creep > 0) {
-            num creep = (world.tiles[iS][jS][0].creep).ceil();
+          if (world.tiles[iS][jS].creep > 0) {
+            num creep = (world.tiles[iS][jS].creep).ceil();
 
             int up = 0, down = 0, left = 0, right = 0;
             if (jS - 1 < 0)
               up = 0;
-            else if ((world.tiles[iS][jS - 1][0].creep).ceil() >= creep)
+            else if ((world.tiles[iS][jS - 1].creep).ceil() >= creep)
               up = 1;
             if (jS + 1 > world.size.y - 1)
               down = 0;
-            else if ((world.tiles[iS][jS + 1][0].creep).ceil() >= creep)
+            else if ((world.tiles[iS][jS + 1].creep).ceil() >= creep)
               down = 1;
             if (iS - 1 < 0)
               left = 0;
-            else if ((world.tiles[iS - 1][jS][0].creep).ceil() >= creep)
+            else if ((world.tiles[iS - 1][jS].creep).ceil() >= creep)
               left = 1;
             if (iS + 1 > world.size.x - 1)
               right = 0;
-            else if ((world.tiles[iS + 1][jS][0].creep).ceil() >= creep)
+            else if ((world.tiles[iS + 1][jS].creep).ceil() >= creep)
               right = 1;
 
             int index = (8 * down) + (4 * left) + (2 * up) + right;
@@ -1687,7 +1669,7 @@ class Game {
 
     if (withinWorld(position.x, position.y)) {
 
-      num total = world.tiles[position.x][position.y][0].creep;
+      num total = world.tiles[position.x][position.y].creep;
 
       // draw height and creep meter
       context.fillStyle = '#fff';
@@ -1696,9 +1678,9 @@ class Game {
       context.strokeStyle = '#fff';
       context.lineWidth = 1;
       context.fillStyle = "rgba(205, 133, 63, 1)";
-      context.fillRect(555, 110, 25, -getHighestTerrain(getHoveredTilePosition()) * 10 - 10);
+      context.fillRect(555, 110, 25, -game.world.tiles[getHoveredTilePosition().x][getHoveredTilePosition().y].height * 10 - 10);
       context.fillStyle = "rgba(100, 150, 255, 1)";
-      context.fillRect(555, 110 - getHighestTerrain(getHoveredTilePosition()) * 10 - 10, 25, -total * 10);
+      context.fillRect(555, 110 - game.world.tiles[getHoveredTilePosition().x][getHoveredTilePosition().y].height * 10 - 10, 25, -total * 10);
       context.fillStyle = "rgba(255, 255, 255, 1)";
       for (int i = 1; i < 11; i++) {
         context.fillText(i.toString(), 550, 120 - i * 10);
@@ -1732,8 +1714,8 @@ class Game {
         int jS = j + scroll.y;
 
         if (withinWorld(iS, jS)) {
-          if (world.terraform[iS][jS]["target"] > -1) {
-            context.drawImageScaledFromSource(engine.images["numbers"], world.terraform[iS][jS]["target"] * 16, 0, tileSize, tileSize, engine.halfWidth + i * tileSize * zoom, engine.halfHeight + j * tileSize * zoom, tileSize * zoom, tileSize * zoom);
+          if (world.tiles[iS][jS].terraformTarget > -1) {
+            context.drawImageScaledFromSource(engine.images["numbers"], world.tiles[iS][jS].terraformTarget * 16, 0, tileSize, tileSize, engine.halfWidth + i * tileSize * zoom, engine.halfHeight + j * tileSize * zoom, tileSize * zoom, tileSize * zoom);
           }
         }
       }

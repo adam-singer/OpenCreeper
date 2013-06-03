@@ -89,8 +89,8 @@ class Building {
 
       for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
-          if (game.world.tiles[position.x + i][position.y + j][0].creep > 0) {
-            health -= game.world.tiles[position.x + i][position.y + j][0].creep;
+          if (game.world.tiles[position.x + i][position.y + j].creep > 0) {
+            health -= game.world.tiles[position.x + i][position.y + j].creep;
           }
         }
       }
@@ -110,10 +110,10 @@ class Building {
           if (game.withinWorld(i, j)) {
             num distance = pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
             if (distance < pow(game.tileSize * 10, 2)) {
-              if (game.world.tiles[i][j][0].creep > 0) {
-                game.world.tiles[i][j][0].creep -= distance / game.tileSize * .1; // the closer to the shield the more creep is removed
-                if (game.world.tiles[i][j][0].creep < 0) {
-                  game.world.tiles[i][j][0].creep = 0;
+              if (game.world.tiles[i][j].creep > 0) {
+                game.world.tiles[i][j].creep -= distance / game.tileSize * .1; // the closer to the shield the more creep is removed
+                if (game.world.tiles[i][j].creep < 0) {
+                  game.world.tiles[i][j].creep = 0;
                 }
               }
             }
@@ -170,9 +170,9 @@ class Building {
 
               if (game.withinWorld(i, j)) {
                 var distance = pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
-                var tileHeight = game.getHighestTerrain(new Vector(i, j));
+                var tileHeight = game.world.tiles[i][j].height;
 
-                if (distance <= pow(weaponRadius * game.tileSize, 2) && game.world.terraform[i][j]["target"] > -1 && tileHeight <= lowestTile) {
+                if (distance <= pow(weaponRadius * game.tileSize, 2) && game.world.tiles[i][j].terraformTarget > -1 && tileHeight <= lowestTile) {
                   lowestTile = tileHeight;
                   target = new Vector(i, j);
                 }
@@ -189,16 +189,16 @@ class Building {
           }
 
           operating = true;
-          var terraformElement = game.world.terraform[weaponTargetPosition.x][weaponTargetPosition.y];
-          terraformElement["progress"] += 1;
-          if (terraformElement["progress"] == 100) {
-            terraformElement["progress"] = 0;
+          Tile terraformElement = game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y];
+          terraformElement.terraformProgress += 1;
+          if (terraformElement.terraformProgress == 100) {
+            terraformElement.terraformProgress = 0;
 
-            int height = game.getHighestTerrain(weaponTargetPosition);
+            int height = game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].height;
             List tilesToRedraw = new List();
 
-            if (height < terraformElement["target"]) {
-              game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y][height + 1].full = true;
+            if (height < terraformElement.terraformTarget) {
+              game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].height++;
               // reset index around tile
               tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y, height + 1));
               tilesToRedraw.add(new Vector3(weaponTargetPosition.x - 1, weaponTargetPosition.y, height + 1));
@@ -206,7 +206,7 @@ class Building {
               tilesToRedraw.add(new Vector3(weaponTargetPosition.x + 1, weaponTargetPosition.y, height + 1));
               tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y + 1, height + 1));
             } else {
-              game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y][height].full = false;
+              game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].height--;
               // reset index around tile
               tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y, height));
               tilesToRedraw.add(new Vector3(weaponTargetPosition.x - 1, weaponTargetPosition.y, height));
@@ -217,10 +217,10 @@ class Building {
 
             game.redrawTile(tilesToRedraw);
 
-            height = game.getHighestTerrain(weaponTargetPosition);
-            if (height == terraformElement["target"]) {
-              game.world.terraform[weaponTargetPosition.x][weaponTargetPosition.y]["progress"] = 0;
-              game.world.terraform[weaponTargetPosition.x][weaponTargetPosition.y]["target"] = -1;
+            height = game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].height;
+            if (height == terraformElement.terraformTarget) {
+              game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].terraformProgress = 0;
+              game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].terraformTarget = -1;
             }
 
             weaponTargetPosition = null;
@@ -242,7 +242,7 @@ class Building {
 
             energyTimer = 0;
 
-            int height = game.getHighestTerrain(position);
+            int height = game.world.tiles[position.x][position.y].height;
 
             List targets = new List();
             // find closest random target
@@ -253,11 +253,11 @@ class Building {
 
                   // cannons can only shoot at tiles not higher than themselves
                   if (game.withinWorld(i, j)) {
-                    int tileHeight = game.getHighestTerrain(new Vector(i, j));
+                    int tileHeight = game.world.tiles[i][j].height;
                     if (tileHeight <= height) {
                       var distance = pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
 
-                      if (distance <= pow(radius, 2) && game.world.tiles[i][j][0].creep > 0) {
+                      if (distance <= pow(radius, 2) && game.world.tiles[i][j].creep > 0) {
                         targets.add(new Vector(i, j));
                       }
                     }
@@ -306,9 +306,9 @@ class Building {
             }
             else {
               // shoot it
-              game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y][0].creep -= 10;
-              if (game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y][0].creep < 0)
-                game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y][0].creep = 0;
+              game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].creep -= 10;
+              if (game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].creep < 0)
+                game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].creep = 0;
 
               rotating = false;
               energy -= 1;
@@ -330,8 +330,8 @@ class Building {
                 if (game.withinWorld(i, j)) {
                   var distance = pow((i * game.tileSize + game.tileSize / 2) - center.x, 2) + pow((j * game.tileSize + game.tileSize / 2) - center.y, 2);
 
-                  if (distance <= pow(weaponRadius * game.tileSize, 2) && game.world.tiles[i][j][0].creep > 0 && game.world.tiles[i][j][0].creep >= highestCreep) {
-                    highestCreep = game.world.tiles[i][j][0].creep;
+                  if (distance <= pow(weaponRadius * game.tileSize, 2) && game.world.tiles[i][j].creep > 0 && game.world.tiles[i][j].creep >= highestCreep) {
+                    highestCreep = game.world.tiles[i][j].creep;
                     target = new Vector(i, j);
                   }
                 }

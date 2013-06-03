@@ -17,7 +17,7 @@ class Emitter {
   void spawn() {
     // only spawn creeper if not targeted by an analyzer
     if (building == null)
-      game.world.tiles[position.x + 1][position.y + 1][0].creep += strength;
+      game.world.tiles[position.x + 1][position.y + 1].creep += strength;
   }
   
   void draw() {
@@ -115,16 +115,17 @@ class Explosion {
 }
 
 class Tile {
-  num index, creep, newcreep;
-  bool full;
+  num creep, newcreep;
   Building collector;
+  int height, index, terraformTarget, terraformProgress;
 
   Tile() {
     index = -1;
-    full = false;
     creep = 0;
     newcreep = 0;
     collector = null;
+    terraformTarget = -1;
+    terraformProgress = 0;
   }
 }
 
