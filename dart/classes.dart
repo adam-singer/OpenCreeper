@@ -17,7 +17,7 @@ class Emitter {
   void spawn() {
     // only spawn creeper if not targeted by an analyzer
     if (building == null)
-      game.world.tiles[position.x + 1][position.y + 1].creep += strength;
+      game.world.tiles[position.x + 1][position.y + 1].creep = strength;
   }
   
   void draw() {

@@ -838,7 +838,6 @@ class Game {
           }
           // left neighbour
           if (i - 1 > -1) {
-
             transferCreeper(world.tiles[i][j], world.tiles[i - 1][j]);
           }
           // bottom neighbour
@@ -871,38 +870,30 @@ class Game {
     num transferRate = .25;
 
     if (source.height > -1 && target.height > -1) {
-      num sourceAmount = source.creep;     
-      num targetAmount = target.creep;
-      if (sourceAmount > 0 || targetAmount > 0) {
+      num sourceCreeper = source.creep;     
+      //num targetCreeper = target.creep;
+      if (sourceCreeper > 0 /*|| targetCreeper > 0*/) {
         num sourceTotal = source.height + source.creep;
         num targetTotal = target.height + target.creep;
         num delta = 0;
         if (sourceTotal > targetTotal) {
           delta = sourceTotal - targetTotal;
-          if (delta > sourceAmount)delta = sourceAmount;
+          if (delta > sourceCreeper)
+            delta = sourceCreeper;
           num adjustedDelta = delta * transferRate;
           source.newcreep -= adjustedDelta;
           target.newcreep += adjustedDelta;
         }
-        /*else {
-          delta = targetTotal - sourceTotal;
-          if (delta > targetAmount)
-              delta = targetAmount;
-          var adjustedDelta = delta * transferRate;
-          source.newcreep += adjustedDelta;
-          target.newcreep -= adjustedDelta;
-        }*/
       }
     }
   }
 
   /**
-     * Used for A*, finds all neighbouring nodes of a given node.
-     *
-     * @param {Building} node The current node
-     * @param {Building} target The target node
-     */
-
+   * Used for A*, finds all neighbouring nodes of a given node.
+   *
+   * @param {Building} node The current node
+   * @param {Building} target The target node
+   */
   List getNeighbours(Building node, Building target) {
     List neighbours = new List();
     Vector centerI, centerNode;
@@ -933,12 +924,11 @@ class Game {
   }
 
   /**
-     * Used for A*, checks if a node is already in a given route.
-     *
-     * @param {Building} neighbour The node to check
-     * @param {Array} route The route to check
-     */
-
+   * Used for A*, checks if a node is already in a given route.
+   *
+   * @param {Building} neighbour The node to check
+   * @param {Array} route The route to check
+   */
   bool inRoute(Building neighbour, List route) {
     bool found = false;
     for (int i = 0; i < route.length; i++) {

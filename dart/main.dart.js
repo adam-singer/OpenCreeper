@@ -5306,8 +5306,7 @@ Emitter: {"": "Object;position>,imageID<,strength,building@",
       t2 = $.$add$ns(this.position.x, 1);
       if (t2 >>> 0 !== t2 || t2 >= t1.length)
         throw $.ioore(t2);
-      t2 = $.$index$asx(t1[t2], $.$add$ns(this.position.y, 1));
-      t2.set$creep(t2.get$creep() + this.strength);
+      $.$index$asx(t1[t2], $.$add$ns(this.position.y, 1)).set$creep(this.strength);
     }
   },
   draw$0: function() {
@@ -8229,7 +8228,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     }
   },
   transferCreeper$2: function(source, target) {
-    var t1, t2, sourceAmount, targetAmount, sourceTotal, targetTotal, delta, adjustedDelta;
+    var t1, t2, sourceCreeper, sourceTotal, targetTotal, delta, adjustedDelta;
     t1 = $.getInterceptor$x(source);
     t2 = t1.get$height(source);
     if (typeof t2 !== "number")
@@ -8242,27 +8241,26 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
     } else
       t2 = false;
     if (t2) {
-      sourceAmount = source.get$creep();
-      targetAmount = target.get$creep();
-      if (sourceAmount > 0 || targetAmount > 0) {
+      sourceCreeper = source.get$creep();
+      if (sourceCreeper > 0) {
         t1 = t1.get$height(source);
         if (typeof t1 !== "number")
-          return this.transferCreeper$2$bailout(3, source, target, 0, t1, sourceAmount);
+          return this.transferCreeper$2$bailout(3, source, target, 0, t1, sourceCreeper);
         sourceTotal = t1 + source.get$creep();
         t1 = $.get$height$x(target);
         if (typeof t1 !== "number")
-          return this.transferCreeper$2$bailout(4, source, target, 0, t1, sourceAmount, sourceTotal);
+          return this.transferCreeper$2$bailout(4, source, target, 0, t1, sourceCreeper, sourceTotal);
         targetTotal = t1 + target.get$creep();
         if (sourceTotal > targetTotal) {
           delta = sourceTotal - targetTotal;
-          adjustedDelta = (delta > sourceAmount ? sourceAmount : delta) * 0.25;
+          adjustedDelta = (delta > sourceCreeper ? sourceCreeper : delta) * 0.25;
           source.set$newcreep(source.get$newcreep() - adjustedDelta);
           target.set$newcreep(target.get$newcreep() + adjustedDelta);
         }
       }
     }
   },
-  transferCreeper$2$bailout: function(state0, source, target, t2, t1, sourceAmount, sourceTotal) {
+  transferCreeper$2$bailout: function(state0, source, target, t2, t1, sourceCreeper, sourceTotal) {
     switch (state0) {
       case 0:
         t1 = $.getInterceptor$x(source);
@@ -8281,14 +8279,13 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
         else
           t2 = false;
       default:
-        var targetAmount, targetTotal, delta, adjustedDelta;
+        var targetTotal, delta, adjustedDelta;
         if (state0 === 4 || state0 === 3 || state0 === 0 && t2)
           switch (state0) {
             case 0:
-              sourceAmount = source.get$creep();
-              targetAmount = target.get$creep();
+              sourceCreeper = source.get$creep();
             default:
-              if (state0 === 4 || state0 === 3 || state0 === 0 && (sourceAmount > 0 || targetAmount > 0))
+              if (state0 === 4 || state0 === 3 || state0 === 0 && sourceCreeper > 0)
                 switch (state0) {
                   case 0:
                     t1 = t1.get$height(source);
@@ -8302,7 +8299,7 @@ Game: {"": "Object;seed>,tileSize,currentEnergy,maxEnergy<,collection,activeSymb
                     t1 = $.getInterceptor$n(sourceTotal);
                     if (t1.$gt(sourceTotal, targetTotal)) {
                       delta = t1.$sub(sourceTotal, targetTotal);
-                      adjustedDelta = $.$mul$n($.$gt$n(delta, sourceAmount) ? sourceAmount : delta, 0.25);
+                      adjustedDelta = $.$mul$n($.$gt$n(delta, sourceCreeper) ? sourceCreeper : delta, 0.25);
                       t1 = source.get$newcreep();
                       if (typeof adjustedDelta !== "number")
                         throw $.iae(adjustedDelta);
@@ -16580,10 +16577,7 @@ StateError: {"": "Object;message",
 
 ConcurrentModificationError: {"": "Object;modifiedObject",
   toString$0: function(_) {
-    var t1 = this.modifiedObject;
-    if (t1 == null)
-      return "Concurrent modification during iteration.";
-    return "Concurrent modification during iteration: " + $.Error_safeToString(t1) + ".";
+    return "Concurrent modification during iteration: " + $.Error_safeToString(this.modifiedObject) + ".";
   }
 },
 
