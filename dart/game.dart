@@ -819,8 +819,6 @@ class Game {
       spawnTimer = 0;
     }
 
-    num minimum = .01;
-
     creeperTimer++;
     if (creeperTimer > (25 / speed)) {
       creeperTimer -= (25 / speed);
@@ -857,12 +855,11 @@ class Game {
       // clamp creeper
       for (int i = 0; i < world.size.x; i++) {
         for (int j = 0; j < world.size.y; j++) {
+          if (world.tiles[i][j][0].newcreep > 10)
+            world.tiles[i][j][0].newcreep = 10;
+          else if (world.tiles[i][j][0].newcreep < .01)
+            world.tiles[i][j][0].newcreep = 0;
           world.tiles[i][j][0].creep = world.tiles[i][j][0].newcreep;
-          if (world.tiles[i][j][0].creep > 10)
-            world.tiles[i][j][0].creep = 10;
-          else if (world.tiles[i][j][0].creep < minimum)
-            world.tiles[i][j][0].creep = 0;
-          world.tiles[i][j][0].newcreep = world.tiles[i][j][0].creep;
         }
       }
 
