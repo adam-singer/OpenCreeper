@@ -4,7 +4,8 @@ class Spore {
   Vector position, targetPosition, speed = new Vector(0, 0);
   String imageID;
   bool remove = false;
-  num rotation = 0, health = 100, trailTimer = 0;
+  num health = 100;
+  int rotation = 0, trailTimer = 0;
 
   Spore(this.position, this.targetPosition) {
     imageID = "spore";

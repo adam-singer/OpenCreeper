@@ -3,7 +3,7 @@ part of creeper;
 class UISymbol {
   Vector position;
   String imageID, key;
-  num width = 80, height = 55, size, packets, radius;
+  int width = 80, height = 55, size, packets, radius;
   bool active = false, hovered = false;
 
   UISymbol(this.position, this.imageID, this.key, this.size, this.packets, this.radius);

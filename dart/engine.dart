@@ -9,7 +9,8 @@ class Mouse {
 }
 
 class Engine {
-  num FPS = 60, delta = 1000 / 60, fps_delta, fps_frames, fps_totalTime, fps_updateTime, fps_updateFrames, animationRequest, width, height, halfWidth, halfHeight;
+  num FPS = 60, delta = 1000 / 60, fps_delta, fps_frames, fps_totalTime, fps_updateTime, fps_updateFrames, animationRequest;
+  int width, height, halfWidth, halfHeight;
   var fps_lastTime;
   List imageSrcs = [];
   Mouse mouse = new Mouse();

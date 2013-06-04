@@ -4,7 +4,8 @@ class Ship {
   Vector position, speed = new Vector(0, 0), targetPosition = new Vector(0, 0);
   String imageID, type, status = "IDLE"; // ATTACKING, RETURNING, RISING, FALLING
   bool remove = false, hovered = false, selected = false;
-  num angle = 0, maxEnergy = 15, energy = 0, trailTimer = 0, weaponTimer = 0, scale = 1, flightCounter = 0;
+  num angle = 0, scale = 1;
+  int maxEnergy = 15, energy = 0, trailTimer = 0, weaponTimer = 0, flightCounter = 0;
   Building home;
 
   Ship(this.position, this.imageID, this.type, this.home);

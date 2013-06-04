@@ -3,7 +3,7 @@ part of creeper;
 class Emitter {
   Vector position;
   String imageID;
-  num strength;
+  int strength;
   Building building;
 
   Emitter(this.position, this.strength) {
@@ -35,7 +35,7 @@ class Emitter {
 class Sporetower {
   Vector position;
   String imageID;
-  num health = 100, sporeTimer = 0;
+  int sporeTimer = 0;
 
   Sporetower(this.position) {
     imageID = "sporetower";
@@ -78,7 +78,7 @@ class Sporetower {
 
 class Smoke {
   Vector position;
-  num frame;
+  int frame;
   String imageID;
 
   Smoke(Vector position) {
@@ -97,7 +97,7 @@ class Smoke {
 
 class Explosion {
   Vector position;
-  num frame;
+  int frame;
   String imageID;
 
   Explosion(Vector position) {
@@ -164,7 +164,7 @@ class Route {
 class Canvas {
   CanvasElement element;
   CanvasRenderingContext2D context;
-  num top, left, bottom, right;
+  int top, left, bottom, right;
 
   Canvas(this.element, width, height) {
     updateRect(width, height);

@@ -4,7 +4,8 @@ class Shell {
   Vector position, targetPosition, speed = new Vector(0, 0);
   String imageID;
   bool remove = false;
-  num rotation = 0, trailTimer = 0;
+  num rotation = 0;
+  int trailTimer = 0;
 
   Shell(this.position, this.targetPosition) {
     imageID = "shell";

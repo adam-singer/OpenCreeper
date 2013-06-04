@@ -4,8 +4,8 @@ class Building {
   Vector position, moveTargetPosition, weaponTargetPosition, speed = new Vector(0, 0);
   String imageID, status = "IDLE"; // MOVING, RISING, FALLING
   bool operating = false, selected = false, hovered = false, built = false, active = true, canMove = false, needsEnergy = false, rotating = false;
-  num health, maxHealth = 0, energy, maxEnergy = 0, energyTimer = 0, healthRequests = 0, energyRequests = 0, requestTimer = 0, weaponRadius = 0, size, collectedEnergy = 0, flightCounter = 0, scale = 1;
-  int angle = 0, targetAngle;
+  num health, maxHealth = 0, energy, maxEnergy = 0, energyTimer = 0, healthRequests = 0, energyRequests = 0, scale = 1;
+  int angle = 0, targetAngle, requestTimer = 0, weaponRadius = 0, size, collectedEnergy = 0, flightCounter = 0;
   Ship ship;
 
   Building(this.position, this.imageID) {
