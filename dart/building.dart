@@ -171,15 +171,27 @@ class Building {
         }
       }
     }
+    
+    if (imageID == "reactor" && built) {
+      collectedEnergy += 50;
+    }
 
     if (collectedEnergy >= 100) {
       collectedEnergy -= 100;
-      Packet packet = new Packet(getCenter(), "packet_collection", "collection");
-      packet.target = game.base;
-      packet.currentTarget = this;
-      game.findRoute(packet);
-      if (packet.currentTarget != null)
-        game.packets.add(packet);
+      if (imageID == "collector") {
+        Packet packet = new Packet(getCenter(), "packet_collection", "collection");
+        packet.target = game.base;
+        packet.currentTarget = this;
+        game.findRoute(packet);
+        if (packet.currentTarget != null)
+          game.packets.add(packet);
+      }
+      if (imageID == "reactor") {
+        game.currentEnergy += 1;
+        if (game.currentEnergy > game.maxEnergy)
+          game.currentEnergy = game.maxEnergy;
+        game.updateEnergyElement();
+      }
     }
   }
 

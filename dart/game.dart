@@ -363,7 +363,7 @@ class Game {
       building.maxHealth = 10;
     }
     else if (building.imageID == "cannon") {
-      building.maxHealth = 2; // 25
+      building.maxHealth = 25;
       building.maxEnergy = 40;
       building.weaponRadius = 8;
       building.canMove = true;
