@@ -10,9 +10,11 @@ class World {
 }
 
 class Game {
-  int seed, tileSize = 16, currentEnergy = 0, maxEnergy = 0, collection = 0, activeSymbol = -1, terraformingHeight = 0;
-  num speed = 1, zoom = 1, creeperTimer = 0, energyTimer = 0, spawnTimer = 0, damageTimer = 0, smokeTimer = 0, explosionTimer = 0, shieldTimer = 0, packetSpeed = 1, shellSpeed = 1, projectileSpeed = 5, sporeSpeed = 1, buildingSpeed = .5, shipSpeed = 1;
-  var running;
+  final int tileSize = 16;
+  int seed, currentEnergy = 0, maxEnergy = 0, collection = 0, activeSymbol = -1, terraformingHeight = 0;
+  double speed = 1.0, zoom = 1.0;
+  num packetSpeed = 1, shellSpeed = 1, projectileSpeed = 5, sporeSpeed = 1, buildingSpeed = .5, shipSpeed = 1, creeperTimer = 0, energyTimer = 0, spawnTimer = 0, damageTimer = 0, smokeTimer = 0, explosionTimer = 0, shieldTimer = 0;
+  Timer running;
   String mode;
   bool paused = false, scrollingUp = false, scrollingDown = false, scrollingLeft = false, scrollingRight = false;
   List<Vector> ghosts = new List<Vector>();
@@ -107,7 +109,7 @@ class Game {
     sporeSpeed = 1;
     buildingSpeed = .5;
     shipSpeed = 1;
-    speed = 1;
+    speed = 1.0;
     activeSymbol = -1;
     updateEnergyElement();
     updateSpeedElement();
@@ -186,8 +188,8 @@ class Game {
   }
 
   void faster() {
-    query('#slower').style.display = 'inline';
-    query('#faster').style.display = 'none';
+    //query('#slower').style.display = 'inline';
+    //query('#faster').style.display = 'none';
     if (speed < 2) {
       speed *= 2;
       stop();
@@ -197,8 +199,8 @@ class Game {
   }
 
   void slower() {
-    query('#slower').style.display = 'none';
-    query('#faster').style.display = 'inline';
+    //query('#slower').style.display = 'none';
+    //query('#faster').style.display = 'inline';
     if (speed > 1) {
       speed /= 2;
       stop();
@@ -321,10 +323,7 @@ class Game {
   }
 
   /**
-   * Adds a building.
-   * 
-   * @param {Vector} position The position of the new building
-   * @param {String} type The type of the new building
+   * Adds a building of a given [type] at the given [position].
    */
   void addBuilding(Vector position, String type) {
     Building building = new Building(position, type);
@@ -630,9 +629,7 @@ class Game {
   }
 
   /**
-   * Redraws a tile when its height has changed.
-   * 
-   * @param {List} tilesToRedraw An array of tiles to redraw
+   * Takes a list of [tilesToRedraw] and redraws them.
    */
   void redrawTile(List tilesToRedraw) {
     List tempCanvas = [];
@@ -738,10 +735,8 @@ class Game {
   }
 
   /**
-   * Used for A*, finds all neighbouring nodes of a given node.
-   *
-   * @param {Building} node The current node
-   * @param {Building} target The target node
+   * Used for A*, finds all neighbouring nodes of the given [node].
+   * The [target] node is also passed as it is a valid neighbour.
    */
   List getNeighbours(Building node, Building target) {
     List neighbours = new List();
@@ -773,10 +768,7 @@ class Game {
   }
 
   /**
-   * Used for A*, checks if a node is already in a given route.
-   *
-   * @param {Building} neighbour The node to check
-   * @param {Array} route The route to check
+   * Used for A*, checks if a node [neighbour] is already in a given [route].
    */
   bool inRoute(Building neighbour, List route) {
     bool found = false;
@@ -790,9 +782,7 @@ class Game {
   }
 
   /**
-   * Main function of A*, finds a path to the target node.
-   *
-   * @param {Packet} packet The packet to find a path for
+   * Main function of A*, finds a path to the target node for a given [packet].
    */
   void findRoute(Packet packet) {
     // A* using Branch and Bound with dynamic programming and underestimates, thanks to: http://ai-depot.com/Tutorial/PathFinding-Optimal.html
@@ -914,10 +904,8 @@ class Game {
   }
 
   /**
-   * Queues a requested packet
-   * 
-   * @param {Building} building The packet target building
-   * @param {String} type The type of the packet
+   * Creates a new requested packet with its target [building]
+   * and [type] and queues it.
    */
   void queuePacket(Building building, String type) {
     String img = "packet_" + type;
@@ -934,11 +922,7 @@ class Game {
   }
 
   /**
-   * Checks if a building can be placed on a given [position].
-   *
-   * @param {Vector} position The position to place the building
-   * @param {int} size The size of the building
-   * @param {Building} building The building to place
+   * Checks if a [building] with its [size] can be placed on a given [position].
    */
   bool canBePlaced(Vector position, num size, [Building building]) {
     bool collision = false;
@@ -1086,10 +1070,7 @@ class Game {
   
   /**
    * Updates the collector property of each tile when a
-   * collector is added or removed.
-   * 
-   * @param {Building} building The building to update
-   * @param {String} action Add or Remove action
+   * collector [building] is added or removed which is defined by the [action].
    */
   void updateCollection(Building building, String action) {
     int height = game.world.tiles[building.position.x][building.position.y].height;
@@ -1325,12 +1306,8 @@ class Game {
   }
 
   /**
-   * Draws the white range boxes when placing a building.
-   * 
-   * @param {Vector} position The position of the building
-   * @param {String} type The type of the building
-   * @param {int} radius The radius of the building
-   * @param {int} size The size of the building
+   * Draws the range boxes around the [position] of a building
+   * with a given [type], radius [rad] and [size].
    */
   void drawRangeBoxes(Vector position, String type, num rad, num size) {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;

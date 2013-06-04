@@ -77,6 +77,7 @@ file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/core/strin
 file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/core/string_sink.dart
 file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/core/symbol.dart
 file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/core/type.dart
+file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/core/uri.dart
 file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/html/dart2js/html_dart2js.dart
 file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/html/html_common/conversions.dart
 file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/html/html_common/css_class_set.dart
@@ -94,6 +95,11 @@ file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/math/rando
 file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/mdv_observe_impl/mdv_observe_impl.dart
 file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/svg/dart2js/svg_dart2js.dart
 file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/typed_data/dart2js/typed_data_dart2js.dart
+file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/utf/utf.dart
+file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/utf/utf16.dart
+file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/utf/utf32.dart
+file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/utf/utf8.dart
+file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/utf/utf_stream.dart
 file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/web_audio/dart2js/web_audio_dart2js.dart
 file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/web_gl/dart2js/web_gl_dart2js.dart
 file:///C:/Users/Alex/Downloads/darteditor-win32-64/dart/dart-sdk/lib/web_sql/dart2js/web_sql_dart2js.dart
@@ -106,6 +112,7 @@ file:///C:/Users/Alex/Projekte/Dart/OpenCreeper/dart/heightmap.dart
 file:///C:/Users/Alex/Projekte/Dart/OpenCreeper/dart/helper.dart
 file:///C:/Users/Alex/Projekte/Dart/OpenCreeper/dart/main.dart
 file:///C:/Users/Alex/Projekte/Dart/OpenCreeper/dart/packet.dart
+file:///C:/Users/Alex/Projekte/Dart/OpenCreeper/dart/projectile.dart
 file:///C:/Users/Alex/Projekte/Dart/OpenCreeper/dart/shell.dart
 file:///C:/Users/Alex/Projekte/Dart/OpenCreeper/dart/ship.dart
 file:///C:/Users/Alex/Projekte/Dart/OpenCreeper/dart/spore.dart

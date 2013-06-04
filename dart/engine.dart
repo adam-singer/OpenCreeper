@@ -223,13 +223,9 @@ class Engine {
   }
 
   /**
-   * Checks if an object is visible on the screen
-   *
-   * @param   position
-   * @param   size
-   * @return  boolean
+   * Checks if an object with a given [position] and [size]
+   * is visible on the screen. Returns true or false.
    */
-
   bool isVisible(Vector position, Vector size) {
     num r1_left = position.x;
     num r1_top = position.y;
