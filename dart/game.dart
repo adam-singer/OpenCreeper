@@ -280,7 +280,7 @@ class Game {
           Helper.randomInt(0, world.size.x - 3, seed + Helper.randomInt(1, 1000, seed + l)),
           Helper.randomInt(0, world.size.y - 3, seed + Helper.randomInt(1, 1000, seed + 1 + l)));
   
-      Emitter emitter = new Emitter(randomPosition, 5);
+      Emitter emitter = new Emitter(randomPosition, 25);
       emitters.add(emitter);
   
       height = this.world.tiles[emitter.position.x + 1][emitter.position.y + 1].height;
@@ -644,87 +644,89 @@ class Game {
       int iS = tilesToRedraw[i].x;
       int jS = tilesToRedraw[i].y;
 
-      // recalculate index
-      int index = -1;
-      int indexAbove = -1;
-      for (int t = 9; t > -1; t--) {
-        if (t <= world.tiles[iS][jS].height) {
-  
-          int up = 0, down = 0, left = 0, right = 0;
-          if (jS - 1 < 0)
-            up = 0;
-          else if (world.tiles[iS][jS - 1].height >= t)
-            up = 1;
-          if (jS + 1 > world.size.y - 1)
-            down = 0;
-          else if (world.tiles[iS][jS + 1].height >= t)
-            down = 1;
-          if (iS - 1 < 0)
-            left = 0;
-          else if (world.tiles[iS - 1][jS].height >= t)
-            left = 1;
-          if (iS + 1 > world.size.x - 1)
-            right = 0;
-          else if (world.tiles[iS + 1][jS].height >= t)
-            right = 1;
-  
-          // save index for later use
-          index = (8 * down) + (4 * left) + (2 * up) + right;
-        }
+      if (withinWorld(iS, jS)) {
+        // recalculate index
+        int index = -1;
+        int indexAbove = -1;
+        for (int t = 9; t > -1; t--) {
+          if (t <= world.tiles[iS][jS].height) {
+    
+            int up = 0, down = 0, left = 0, right = 0;
+            if (jS - 1 < 0)
+              up = 0;
+            else if (world.tiles[iS][jS - 1].height >= t)
+              up = 1;
+            if (jS + 1 > world.size.y - 1)
+              down = 0;
+            else if (world.tiles[iS][jS + 1].height >= t)
+              down = 1;
+            if (iS - 1 < 0)
+              left = 0;
+            else if (world.tiles[iS - 1][jS].height >= t)
+              left = 1;
+            if (iS + 1 > world.size.x - 1)
+              right = 0;
+            else if (world.tiles[iS + 1][jS].height >= t)
+              right = 1;
+    
+            // save index for later use
+            index = (8 * down) + (4 * left) + (2 * up) + right;
+          }
+              
+          //if (index > -1) {
+            tempContext[t].clearRect(0, 0, tileSize, tileSize);
             
-        //if (index > -1) {
-          tempContext[t].clearRect(0, 0, tileSize, tileSize);
+            // redraw mask          
+            if (t < 9) {
+              // skip tiles that are identical to the one above
+              if (index == indexAbove)
+                continue;
+              // skip tiles that are not visible
+              if (indexAbove == 5 || indexAbove == 7 || indexAbove == 10 || indexAbove == 11 ||
+                  indexAbove == 13 || indexAbove == 14 || indexAbove == 15)
+                continue;
+            }
+            
+            tempContext[t].drawImageScaledFromSource(engine.images["mask"], index * (tileSize + 6) + 3, (tileSize + 6) + 3, tileSize, tileSize, 0, 0, tileSize, tileSize);
+  
+            // redraw pattern
+            var pattern = tempContext[t].createPattern(engine.images["level$t"], 'repeat');
+  
+            tempContext[t].globalCompositeOperation = 'source-in';
+            tempContext[t].fillStyle = pattern;
+  
+            tempContext[t].save();
+            Vector translation = new Vector((iS * tileSize).floor(), (jS * tileSize).floor());
+            tempContext[t].translate(-translation.x, -translation.y);
+  
+            //tempContext[t].fill();
+            tempContext[t].fillRect(translation.x, translation.y, tileSize, tileSize);
+            tempContext[t].restore();
+  
+            tempContext[t].globalCompositeOperation = 'source-over';
+  
+            // redraw borders
+            if (t < 9) {
+              // skip tiles that are identical to the one above
+              if (index == indexAbove)
+                continue;
+              // skip tiles that are not visible
+              if (indexAbove == 5 || indexAbove == 7 || indexAbove == 10 || indexAbove == 11 ||
+                  indexAbove == 13 || indexAbove == 14 || indexAbove == 15)
+                continue;
+            }
+            
+            tempContext[t].drawImageScaledFromSource(engine.images["borders"], index * (tileSize + 6) + 2, 2, tileSize + 2, tileSize + 2, 0, 0, (tileSize + 2), (tileSize + 2));         
+          //}
           
-          // redraw mask          
-          if (t < 9) {
-            // skip tiles that are identical to the one above
-            if (index == indexAbove)
-              continue;
-            // skip tiles that are not visible
-            if (indexAbove == 5 || indexAbove == 7 || indexAbove == 10 || indexAbove == 11 ||
-                indexAbove == 13 || indexAbove == 14 || indexAbove == 15)
-              continue;
-          }
-          
-          tempContext[t].drawImageScaledFromSource(engine.images["mask"], index * (tileSize + 6) + 3, (tileSize + 6) + 3, tileSize, tileSize, 0, 0, tileSize, tileSize);
-
-          // redraw pattern
-          var pattern = tempContext[t].createPattern(engine.images["level$t"], 'repeat');
-
-          tempContext[t].globalCompositeOperation = 'source-in';
-          tempContext[t].fillStyle = pattern;
-
-          tempContext[t].save();
-          Vector translation = new Vector((iS * tileSize).floor(), (jS * tileSize).floor());
-          tempContext[t].translate(-translation.x, -translation.y);
-
-          //tempContext[t].fill();
-          tempContext[t].fillRect(translation.x, translation.y, tileSize, tileSize);
-          tempContext[t].restore();
-
-          tempContext[t].globalCompositeOperation = 'source-over';
-
-          // redraw borders
-          if (t < 9) {
-            // skip tiles that are identical to the one above
-            if (index == indexAbove)
-              continue;
-            // skip tiles that are not visible
-            if (indexAbove == 5 || indexAbove == 7 || indexAbove == 10 || indexAbove == 11 ||
-                indexAbove == 13 || indexAbove == 14 || indexAbove == 15)
-              continue;
-          }
-          
-          tempContext[t].drawImageScaledFromSource(engine.images["borders"], index * (tileSize + 6) + 2, 2, tileSize + 2, tileSize + 2, 0, 0, (tileSize + 2), (tileSize + 2));         
-        //}
-        
-        // set above index
-        indexAbove = index;
-      }
-
-      engine.canvas["levelbuffer"].context.clearRect(iS * tileSize, jS * tileSize, tileSize, tileSize);
-      for (int t = 0; t < 10; t++) {
-        engine.canvas["levelbuffer"].context.drawImageScaledFromSource(tempCanvas[t], 0, 0, tileSize, tileSize, iS * tileSize, jS * tileSize, tileSize, tileSize);
+          // set above index
+          indexAbove = index;
+        }
+  
+        engine.canvas["levelbuffer"].context.clearRect(iS * tileSize, jS * tileSize, tileSize, tileSize);
+        for (int t = 0; t < 10; t++) {
+          engine.canvas["levelbuffer"].context.drawImageScaledFromSource(tempCanvas[t], 0, 0, tileSize, tileSize, iS * tileSize, jS * tileSize, tileSize, tileSize);
+        }
       }
     }
     copyTerrain();
@@ -1044,7 +1046,7 @@ class Game {
    * Transfers creeper from one tile to another.
    */ 
   void transferCreeper(Tile source, Tile target) {
-    num transferRate = .25;
+    num transferRate = .2;
 
     if (source.height > -1 && target.height > -1) {
       num sourceCreeper = source.creep;     
