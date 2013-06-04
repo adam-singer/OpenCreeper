@@ -21,6 +21,7 @@ part 'uisymbol.dart';
 part 'building.dart';
 part 'packet.dart';
 part 'shell.dart';
+part 'projectile.dart';
 part 'spore.dart';
 part 'ship.dart';
 part 'events.dart';

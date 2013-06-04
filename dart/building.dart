@@ -376,15 +376,12 @@ class Building {
                 angle += 360;
             }
             else {
-              // shoot it
-              game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].creep -= 10;
-              if (game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].creep < 0)
-                game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].creep = 0;
-
+              // fire projectile
               rotating = false;
               energy -= 1;
               operating = true;
-              game.smokes.add(new Smoke(new Vector(weaponTargetPosition.x * game.tileSize + game.tileSize / 2, weaponTargetPosition.y * game.tileSize + game.tileSize / 2)));
+              Projectile projectile = new Projectile(center, new Vector(weaponTargetPosition.x * game.tileSize + game.tileSize / 2, weaponTargetPosition.y * game.tileSize + game.tileSize / 2), targetAngle);
+              game.projectiles.add(projectile);
               engine.playSound("laser", position);
             }
           }
@@ -410,7 +407,7 @@ class Building {
             }
             if (target != null) {
               engine.playSound("shot", position);
-              Shell shell = new Shell(center, "shell", new Vector(target.x * game.tileSize + game.tileSize / 2, target.y * game.tileSize + game.tileSize / 2));
+              Shell shell = new Shell(center, new Vector(target.x * game.tileSize + game.tileSize / 2, target.y * game.tileSize + game.tileSize / 2));
               shell.init();
               game.shells.add(shell);
               energy -= 1;
@@ -565,15 +562,15 @@ class Building {
 
     // draw shots
     if (operating) {
-      if (imageID == "cannon") {
-        Vector targetPosition = Helper.tiled2screen(weaponTargetPosition);
-        context.strokeStyle = "#f00";
-        context.beginPath();
-        context.moveTo(center.x, center.y);
-        context.lineTo(targetPosition.x, targetPosition.y);
-        context.stroke();
-      }
-      else if (imageID == "analyzer") {
+//      if (imageID == "cannon") {
+//        Vector targetPosition = Helper.tiled2screen(weaponTargetPosition);
+//        context.strokeStyle = "#f00";
+//        context.beginPath();
+//        context.moveTo(center.x, center.y);
+//        context.lineTo(targetPosition.x, targetPosition.y);
+//        context.stroke();
+//      }
+      if (imageID == "analyzer") {
         Vector targetPosition = Helper.tiled2screen(weaponTargetPosition);
         context.strokeStyle = '#00f';
         context.lineWidth = 4;

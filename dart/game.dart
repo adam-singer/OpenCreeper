@@ -11,7 +11,7 @@ class World {
 
 class Game {
   int seed, tileSize = 16, currentEnergy = 0, maxEnergy = 0, collection = 0, activeSymbol = -1, terraformingHeight = 0;
-  num speed = 1, zoom = 1, creeperTimer = 0, energyTimer = 0, spawnTimer = 0, damageTimer = 0, smokeTimer = 0, explosionTimer = 0, shieldTimer = 0, packetSpeed = 1, shellSpeed = 1, sporeSpeed = 1, buildingSpeed = .5, shipSpeed = 1;
+  num speed = 1, zoom = 1, creeperTimer = 0, energyTimer = 0, spawnTimer = 0, damageTimer = 0, smokeTimer = 0, explosionTimer = 0, shieldTimer = 0, packetSpeed = 1, shellSpeed = 1, projectileSpeed = 5, sporeSpeed = 1, buildingSpeed = .5, shipSpeed = 1;
   var running;
   String mode;
   bool paused = false, scrollingUp = false, scrollingDown = false, scrollingLeft = false, scrollingRight = false;
@@ -27,6 +27,7 @@ class Game {
   List<Packet> packets = new List<Packet>();
   List<Shell> shells = new List<Shell>();
   List<Ship> ships = new List<Ship>();
+  List<Projectile> projectiles = new List<Projectile>();
   World world;
   Vector scroll = new Vector(0, 0);
   Building base;
@@ -55,6 +56,7 @@ class Game {
     emitters = [];
     sporetowers = [];
     packetQueue = [];
+    projectiles = [];
     reset();
     setupUI();
     
@@ -84,6 +86,7 @@ class Game {
     emitters.clear();
     sporetowers.clear();
     packetQueue.clear();
+    projectiles.clear();
 
     maxEnergy = 20;
     currentEnergy = 20;
@@ -363,7 +366,7 @@ class Game {
       building.maxHealth = 10;
     }
     else if (building.imageID == "cannon") {
-      building.maxHealth = 25;
+      building.maxHealth = 1; // 25;
       building.maxEnergy = 40;
       building.weaponRadius = 8;
       building.canMove = true;
@@ -744,11 +747,11 @@ class Game {
     
     for (int i = 0; i < buildings.length; i++) {
       // must not be the same building
-      if (buildings[i].position.x != node.position.x && buildings[i].position.y != node.position.y) {
+      if (!(buildings[i].position.x == node.position.x && buildings[i].position.y == node.position.y)) {
         // must be idle
         if (buildings[i].status == "IDLE") {
-          // if its the target its ok, if its not it must be built
-          if (buildings[i] == target || (buildings[i] != target && buildings[i].built)) {
+          // it must either be the target or be built
+          if (buildings[i] == target || buildings[i].built) {
               centerI = buildings[i].getCenter();
               centerNode = node.getCenter();
               num distance = Helper.distance(centerI, centerNode);
@@ -1195,6 +1198,15 @@ class Game {
         shells[i].move();
     }
   }
+  
+  void updateProjectiles() {
+    for (int i = projectiles.length - 1; i >= 0; i--) {
+      if (projectiles[i].remove)
+        projectiles.removeAt(i);
+      else
+        projectiles[i].move();
+    }
+  }
 
   void updateSpores() {
     for (int i = spores.length - 1; i >= 0; i--) {
@@ -1269,6 +1281,7 @@ class Game {
     if (!paused) {
       updatePacketQueue();
       updateShells();
+      updateProjectiles();
       updateSpores();
       updateCreeper();
       updateBuildings();
@@ -1726,14 +1739,19 @@ class Game {
       buildings[i].drawMovementIndicators();
     }
 
-    // draw buildings
-    for (int i = 0; i < buildings.length; i++) {
-      buildings[i].draw();
-    }
-
     // draw shells
     for (int i = 0; i < shells.length; i++) {
       shells[i].draw();
+    }
+    
+    // draw projectiles
+    for (int i = 0; i < projectiles.length; i++) {
+      projectiles[i].draw();
+    }
+    
+    // draw buildings
+    for (int i = 0; i < buildings.length; i++) {
+      buildings[i].draw();
     }
 
     // draw smokes

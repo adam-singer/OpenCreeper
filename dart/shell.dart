@@ -6,7 +6,9 @@ class Shell {
   bool remove = false;
   num rotation = 0, trailTimer = 0;
 
-  Shell(this.position, this.imageID, this.targetPosition);
+  Shell(this.position, this.targetPosition) {
+    imageID = "shell";
+  }
 
   void init() {
     Vector delta = new Vector(targetPosition.x - position.x, targetPosition.y - position.y);
@@ -67,7 +69,7 @@ class Shell {
         ..save()
         ..translate(realPosition.x + 8 * game.zoom, realPosition.y + 8 * game.zoom)
         ..rotate(Helper.deg2rad(rotation))
-        ..drawImageScaled(engine.images["shell"], -8 * game.zoom, -8 * game.zoom, 16 * game.zoom, 16 * game.zoom)
+        ..drawImageScaled(engine.images[imageID], -8 * game.zoom, -8 * game.zoom, 16 * game.zoom, 16 * game.zoom)
         ..restore();
     }
   }
