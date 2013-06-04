@@ -1,5 +1,5 @@
 /*!
- * Open Creeper v1.2.8
+ * Open Creeper v1.2.9
  * http://alexanderzeillinger.github.com/OpenCreeper/
  *
  * Copyright 2012, Alexander Zeillinger

@@ -58,7 +58,6 @@ class Game {
     reset();
     setupUI();
     
-    // Music won't play in Chromium
     var music = new AudioElement("sounds/music.ogg");
     music.loop = true;
     music.volume = 0.25;
@@ -108,7 +107,6 @@ class Game {
     updateEnergyElement();
     updateSpeedElement();
     updateZoomElement();
-    updateCollectionElement();
     clearSymbols();
     createWorld();
   }
@@ -125,14 +123,15 @@ class Game {
   }
 
   /**
-   * Checks if the given position is within the world
-   *
+   * Checks if the given position is within the world.
    */
   bool withinWorld(int x, int y) {
     return (x > -1 && x < world.size.x && y > -1 && y < world.size.y);
   }
 
-  // Returns the position of the tile the mouse is hovering above
+  /**
+   *  Returns the position of the tile the mouse is hovering above
+   */
   Vector getHoveredTilePosition() {
     return new Vector(
         ((engine.mouse.x - engine.halfWidth) / (tileSize * zoom)).floor() + scroll.x,
@@ -223,6 +222,9 @@ class Game {
     }
   }
 
+  /**
+   * Creates a random world with base, emitters and sporetowers.
+   */
   void createWorld() {
     world.tiles = new List(world.size.x);
     for (int i = 0; i < world. size.x; i++) {
@@ -314,10 +316,11 @@ class Game {
   }
 
   /**
-     * @param {Vector} position The position of the new building
-     * @param {String} type The type of the new building
-     */
-
+   * Adds a building.
+   * 
+   * @param {Vector} position The position of the new building
+   * @param {String} type The type of the new building
+   */
   void addBuilding(Vector position, String type) {
     Building building = new Building(position, type);
 
@@ -360,7 +363,7 @@ class Game {
       building.maxHealth = 10;
     }
     else if (building.imageID == "cannon") {
-      building.maxHealth = 25;
+      building.maxHealth = 2; // 25
       building.maxEnergy = 40;
       building.weaponRadius = 8;
       building.canMove = true;
@@ -385,9 +388,8 @@ class Game {
   }
 
   /**
-     * @param {Building} building The building to remove
-     */
-
+   * Removes a [building].
+   */
   void removeBuilding(Building building) {
 
     // only explode building when it has been built
@@ -443,22 +445,6 @@ class Game {
     }
   }
 
-  void updateEnergyElement() {
-    query('#energy').innerHtml = "Energy: ${currentEnergy.toString()}/${maxEnergy.toString()}";
-  }
-
-  void updateSpeedElement() {
-    query("#speed").innerHtml = "Speed: ${speed.toString()}x";
-  }
-
-  void updateZoomElement() {
-    query("#speed").innerHtml = "Zoom: ${zoom.toString()}x";
-  }
-
-  void updateCollectionElement() {
-    //query('#collection').innerHtml = "Collection: ${collection.toString()}";
-  }
-
   void clearSymbols() {
     activeSymbol = -1;
     for (int i = 0; i < symbols.length; i++)
@@ -482,6 +468,10 @@ class Game {
       ..add(new UISymbol(new Vector(4 * 81, 56), "terp", "G", 3, 60, 12));
   }
 
+  /**
+   * Draws the complete terrain.
+   * This method is only called ONCE at the start of the game.
+   */
   void drawTerrain() {
     for (int i = 0; i < 10; i++) {
       engine.canvas["level$i"].clear();
@@ -600,6 +590,10 @@ class Game {
     query('#loading').style.display = 'none';
   }
 
+  /**
+   * After scrolling, zooming, or tile redrawing the terrain is copied
+   * to the visible buffer.
+   */
   void copyTerrain() {
     engine.canvas["levelfinal"].clear();
 
@@ -631,9 +625,10 @@ class Game {
   }
 
   /**
-     * @param {List} tilesToRedraw An array of tiles to redraw
-     */
-
+   * Redraws a tile when its height has changed.
+   * 
+   * @param {List} tilesToRedraw An array of tiles to redraw
+   */
   void redrawTile(List tilesToRedraw) {
     List tempCanvas = [];
     List tempContext = [];
@@ -736,159 +731,6 @@ class Game {
   }
 
   /**
-     * @param {Building} building The building to update
-     * @param {String} action Add or Remove action
-     */
-
-  void updateCollection(Building building, String action) {
-    int height = game.world.tiles[building.position.x][building.position.y].height;
-    Vector centerBuilding = building.getCenter();
-
-    for (int i = -5; i < 7; i++) {
-      for (int j = -5; j < 7; j++) {
-
-        Vector positionCurrent = new Vector(building.position.x + i, building.position.y + j);
-
-        if (withinWorld(positionCurrent.x, positionCurrent.y)) {
-          Vector positionCurrentCenter = new Vector(positionCurrent.x * tileSize + (tileSize / 2), positionCurrent.y * tileSize + (tileSize / 2));
-          int tileHeight = game.world.tiles[positionCurrent.x][positionCurrent.y].height;
-
-          if (action == "add") {
-            if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(tileSize * 6, 2)) {
-              if (tileHeight == height) {
-                world.tiles[positionCurrent.x][positionCurrent.y].collector = building;
-              }
-            }
-          } else if (action == "remove") {
-
-            if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(tileSize * 6, 2)) {
-              if (tileHeight == height) {
-                world.tiles[positionCurrent.x][positionCurrent.y].collector = null;
-              }
-            }
-
-            for (int k = 0; k < buildings.length; k++) {
-              if (buildings[k] != building && buildings[k].imageID == "collector") {
-                int heightK = game.world.tiles[buildings[k].position.x][buildings[k].position.y].height;
-                Vector centerBuildingK = buildings[k].getCenter();
-                if (pow(positionCurrentCenter.x - centerBuildingK.x, 2) + pow(positionCurrentCenter.y - centerBuildingK.y, 2) < pow(tileSize * 6, 2)) {
-                  if (tileHeight == heightK) {
-                    world.tiles[positionCurrent.x][positionCurrent.y].collector = buildings[k];
-                  }
-                }
-              }
-            }
-          }
-
-        }
-
-      }
-    }
-
-    drawCollection();
-
-    calculateCollection();
-  }
-
-  void calculateCollection() {
-    collection = 0;
-
-    for (int i = 0; i < world.size.x; i++) {
-      for (int j = 0; j < world.size.y; j++) {
-        //for (int k = 0; k < 10; k++) {
-          if (world.tiles[i][j].collector != null)
-            collection += 1;
-        //}
-      }
-    }
-
-    // decrease collection of collectors
-    collection = (collection * .1).floor();
-
-    for (int t = 0; t < buildings.length; t++) {
-      if (buildings[t].imageID == "reactor" || buildings[t].imageID == "base") {
-        collection += 1;
-      }
-    }
-
-    updateCollectionElement();
-  }
-
-  void updateCreeper() {
-    for (int i = 0; i < sporetowers.length; i++)
-      sporetowers[i].update();
-
-    spawnTimer++;
-    if (spawnTimer >= (25 / speed)) { // 125
-      for (int i = 0; i < emitters.length; i++)
-        emitters[i].spawn();
-      spawnTimer = 0;
-    }
-
-    creeperTimer++;
-    if (creeperTimer > (25 / speed)) {
-      creeperTimer -= (25 / speed);
-
-      for (int i = 0; i < world.size.x; i++) {
-        for (int j = 0; j < world.size.y; j++) {
-
-          // right neighbour
-          if (i + 1 < world.size.x) {
-            transferCreeper(world.tiles[i][j], world.tiles[i + 1][j]);
-          }
-          // left neighbour
-          if (i - 1 > -1) {
-            transferCreeper(world.tiles[i][j], world.tiles[i - 1][j]);
-          }
-          // bottom neighbour
-          if (j + 1 < world.size.y) {
-            transferCreeper(world.tiles[i][j], world.tiles[i][j + 1]);
-          }
-          // top neighbour
-          if (j - 1 > -1) {
-            transferCreeper(world.tiles[i][j], world.tiles[i][j - 1]);
-          }
-
-        }
-      }
-      
-      // clamp creeper
-      for (int i = 0; i < world.size.x; i++) {
-        for (int j = 0; j < world.size.y; j++) {
-          if (world.tiles[i][j].newcreep > 10)
-            world.tiles[i][j].newcreep = 10;
-          else if (world.tiles[i][j].newcreep < .01)
-            world.tiles[i][j].newcreep = 0;
-          world.tiles[i][j].creep = world.tiles[i][j].newcreep;
-        }
-      }
-
-    }
-  }
-
-  void transferCreeper(Tile source, Tile target) {
-    num transferRate = .25;
-
-    if (source.height > -1 && target.height > -1) {
-      num sourceCreeper = source.creep;     
-      //num targetCreeper = target.creep;
-      if (sourceCreeper > 0 /*|| targetCreeper > 0*/) {
-        num sourceTotal = source.height + source.creep;
-        num targetTotal = target.height + target.creep;
-        num delta = 0;
-        if (sourceTotal > targetTotal) {
-          delta = sourceTotal - targetTotal;
-          if (delta > sourceCreeper)
-            delta = sourceCreeper;
-          num adjustedDelta = delta * transferRate;
-          source.newcreep -= adjustedDelta;
-          target.newcreep += adjustedDelta;
-        }
-      }
-    }
-  }
-
-  /**
    * Used for A*, finds all neighbouring nodes of a given node.
    *
    * @param {Building} node The current node
@@ -941,13 +783,12 @@ class Game {
   }
 
   /**
-     * Main function of A*, finds a path to the target node.
-     *
-     * @param {Packet} packet The packet to find a path for
-     */
-
+   * Main function of A*, finds a path to the target node.
+   *
+   * @param {Packet} packet The packet to find a path for
+   */
   void findRoute(Packet packet) {
-  // A* using Branch and Bound with dynamic programming and underestimates, thanks to: http://ai-depot.com/Tutorial/PathFinding-Optimal.html
+    // A* using Branch and Bound with dynamic programming and underestimates, thanks to: http://ai-depot.com/Tutorial/PathFinding-Optimal.html
 
     // this holds all routes
     List<Route> routes = new List<Route>();
@@ -975,11 +816,9 @@ class Game {
 
       // get the last node of the route
       Building lastNode = oldRoute.nodes[oldRoute.nodes.length - 1];
-      //console.log("1) currently at: " + lastNode.type + ": " + lastNode.x + "/" + lastNode.y + ", route length: " + oldRoute.nodes.length);
 
       // find all neighbours of this node
       List neighbours = getNeighbours(lastNode, packet.target);
-      //console.log("2) neighbours found: " + neighbours.length);
 
       int newRoutes = 0;
       // extend the old route with each neighbour creating a new route each
@@ -1017,9 +856,6 @@ class Game {
 
       }
       
-      //console.log("3) new routes: " + newRoutes);
-      //console.log("4) total routes: " + routes.length);
-
       // find routes that end at the same node, remove those with the longer distance travelled
       for (int i = 0; i < routes.length; i++) {
         for (int j = 0; j < routes.length; j++) {
@@ -1071,10 +907,11 @@ class Game {
   }
 
   /**
-     * @param {Building} building The packet target building
-     * @param {String} type The type of the packet
-     */
-
+   * Queues a requested packet
+   * 
+   * @param {Building} building The packet target building
+   * @param {String} type The type of the packet
+   */
   void queuePacket(Building building, String type) {
     String img = "packet_" + type;
     Vector center = base.getCenter();
@@ -1090,13 +927,12 @@ class Game {
   }
 
   /**
-     * Checks if a building can be placed on the current tile.
-     *
-     * @param {Vector} position The position to place the building
-     * @param {int} size The size of the building
-     * @param {Building} building The building to place
-     */
-
+   * Checks if a building can be placed on a given [position].
+   *
+   * @param {Vector} position The position to place the building
+   * @param {int} size The size of the building
+   * @param {Building} building The building to place
+   */
   bool canBePlaced(Vector position, num size, [Building building]) {
     bool collision = false;
 
@@ -1154,7 +990,154 @@ class Game {
 
     return (!collision);
   }
+  
+  void updateCreeper() {
+    spawnTimer++;
+    if (spawnTimer >= (25 / speed)) { // 125
+      for (int i = 0; i < emitters.length; i++)
+        emitters[i].spawn();
+      spawnTimer = 0;
+    }
 
+    creeperTimer++;
+    if (creeperTimer > (25 / speed)) {
+      creeperTimer -= (25 / speed);
+
+      for (int i = 0; i < world.size.x; i++) {
+        for (int j = 0; j < world.size.y; j++) {
+
+          // right neighbour
+          if (i + 1 < world.size.x) {
+            transferCreeper(world.tiles[i][j], world.tiles[i + 1][j]);
+          }
+          // left neighbour
+          if (i - 1 > -1) {
+            transferCreeper(world.tiles[i][j], world.tiles[i - 1][j]);
+          }
+          // bottom neighbour
+          if (j + 1 < world.size.y) {
+            transferCreeper(world.tiles[i][j], world.tiles[i][j + 1]);
+          }
+          // top neighbour
+          if (j - 1 > -1) {
+            transferCreeper(world.tiles[i][j], world.tiles[i][j - 1]);
+          }
+
+        }
+      }
+      
+      // clamp creeper
+      for (int i = 0; i < world.size.x; i++) {
+        for (int j = 0; j < world.size.y; j++) {
+          if (world.tiles[i][j].newcreep > 10)
+            world.tiles[i][j].newcreep = 10;
+          else if (world.tiles[i][j].newcreep < .01)
+            world.tiles[i][j].newcreep = 0;
+          world.tiles[i][j].creep = world.tiles[i][j].newcreep;
+        }
+      }
+
+    }
+  }
+
+  /**
+   * Transfers creeper from one tile to another.
+   */ 
+  void transferCreeper(Tile source, Tile target) {
+    num transferRate = .25;
+
+    if (source.height > -1 && target.height > -1) {
+      num sourceCreeper = source.creep;     
+      //num targetCreeper = target.creep;
+      if (sourceCreeper > 0 /*|| targetCreeper > 0*/) {
+        num sourceTotal = source.height + source.creep;
+        num targetTotal = target.height + target.creep;
+        num delta = 0;
+        if (sourceTotal > targetTotal) {
+          delta = sourceTotal - targetTotal;
+          if (delta > sourceCreeper)
+            delta = sourceCreeper;
+          num adjustedDelta = delta * transferRate;
+          source.newcreep -= adjustedDelta;
+          target.newcreep += adjustedDelta;
+        }
+      }
+    }
+  }
+  
+  void updateEnergyElement() {
+    query('#energy').innerHtml = "Energy: ${currentEnergy.toString()}/${maxEnergy.toString()}";
+  }
+
+  void updateSpeedElement() {
+    query("#speed").innerHtml = "Speed: ${speed.toString()}x";
+  }
+
+  void updateZoomElement() {
+    query("#speed").innerHtml = "Zoom: ${zoom.toString()}x";
+  }
+  
+  /**
+   * Updates the collector property of each tile when a
+   * collector is added or removed.
+   * 
+   * @param {Building} building The building to update
+   * @param {String} action Add or Remove action
+   */
+  void updateCollection(Building building, String action) {
+    int height = game.world.tiles[building.position.x][building.position.y].height;
+    Vector centerBuilding = building.getCenter();
+
+    for (int i = -5; i < 7; i++) {
+      for (int j = -5; j < 7; j++) {
+
+        Vector positionCurrent = new Vector(building.position.x + i, building.position.y + j);
+
+        if (withinWorld(positionCurrent.x, positionCurrent.y)) {
+          Vector positionCurrentCenter = new Vector(positionCurrent.x * tileSize + (tileSize / 2), positionCurrent.y * tileSize + (tileSize / 2));
+          int tileHeight = game.world.tiles[positionCurrent.x][positionCurrent.y].height;
+
+          if (action == "add") {
+            if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(tileSize * 6, 2)) {
+              if (tileHeight == height) {
+                world.tiles[positionCurrent.x][positionCurrent.y].collector = building;
+              }
+            }
+          } else if (action == "remove") {
+
+            if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(tileSize * 6, 2)) {
+              if (tileHeight == height) {
+                world.tiles[positionCurrent.x][positionCurrent.y].collector = null;
+              }
+            }
+
+            for (int k = 0; k < buildings.length; k++) {
+              if (buildings[k] != building && buildings[k].imageID == "collector") {
+                int heightK = game.world.tiles[buildings[k].position.x][buildings[k].position.y].height;
+                Vector centerBuildingK = buildings[k].getCenter();
+                if (pow(positionCurrentCenter.x - centerBuildingK.x, 2) + pow(positionCurrentCenter.y - centerBuildingK.y, 2) < pow(tileSize * 6, 2)) {
+                  if (tileHeight == heightK) {
+                    world.tiles[positionCurrent.x][positionCurrent.y].collector = buildings[k];
+                  }
+                }
+              }
+            }
+          }
+
+        }
+
+      }
+    }
+
+    drawCollection();
+  }
+
+  /**
+   * Updates the packet queue of the base.
+   * 
+   * If the base has energy the first packet is removed from
+   * the queue and sent to its target.
+   */
   void updatePacketQueue() {
     for (int i = packetQueue.length - 1; i >= 0; i--) {
       if (currentEnergy > 0) {
@@ -1167,88 +1150,28 @@ class Game {
   }
 
   void updateBuildings() {
-
     for (int i = 0; i < buildings.length; i++) {
       buildings[i].move();
       buildings[i].checkOperating();
       buildings[i].shield();
+      buildings[i].requestPacket();
     }
 
     // take damage
     damageTimer++;
-    if (damageTimer > 100) {
+    if (damageTimer > 10) {
       damageTimer = 0;
       for (int i = 0; i < buildings.length; i++) {
         buildings[i].takeDamage();
       }
     }
 
-    // request packets
-    for (int i = 0; i < buildings.length; i++) {
-      if (buildings[i].active && buildings[i].status == "IDLE") {
-        buildings[i].requestTimer++;
-        // request health
-        if (buildings[i].imageID != "base") {
-          num healthAndRequestDelta = buildings[i].maxHealth - buildings[i].health - buildings[i].healthRequests;
-          if (healthAndRequestDelta > 0 && buildings[i].requestTimer > 50) {
-            buildings[i].requestTimer = 0;
-            queuePacket(buildings[i], "health");
-          }
-        }
-        // request energy
-        if (buildings[i].needsEnergy && buildings[i].built) {
-          num energyAndRequestDelta = buildings[i].maxEnergy - buildings[i].energy - buildings[i].energyRequests;
-          if (energyAndRequestDelta > 0 && buildings[i].requestTimer > 50) {
-            buildings[i].requestTimer = 0;
-            queuePacket(buildings[i], "energy");
-          }
-        }
-      }
-    }
-
-  }
-
-  void updateEnergy() {
+    // collect energy
     energyTimer++;
     if (energyTimer > (250 / speed)) {
       energyTimer -= (250 / speed);
-      for (int k = 0; k < buildings.length; k++) {
-        if (buildings[k].imageID == "collector" && buildings[k].built) {
-          int height = game.world.tiles[buildings[k].position.x][buildings[k].position.y].height;
-          Vector centerBuilding = buildings[k].getCenter();
-
-          for (int i = -5; i < 7; i++) {
-            for (int j = -5; j < 7; j++) {
-              Vector positionCurrent = new Vector(buildings[k].position.x + i, buildings[k].position.y + j);
-
-              if (withinWorld(positionCurrent.x, positionCurrent.y)) {
-                Vector positionCurrentCenter = new Vector(positionCurrent.x * tileSize + (tileSize / 2), positionCurrent.y * tileSize + (tileSize / 2));
-                int tileHeight = game.world.tiles[positionCurrent.x][positionCurrent.y].height;
-                
-                if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(tileSize * 6, 2)) {
-                  if (tileHeight == height) {
-                    if (world.tiles[positionCurrent.x][positionCurrent.y].collector == buildings[k])
-                      buildings[k].collectedEnergy += 1;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    for (int i = 0; i < buildings.length; i++) {
-      if (buildings[i].collectedEnergy >= 100) {
-        buildings[i].collectedEnergy -= 100;
-        String img = "packet_collection";
-        Vector center = buildings[i].getCenter();
-        Packet packet = new Packet(center, img, "collection");
-        packet.target = base;
-        packet.currentTarget = buildings[i];
-        findRoute(packet);
-        if (packet.currentTarget != null)
-          packets.add(packet);
+      for (int i = 0; i < buildings.length; i++) {
+        buildings[i].collectEnergy();
       }
     }
   }
@@ -1313,6 +1236,10 @@ class Game {
     }
   }
 
+  /**
+   * Main update function which calls all other update functions.
+   * Is called by a periodic timer.
+   */ 
   void update() {
     // check for winning condition
     int emittersChecked = 0;
@@ -1333,13 +1260,16 @@ class Game {
     for (int i = 0; i < ships.length; i++) {
       ships[i].updateHoverState();
     }
+    for (int i = 0; i < sporetowers.length; i++) {
+      sporetowers[i].update();
+    }
+
     if (!paused) {
       updatePacketQueue();
       updateShells();
       updateSpores();
       updateCreeper();
       updateBuildings();
-      updateEnergy();
       updatePackets();
       updateSmokes();
       updateExplosions();
@@ -1378,12 +1308,13 @@ class Game {
   }
 
   /**
-     * @param {Vector} position The position of the building
-     * @param {String} type The type of the building
-     * @param {int} radius The radius of the building
-     * @param {int} size The size of the building
-     */
-
+   * Draws the white range boxes when placing a building.
+   * 
+   * @param {Vector} position The position of the building
+   * @param {String} type The type of the building
+   * @param {int} radius The radius of the building
+   * @param {int} size The size of the building
+   */
   void drawRangeBoxes(Vector position, String type, num rad, num size) {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;
     
@@ -1437,9 +1368,8 @@ class Game {
   }
 
   /**
-     * Draws the green collection areas of collectors.
-     */
-
+   * Draws the green collection areas of collectors.
+   */
   void drawCollection() {
     engine.canvas["collection"].clear();
     engine.canvas["collection"].context.save();
@@ -1538,10 +1468,10 @@ class Game {
   }
 
   /**
-     * When a building from the GUI is selected this draws some info whether it can be build on the current tile,
-     * the range as white boxes and connections to other buildings
-     */
-
+   * When a building from the GUI is selected this draws some info
+   * whether it can be build on the current tile, the range as
+   * white boxes and connections to other buildings
+   */
   void drawPositionInfo() {
     ghosts = new List(); // ghosts are all the placeholders to build
     if (engine.mouse.dragStart != null) {
@@ -1671,9 +1601,8 @@ class Game {
   }
 
   /**
-     * Draws the GUI with symbols, height and creep meter.
-     */
-
+   * Draws the GUI with symbols, height and creep meter.
+   */
   void drawGUI() {
     CanvasRenderingContext2D context = engine.canvas["gui"].context;
     
@@ -1711,6 +1640,10 @@ class Game {
     }
   }
   
+  /**
+   * Main drawing function which calls all other drawing functions.
+   * Is called by requestAnimationFrame every frame.
+   */
   void draw(num _) {
     CanvasRenderingContext2D context = engine.canvas["buffer"].context;
     

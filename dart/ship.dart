@@ -216,7 +216,7 @@ class Ship {
       context
         ..save()
         ..translate(realPosition.x + 24 * game.zoom, realPosition.y + 24 * game.zoom)
-        ..rotate(Helper.deg2rad(angle + 90))
+        ..rotate(Helper.deg2rad(angle))
         ..drawImageScaled(engine.images[imageID], -24 * game.zoom * scale, -24 * game.zoom * scale, 48 * game.zoom * scale, 48 * game.zoom * scale)
         ..restore();
 

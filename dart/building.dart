@@ -90,7 +90,7 @@ class Building {
       for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
           if (game.world.tiles[position.x + i][position.y + j].creep > 0) {
-            health -= game.world.tiles[position.x + i][position.y + j].creep;
+            health -= game.world.tiles[position.x + i][position.y + j].creep / 10;
           }
         }
       }
@@ -121,6 +121,65 @@ class Building {
         }
       }
 
+    }
+  }
+
+  void requestPacket() {
+    if (active && status == "IDLE") {
+      requestTimer++;
+      if (requestTimer > 50) {
+        // request health
+        if (imageID != "base") {
+          num healthAndRequestDelta = maxHealth - health - healthRequests;
+          if (healthAndRequestDelta > 0) {
+            requestTimer = 0;
+            game.queuePacket(this, "health");
+          }
+        }
+        // request energy
+        if (needsEnergy && built) {
+          num energyAndRequestDelta = maxEnergy - energy - energyRequests;
+          if (energyAndRequestDelta > 0) {
+            requestTimer = 0;
+            game.queuePacket(this, "energy");
+          }
+        }
+      }
+    }
+  }
+
+  void collectEnergy() {
+    if (imageID == "collector" && built) {
+      int height = game.world.tiles[position.x][position.y].height;
+      Vector centerBuilding = getCenter();
+
+      for (int i = -5; i < 7; i++) {
+        for (int j = -5; j < 7; j++) {
+          Vector positionCurrent = new Vector(position.x + i, position.y + j);
+
+          if (game.withinWorld(positionCurrent.x, positionCurrent.y)) {
+            Vector positionCurrentCenter = new Vector(positionCurrent.x * game.tileSize + (game.tileSize / 2), positionCurrent.y * game.tileSize + (game.tileSize / 2));
+            int tileHeight = game.world.tiles[positionCurrent.x][positionCurrent.y].height;
+
+            if (pow(positionCurrentCenter.x - centerBuilding.x, 2) + pow(positionCurrentCenter.y - centerBuilding.y, 2) < pow(game.tileSize * 6, 2)) {
+              if (tileHeight == height) {
+                if (game.world.tiles[positionCurrent.x][positionCurrent.y].collector == this)
+                  collectedEnergy += 1;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (collectedEnergy >= 100) {
+      collectedEnergy -= 100;
+      Packet packet = new Packet(getCenter(), "packet_collection", "collection");
+      packet.target = game.base;
+      packet.currentTarget = this;
+      game.findRoute(packet);
+      if (packet.currentTarget != null)
+        game.packets.add(packet);
     }
   }
 
@@ -274,7 +333,7 @@ class Building {
               var dx = targets[0].x * game.tileSize + game.tileSize / 2 - center.x;
               var dy = targets[0].y * game.tileSize + game.tileSize / 2 - center.y;
 
-              targetAngle = Helper.rad2deg(atan2(dy, dx) + PI / 2).floor();
+              targetAngle = Helper.rad2deg(atan2(dy, dx)).floor();
               weaponTargetPosition = new Vector(targets[0].x, targets[0].y);
               rotating = true;
             }

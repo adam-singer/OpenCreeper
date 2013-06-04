@@ -61,7 +61,7 @@ class Sporetower {
   void spawn() {
     Building target = null;
     do {
-      target = game.buildings[Helper.randomInt(0, game.buildings.length)];
+      target = game.buildings[Helper.randomInt(0, game.buildings.length - 1)];
     } while (!target.built);
     Spore spore = new Spore(getCenter(), target.getCenter());
     spore.init();
@@ -82,7 +82,7 @@ class Smoke {
   String imageID;
 
   Smoke(Vector position) {
-    position = new Vector(position.x, position.y);
+    this.position = new Vector(position.x, position.y);
     frame = 0;
     imageID = "smoke";
   }
@@ -101,7 +101,7 @@ class Explosion {
   String imageID;
 
   Explosion(Vector position) {
-    position = new Vector(position.x, position.y);
+    this.position = new Vector(position.x, position.y);
     frame = 0;
     imageID = "explosion";
   }
