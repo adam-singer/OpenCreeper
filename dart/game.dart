@@ -42,6 +42,8 @@ class Game {
     init();
     drawTerrain();
     copyTerrain();
+    engine.setupEventHandler();
+    run();
   }
 
   void init() {

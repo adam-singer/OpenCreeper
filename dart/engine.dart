@@ -82,6 +82,9 @@ class Engine {
                  "cannongun", "base", "collector", "reactor", "storage", "terp", "packet_collection", "packet_energy", "packet_health", "relay", "emitter", "creeper",
                  "mortar", "shell", "beam", "spore", "bomber", "bombership", "smoke", "explosion", "targetcursor", "sporetower", "forcefield", "shield", "projectile"];
 
+  }
+  
+  void setupEventHandler() {
     query('#terraform').onClick.listen((event) => game.toggleTerraform());
     //query('#slower').onClick.listen((event) => game.slower());
     //query('#faster').onClick.listen((event) => game.faster());
@@ -90,8 +93,6 @@ class Engine {
     query('#restart').onClick.listen((event) => game.restart());
     query('#deactivate').onClick.listen((event) => game.deactivateBuilding());
     query('#activate').onClick.listen((event) => game.activateBuilding());
-    //query('#zoomin').onClick.listen((event) => game.zoomIn());
-    //query('#zoomout').onClick.listen((event) => game.zoomOut());
 
     CanvasElement mainCanvas = canvas["main"].element;
     CanvasElement guiCanvas = canvas["gui"].element;
@@ -121,11 +122,13 @@ class Engine {
   /**
    * Loads all images.
    *
-   * A callback is used to make sure the game starts after all images have been loaded.
+   * A future is used to make sure the game starts after all images have been loaded.
    * Otherwise some images might not be rendered at all.
    */
 
-  void loadImages(callback) {
+  Future loadImages() {
+    var completer = new Completer();
+    
     int loadedImages = 0;
     int numImages = imageSrcs.length;
 
@@ -133,10 +136,11 @@ class Engine {
       images[imageSrcs[i]] = new ImageElement(src: "images/" + imageSrcs[i] + ".png");
       images[imageSrcs[i]].onLoad.listen((event) {
         if (++loadedImages == numImages) {
-          callback();
+          completer.complete();
         }
       });
     }
+    return completer.future; 
   }
 
   void addSound(String name, String type) {

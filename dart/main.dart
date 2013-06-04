@@ -1,5 +1,5 @@
 /*!
- * Open Creeper v1.2.9
+ * Open Creeper v1.3.0
  * http://alexanderzeillinger.github.com/OpenCreeper/
  *
  * Copyright 2012, Alexander Zeillinger
@@ -31,8 +31,5 @@ Game game;
 
 void main() {
   engine = new Engine();
-  engine.loadImages(() {
-    game = new Game();
-    game.run();
-  });
+  engine.loadImages().then((results) => game = new Game());
 }
