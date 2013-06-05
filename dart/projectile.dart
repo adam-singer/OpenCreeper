@@ -5,6 +5,7 @@ class Projectile {
   String imageID;
   bool remove = false;
   num rotation;
+  static num baseSpeed = 5;
 
   Projectile(this.position, this.targetPosition, this.rotation) {
     imageID = "projectile";
@@ -14,8 +15,8 @@ class Projectile {
     Vector delta = new Vector(targetPosition.x - position.x, targetPosition.y - position.y);
     num distance = Helper.distance(targetPosition, position);
 
-    speed.x = (delta.x / distance) * game.projectileSpeed * game.speed;
-    speed.y = (delta.y / distance) * game.projectileSpeed * game.speed;
+    speed.x = (delta.x / distance) * Projectile.baseSpeed * game.speed;
+    speed.y = (delta.y / distance) * Projectile.baseSpeed * game.speed;
     
     if (speed.x.abs() > delta.x.abs())
       speed.x = delta.x;

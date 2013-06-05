@@ -2,11 +2,11 @@ part of creeper;
 
 class UISymbol {
   Vector position;
-  String imageID, key;
-  int width = 80, height = 55, size, packets, radius;
+  String imageID;
+  int width = 80, height = 55, size, packets, radius, keyCode;
   bool active = false, hovered = false;
 
-  UISymbol(this.position, this.imageID, this.key, this.size, this.packets, this.radius);
+  UISymbol(this.position, this.imageID, this.keyCode, this.size, this.packets, this.radius);
 
   void checkHovered() {
     hovered = (engine.mouseGUI.x > position.x &&
@@ -52,7 +52,7 @@ class UISymbol {
       ..textAlign = 'center'
       ..fillText(imageID.substring(0, 1).toUpperCase() + imageID.substring(1), position.x + (width / 2), position.y + 15)
       ..textAlign = 'left'
-      ..fillText("(" + key.toString() + ")", position.x + 5, position.y + 50)
+      ..fillText("(${new String.fromCharCode(keyCode)})", position.x + 5, position.y + 50)
       ..textAlign = 'right'
       ..fillText(packets.toString(), position.x + width - 5, position.y + 50);
   }

@@ -4,9 +4,11 @@ class Building {
   Vector position, moveTargetPosition, weaponTargetPosition, speed = new Vector(0, 0);
   String imageID, status = "IDLE"; // MOVING, RISING, FALLING
   bool operating = false, selected = false, hovered = false, built = false, active = true, canMove = false, needsEnergy = false, rotating = false;
-  num health, maxHealth = 0, energy, maxEnergy = 0, energyTimer = 0, healthRequests = 0, energyRequests = 0, scale = 1;
-  int angle = 0, targetAngle, requestTimer = 0, weaponRadius = 0, size, collectedEnergy = 0, flightCounter = 0;
+  num health, maxHealth = 0, energy, maxEnergy = 0, healthRequests = 0, energyRequests = 0, scale = 1;
+  int angle = 0, targetAngle, weaponRadius = 0, size, collectedEnergy = 0, flightCounter = 0, requestCounter = 0, energyCounter = 0;
   Ship ship;
+  static final double baseSpeed = .5;
+  static int damageCounter = 0;
 
   Building(this.position, this.imageID) {
     health = 0;
@@ -69,8 +71,8 @@ class Building {
       Vector delta = new Vector(targetPosition.x - ownPosition.x, targetPosition.y - ownPosition.y);
       num distance = Helper.distance(targetPosition, ownPosition);
 
-      speed.x = (delta.x / distance) * game.buildingSpeed * game.speed / game.tileSize;
-      speed.y = (delta.y / distance) * game.buildingSpeed * game.speed / game.tileSize;
+      speed.x = (delta.x / distance) * Building.baseSpeed * game.speed / game.tileSize;
+      speed.y = (delta.y / distance) * Building.baseSpeed * game.speed / game.tileSize;
       
       if (speed.x.abs() > delta.x.abs())
         speed.x = delta.x;
@@ -126,13 +128,13 @@ class Building {
 
   void requestPacket() {
     if (active && status == "IDLE") {
-      requestTimer++;
-      if (requestTimer > 50) {
+      requestCounter++;
+      if (requestCounter > 50) {
         // request health
         if (imageID != "base") {
           num healthAndRequestDelta = maxHealth - health - healthRequests;
           if (healthAndRequestDelta > 0) {
-            requestTimer = 0;
+            requestCounter = 0;
             game.queuePacket(this, "health");
           }
         }
@@ -140,7 +142,7 @@ class Building {
         if (needsEnergy && built) {
           num energyAndRequestDelta = maxEnergy - energy - energyRequests;
           if (energyAndRequestDelta > 0) {
-            requestTimer = 0;
+            requestCounter = 0;
             game.queuePacket(this, "energy");
           }
         }
@@ -199,7 +201,7 @@ class Building {
     operating = false;
     if (needsEnergy && active && status == "IDLE") {
 
-      energyTimer++;
+      energyCounter++;
       Vector center = getCenter();
 
       if (imageID == "analyzer" && energy > 0) {
@@ -221,8 +223,8 @@ class Building {
           }
         }
         else {
-          if (energyTimer > 20) {
-            energyTimer = 0;
+          if (energyCounter > 20) {
+            energyCounter = 0;
             energy -= 1;
           }
 
@@ -254,8 +256,8 @@ class Building {
             weaponTargetPosition = target;
           }
         } else {
-          if (energyTimer > 20) {
-            energyTimer = 0;
+          if (energyCounter > 20) {
+            energyCounter = 0;
             energy -= 1;
           }
 
@@ -270,23 +272,23 @@ class Building {
 
             if (height < terraformElement.terraformTarget) {
               game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].height++;
-              // reset index around tile
-              tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y, height + 1));
-              tilesToRedraw.add(new Vector3(weaponTargetPosition.x - 1, weaponTargetPosition.y, height + 1));
-              tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y - 1, height + 1));
-              tilesToRedraw.add(new Vector3(weaponTargetPosition.x + 1, weaponTargetPosition.y, height + 1));
-              tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y + 1, height + 1));
+              tilesToRedraw
+                ..add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y, height + 1))
+                ..add(new Vector3(weaponTargetPosition.x - 1, weaponTargetPosition.y, height + 1))
+                ..add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y - 1, height + 1))
+                ..add(new Vector3(weaponTargetPosition.x + 1, weaponTargetPosition.y, height + 1))
+                ..add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y + 1, height + 1));
             } else {
               game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].height--;
-              // reset index around tile
-              tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y, height));
-              tilesToRedraw.add(new Vector3(weaponTargetPosition.x - 1, weaponTargetPosition.y, height));
-              tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y - 1, height));
-              tilesToRedraw.add(new Vector3(weaponTargetPosition.x + 1, weaponTargetPosition.y, height));
-              tilesToRedraw.add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y + 1, height));
+              tilesToRedraw
+                ..add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y, height))
+                ..add(new Vector3(weaponTargetPosition.x - 1, weaponTargetPosition.y, height))
+                ..add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y - 1, height))
+                ..add(new Vector3(weaponTargetPosition.x + 1, weaponTargetPosition.y, height))
+                ..add(new Vector3(weaponTargetPosition.x, weaponTargetPosition.y + 1, height));
             }
 
-            game.redrawTile(tilesToRedraw);
+            game.redrawTiles(tilesToRedraw);
 
             height = game.world.tiles[weaponTargetPosition.x][weaponTargetPosition.y].height;
             if (height == terraformElement.terraformTarget) {
@@ -301,17 +303,17 @@ class Building {
       }
 
       else if (imageID == "shield" && energy > 0) {
-        if (energyTimer > 20) {
-          energyTimer = 0;
+        if (energyCounter > 20) {
+          energyCounter = 0;
           energy -= 1;
         }
         operating = true;
       }
 
-      else if (imageID == "cannon" && energy > 0 && energyTimer > 10) {
+      else if (imageID == "cannon" && energy > 0 && energyCounter > 10) {
           if (!rotating) {
 
-            energyTimer = 0;
+            energyCounter = 0;
 
             int height = game.world.tiles[position.x][position.y].height;
 
@@ -387,8 +389,8 @@ class Building {
           }
         }
 
-        else if (imageID == "mortar" && energy > 0 && energyTimer > 200) {
-            energyTimer = 0;
+        else if (imageID == "mortar" && energy > 0 && energyCounter > 200) {
+          energyCounter = 0;
 
             // find most creep in range
             Vector target = null;
@@ -414,8 +416,8 @@ class Building {
             }
           }
 
-          else if (imageID == "beam" && energy > 0 && energyTimer > 0) {
-              energyTimer = 0;
+          else if (imageID == "beam" && energy > 0 && energyCounter > 0) {
+            energyCounter = 0;
 
               // find spore in range
               for (int i = 0; i < game.spores.length; i++) {

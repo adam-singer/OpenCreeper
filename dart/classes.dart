@@ -5,6 +5,7 @@ class Emitter {
   String imageID;
   int strength;
   Building building;
+  static int counter;
 
   Emitter(this.position, this.strength) {
     imageID = "emitter";
@@ -35,7 +36,7 @@ class Emitter {
 class Sporetower {
   Vector position;
   String imageID;
-  int sporeTimer = 0;
+  int sporeCounter = 0;
 
   Sporetower(this.position) {
     imageID = "sporetower";
@@ -43,7 +44,7 @@ class Sporetower {
   }
 
   void reset() {
-    sporeTimer = Helper.randomInt(7500, 12500);
+    sporeCounter = Helper.randomInt(7500, 12500);
   }
 
   Vector getCenter() {
@@ -51,8 +52,8 @@ class Sporetower {
   }
 
   void update() {
-    sporeTimer -= 1;
-    if (sporeTimer <= 0) {
+    sporeCounter -= 1;
+    if (sporeCounter <= 0) {
       reset();
       spawn();
     }
@@ -80,6 +81,7 @@ class Smoke {
   Vector position;
   int frame;
   String imageID;
+  static int counter;
 
   Smoke(Vector position) {
     this.position = new Vector(position.x, position.y);
@@ -99,11 +101,13 @@ class Explosion {
   Vector position;
   int frame;
   String imageID;
+  static int counter;
 
   Explosion(Vector position) {
     this.position = new Vector(position.x, position.y);
     frame = 0;
     imageID = "explosion";
+    counter = 0;
   }
 
   void draw() {

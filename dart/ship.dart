@@ -5,8 +5,9 @@ class Ship {
   String imageID, type, status = "IDLE"; // ATTACKING, RETURNING, RISING, FALLING
   bool remove = false, hovered = false, selected = false;
   num angle = 0, scale = 1;
-  int maxEnergy = 15, energy = 0, trailTimer = 0, weaponTimer = 0, flightCounter = 0;
+  int maxEnergy = 15, energy = 0, trailCounter = 0, weaponCounter = 0, flightCounter = 0;
   Building home;
+  static final int baseSpeed = 1;
 
   Ship(this.position, this.imageID, this.type, this.home);
 
@@ -51,8 +52,8 @@ class Ship {
     num x = cos(Helper.deg2rad(angle));
     num y = sin(Helper.deg2rad(angle));
 
-    speed.x = x * game.shipSpeed * game.speed;
-    speed.y = y * game.shipSpeed * game.speed;
+    speed.x = x * Ship.baseSpeed * game.speed;
+    speed.y = y * Ship.baseSpeed * game.speed;
   }
   
   void control(Vector position) {
@@ -96,9 +97,9 @@ class Ship {
   void move() {
 
     if (status == "ATTACKING" || status == "RETURNING") {
-      trailTimer++;
-      if (trailTimer == 10) {
-        trailTimer = 0;
+      trailCounter++;
+      if (trailCounter == 10) {
+        trailCounter = 0;
         game.smokes.add(new Smoke(getCenter()));
       }
     }
@@ -130,7 +131,7 @@ class Ship {
     }
     
     else if (status == "ATTACKING") {
-      weaponTimer++;
+      weaponCounter++;
 
       turnToTarget();
       calculateVector();
@@ -138,8 +139,8 @@ class Ship {
       position += speed;
 
       if (position.x > targetPosition.x - 2 && position.x < targetPosition.x + 2 && position.y > targetPosition.y - 2 && position.y < targetPosition.y + 2) {
-        if (weaponTimer >= 10) {
-          weaponTimer = 0;
+        if (weaponCounter >= 10) {
+          weaponCounter = 0;
           game.explosions.add(new Explosion(targetPosition));
           energy -= 1;
 

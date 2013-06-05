@@ -11,9 +11,9 @@ class World {
 
 class Game {
   final int tileSize = 16;
-  int seed, currentEnergy = 0, maxEnergy = 0, collection = 0, activeSymbol = -1, terraformingHeight = 0;
+  int seed, currentEnergy = 0, maxEnergy = 0, activeSymbol = -1, terraformingHeight = 0;
+  num creeperCounter = 0, collectCounter = 0;
   double speed = 1.0, zoom = 1.0;
-  num packetSpeed = 1, shellSpeed = 1, projectileSpeed = 5, sporeSpeed = 1, buildingSpeed = .5, shipSpeed = 1, creeperTimer = 0, energyTimer = 0, spawnTimer = 0, damageTimer = 0, smokeTimer = 0, explosionTimer = 0, shieldTimer = 0;
   Timer running;
   String mode;
   bool paused = false, scrollingUp = false, scrollingDown = false, scrollingLeft = false, scrollingRight = false;
@@ -33,9 +33,6 @@ class Game {
   World world;
   Vector scroll = new Vector(0, 0);
   Building base;
-  Map keyMap = {
-      "k81": "Q", "k87": "W", "k69": "E", "k82": "R", "k84": "T", "k90": "Z", "k85": "U", "k73": "I", "k65": "A", "k83": "S", "k68": "D", "k70": "F", "k71": "G", "k72": "H"
-  };
   Stopwatch stopwatch = new Stopwatch();
 
   Game() {
@@ -86,7 +83,6 @@ class Game {
     ships.clear();
     smokes.clear();
     explosions.clear();
-    //symbols.length = 0;
     emitters.clear();
     sporetowers.clear();
     packetQueue.clear();
@@ -94,21 +90,14 @@ class Game {
 
     maxEnergy = 20;
     currentEnergy = 20;
-    collection = 0;
 
-    creeperTimer = 0;
-    energyTimer = 0;
-    spawnTimer = 0;
-    damageTimer = 0;
-    smokeTimer = 0;
-    explosionTimer = 0;
-    shieldTimer = 0;
+    creeperCounter = 0;
+    collectCounter = 0;
+    Emitter.counter = 0;
+    Building.damageCounter = 0;
+    Smoke.counter = 0;
+    Explosion.counter = 0;
 
-    packetSpeed = 3;
-    shellSpeed = 1;
-    sporeSpeed = 1;
-    buildingSpeed = .5;
-    shipSpeed = 1;
     speed = 1.0;
     activeSymbol = -1;
     updateEnergyElement();
@@ -174,6 +163,8 @@ class Game {
   void restart() {
     stop();
     reset();
+    drawTerrain();
+    copyTerrain();
     run();
   }
 
@@ -416,7 +407,7 @@ class Game {
       updateEnergyElement();
     }
     if (building.imageID == "speed") {
-      packetSpeed /= 1.01;
+      Packet.baseSpeed /= 1.01;
     }
 
     // find all packets with this building as target and remove them
@@ -458,18 +449,18 @@ class Game {
 
   void setupUI() {
     symbols
-      ..add(new UISymbol(new Vector(0, 0), "cannon", "Q", 3, 25, 8))
-      ..add(new UISymbol(new Vector(81, 0), "collector", "W", 3, 5, 6))
-      ..add(new UISymbol(new Vector(2 * 81, 0), "reactor", "E", 3, 50, 0))
-      ..add(new UISymbol(new Vector(3 * 81, 0), "storage", "R", 3, 8, 0))
-      ..add(new UISymbol(new Vector(4 * 81, 0), "shield", "T", 3, 75, 10))
-      ..add(new UISymbol(new Vector(5 * 81, 0), "analyzer", "Z", 3, 80, 10))
+      ..add(new UISymbol(new Vector(0, 0), "cannon", KeyCode.Q, 3, 25, 8))
+      ..add(new UISymbol(new Vector(81, 0), "collector", KeyCode.W, 3, 5, 6))
+      ..add(new UISymbol(new Vector(2 * 81, 0), "reactor", KeyCode.E, 3, 50, 0))
+      ..add(new UISymbol(new Vector(3 * 81, 0), "storage", KeyCode.R, 3, 8, 0))
+      ..add(new UISymbol(new Vector(4 * 81, 0), "shield", KeyCode.T, 3, 75, 10))
+      ..add(new UISymbol(new Vector(5 * 81, 0), "analyzer", KeyCode.Z, 3, 80, 10))
 
-      ..add(new UISymbol(new Vector(0, 56), "relay", "A", 3, 10, 8))
-      ..add(new UISymbol(new Vector(81, 56), "mortar", "S", 3, 40, 12))
-      ..add(new UISymbol(new Vector(2 * 81, 56), "beam", "D", 3, 20, 12))
-      ..add(new UISymbol(new Vector(3 * 81, 56), "bomber", "F", 3, 75, 0))
-      ..add(new UISymbol(new Vector(4 * 81, 56), "terp", "G", 3, 60, 12));
+      ..add(new UISymbol(new Vector(0, 56), "relay", KeyCode.A, 3, 10, 8))
+      ..add(new UISymbol(new Vector(81, 56), "mortar", KeyCode.S, 3, 40, 12))
+      ..add(new UISymbol(new Vector(2 * 81, 56), "beam", KeyCode.D, 3, 20, 12))
+      ..add(new UISymbol(new Vector(3 * 81, 56), "bomber", KeyCode.F, 3, 75, 0))
+      ..add(new UISymbol(new Vector(4 * 81, 56), "terp", KeyCode.G, 3, 60, 12));
   }
 
   /**
@@ -629,9 +620,9 @@ class Game {
   }
 
   /**
-   * Takes a list of [tilesToRedraw] and redraws them.
+   * Takes a list of [tiles] and redraws them.
    */
-  void redrawTile(List tilesToRedraw) {
+  void redrawTiles(List tiles) {
     List tempCanvas = [];
     List tempContext = [];
     for (int t = 0; t < 10; t++) {
@@ -641,10 +632,10 @@ class Game {
       tempContext.add(tempCanvas[t].getContext('2d'));
     }
 
-    for (int i = 0; i < tilesToRedraw.length; i++) {
+    for (int i = 0; i < tiles.length; i++) {
 
-      int iS = tilesToRedraw[i].x;
-      int jS = tilesToRedraw[i].y;
+      int iS = tiles[i].x;
+      int jS = tiles[i].y;
 
       if (withinWorld(iS, jS)) {
         // recalculate index
@@ -701,7 +692,6 @@ class Game {
             Vector translation = new Vector((iS * tileSize).floor(), (jS * tileSize).floor());
             tempContext[t].translate(-translation.x, -translation.y);
   
-            //tempContext[t].fill();
             tempContext[t].fillRect(translation.x, translation.y, tileSize, tileSize);
             tempContext[t].restore();
   
@@ -882,12 +872,17 @@ class Game {
 
     // if a route is left set the second element as the next node for the packet
     if (routes.length > 0) {
+      
       // adjust speed if packet is travelling between relays
       if (routes[0].nodes[1].imageID == "relay") {
         packet.speedMultiplier = 2;
       } else {
         packet.speedMultiplier = 1;
       }
+      
+      // reduce speed for collection
+      if (packet.type == "collection")
+        packet.speedMultiplier /= 4;
 
       packet.currentTarget = routes[0].nodes[1];
     } else {
@@ -983,16 +978,16 @@ class Game {
   }
   
   void updateCreeper() {
-    spawnTimer++;
-    if (spawnTimer >= (25 / speed)) { // 125
+    Emitter.counter++;
+    if (Emitter.counter >= (25 / speed)) {
       for (int i = 0; i < emitters.length; i++)
         emitters[i].spawn();
-      spawnTimer = 0;
+      Emitter.counter = 0;
     }
 
-    creeperTimer++;
-    if (creeperTimer > (25 / speed)) {
-      creeperTimer -= (25 / speed);
+    creeperCounter++;
+    if (creeperCounter > (25 / speed)) {
+      creeperCounter -= (25 / speed);
 
       for (int i = 0; i < world.size.x; i++) {
         for (int j = 0; j < world.size.y; j++) {
@@ -1146,18 +1141,18 @@ class Game {
     }
 
     // take damage
-    damageTimer++;
-    if (damageTimer > 10) {
-      damageTimer = 0;
+    Building.damageCounter++;
+    if (Building.damageCounter > 10) {
+      Building.damageCounter = 0;
       for (int i = 0; i < buildings.length; i++) {
         buildings[i].takeDamage();
       }
     }
 
     // collect energy
-    energyTimer++;
-    if (energyTimer > (250 / speed)) {
-      energyTimer -= (250 / speed);
+    collectCounter++;
+    if (collectCounter > (250 / speed)) {
+      collectCounter -= (250 / speed);
       for (int i = 0; i < buildings.length; i++) {
         buildings[i].collectEnergy();
       }
@@ -1201,9 +1196,9 @@ class Game {
   }
 
   void updateSmokes() {
-    smokeTimer++;
-    if (smokeTimer > 3) {
-      smokeTimer = 0;
+    Smoke.counter++;
+    if (Smoke.counter > 3) {
+      Smoke.counter = 0;
       for (int i = smokes.length - 1; i >= 0; i--) {
         if (smokes[i].frame == 36)
           smokes.removeAt(i);
@@ -1214,9 +1209,9 @@ class Game {
   }
 
   void updateExplosions() {
-    explosionTimer++;
-    if (explosionTimer == 1) {
-      explosionTimer = 0;
+    Explosion.counter++;
+    if (Explosion.counter == 1) {
+      Explosion.counter = 0;
       for (int i = explosions.length - 1; i >= 0; i--) {
         if (explosions[i].frame == 44)
           explosions.removeAt(i);
@@ -1263,10 +1258,10 @@ class Game {
 
     if (!paused) {
       updatePacketQueue();
-      updateShells();
-      updateProjectiles();
       updateSpores();
       updateCreeper();
+      updateShells();
+      updateProjectiles();
       updateBuildings();
       updatePackets();
       updateSmokes();

@@ -20,20 +20,16 @@ void onMouseMoveGUI(MouseEvent evt) {
 }
 
 void onKeyDown(KeyboardEvent evt) {
-  // select instruction with keypress
-  String key = game.keyMap["k${evt.keyCode}"];
+  // select uisymbol
   for (int i = 0; i < game.symbols.length; i++) {
     game.symbols[i].active = false;
-    if (game.symbols[i].key == key) {
+    if (evt.keyCode == game.symbols[i].keyCode) {
       game.activeSymbol = i;
       game.symbols[i].active = true;
+      engine.canvas["main"].element.style.cursor = "none";
     }
   }
-
-  if (game.activeSymbol != -1) {
-    engine.canvas["main"].element.style.cursor = "none";
-  }
-  
+ 
   // increase game speed
   if (evt.keyCode == KeyCode.F1) {
     game.faster();
@@ -91,12 +87,13 @@ void onKeyDown(KeyboardEvent evt) {
     if (game.world.tiles[position.x][position.y].height > -1) {
       game.world.tiles[position.x][position.y].height--;
       List tilesToRedraw = new List();
-      tilesToRedraw.add(new Vector(position.x, position.y));
-      tilesToRedraw.add(new Vector(position.x - 1, position.y));
-      tilesToRedraw.add(new Vector(position.x, position.y - 1));
-      tilesToRedraw.add(new Vector(position.x + 1, position.y));
-      tilesToRedraw.add(new Vector(position.x, position.y + 1));
-      game.redrawTile(tilesToRedraw);
+      tilesToRedraw
+        ..add(new Vector(position.x, position.y))
+        ..add(new Vector(position.x - 1, position.y))
+        ..add(new Vector(position.x, position.y - 1))
+        ..add(new Vector(position.x + 1, position.y))
+        ..add(new Vector(position.x, position.y + 1));
+      game.redrawTiles(tilesToRedraw);
     }
   }
 
@@ -105,29 +102,27 @@ void onKeyDown(KeyboardEvent evt) {
     if (game.world.tiles[position.x][position.y].height < 9) {
       game.world.tiles[position.x][position.y].height++;
       List tilesToRedraw = new List();
-      // reset index around tile
-      tilesToRedraw.add(new Vector(position.x, position.y));
-      tilesToRedraw.add(new Vector(position.x - 1, position.y));
-      tilesToRedraw.add(new Vector(position.x, position.y - 1));
-      tilesToRedraw.add(new Vector(position.x + 1, position.y));
-      tilesToRedraw.add(new Vector(position.x, position.y + 1));
-      game.redrawTile(tilesToRedraw);
+      tilesToRedraw
+        ..add(new Vector(position.x, position.y))
+        ..add(new Vector(position.x - 1, position.y))
+        ..add(new Vector(position.x, position.y - 1))
+        ..add(new Vector(position.x + 1, position.y))
+        ..add(new Vector(position.x, position.y + 1));
+      game.redrawTiles(tilesToRedraw);
     }
   }
 
   // clear terrain
   if (evt.keyCode == KeyCode.B) {
+    game.world.tiles[position.x][position.y].height = -1;
     List tilesToRedraw = new List();
-    //for (int k = 0; k < 10; k++) {
-      game.world.tiles[position.x][position.y].height = -1;
-    //}
-    // reset index around tile
-    tilesToRedraw.add(new Vector(position.x, position.y));
-    tilesToRedraw.add(new Vector(position.x - 1, position.y));
-    tilesToRedraw.add(new Vector(position.x, position.y - 1));
-    tilesToRedraw.add(new Vector(position.x + 1, position.y));
-    tilesToRedraw.add(new Vector(position.x, position.y + 1));
-    game.redrawTile(tilesToRedraw);
+    tilesToRedraw
+      ..add(new Vector(position.x, position.y))
+      ..add(new Vector(position.x - 1, position.y))
+      ..add(new Vector(position.x, position.y - 1))
+      ..add(new Vector(position.x + 1, position.y))
+      ..add(new Vector(position.x, position.y + 1));
+    game.redrawTiles(tilesToRedraw);
   }
 
   // select height for terraforming

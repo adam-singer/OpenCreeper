@@ -5,7 +5,8 @@ class Spore {
   String imageID;
   bool remove = false;
   num health = 100;
-  int rotation = 0, trailTimer = 0;
+  int rotation = 0, trailCounter = 0;
+  static final int baseSpeed = 1;
 
   Spore(this.position, this.targetPosition) {
     imageID = "spore";
@@ -15,8 +16,8 @@ class Spore {
     Vector delta = new Vector(targetPosition.x - position.x, targetPosition.y - position.y);
     num distance = Helper.distance(targetPosition, position);
 
-    speed.x = (delta.x / distance) * game.sporeSpeed * game.speed;
-    speed.y = (delta.y / distance) * game.sporeSpeed * game.speed;
+    speed.x = (delta.x / distance) * Spore.baseSpeed * game.speed;
+    speed.y = (delta.y / distance) * Spore.baseSpeed * game.speed;
   }
 
   Vector getCenter() {
@@ -24,9 +25,9 @@ class Spore {
   }
 
   void move() {
-    trailTimer++;
-    if (trailTimer == 10) {
-      trailTimer = 0;
+    trailCounter++;
+    if (trailCounter == 10) {
+      trailCounter = 0;
       game.smokes.add(new Smoke(getCenter()));
     }
     rotation += 10;

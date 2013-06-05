@@ -5,7 +5,8 @@ class Shell {
   String imageID;
   bool remove = false;
   num rotation = 0;
-  int trailTimer = 0;
+  int trailCounter = 0;
+  static final int baseSpeed = 1;
 
   Shell(this.position, this.targetPosition) {
     imageID = "shell";
@@ -15,8 +16,8 @@ class Shell {
     Vector delta = new Vector(targetPosition.x - position.x, targetPosition.y - position.y);
     num distance = Helper.distance(targetPosition, position);
 
-    speed.x = (delta.x / distance) * game.shellSpeed * game.speed;
-    speed.y = (delta.y / distance) * game.shellSpeed * game.speed;
+    speed.x = (delta.x / distance) * Shell.baseSpeed * game.speed;
+    speed.y = (delta.y / distance) * Shell.baseSpeed * game.speed;
   }
 
   Vector getCenter() {
@@ -24,9 +25,9 @@ class Shell {
   }
 
   void move() {
-    trailTimer++;
-    if (trailTimer == 10) {
-      trailTimer = 0;
+    trailCounter++;
+    if (trailCounter == 10) {
+      trailCounter = 0;
       game.smokes.add(new Smoke(getCenter()));
     }
 

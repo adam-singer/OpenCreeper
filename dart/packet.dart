@@ -6,6 +6,7 @@ class Packet {
   bool remove = false;
   num speedMultiplier = 1;
   Building target, currentTarget;
+  static num baseSpeed = 3;
 
   Packet(this.position, this.imageID, this.type);
 
@@ -20,7 +21,6 @@ class Packet {
       position.y = centerTarget.y;
       // if the final node was reached deliver and remove
       if (currentTarget == target) {
-      //console.log("target node reached!");
         remove = true;
         // deliver package
         if (type == "health") {
@@ -34,8 +34,10 @@ class Packet {
                 game.updateCollection(target, "add");
                 engine.playSound("energy", target.position);
               }
-              if (target.imageID == "storage")game.maxEnergy += 20;
-              if (target.imageID == "speed")game.packetSpeed *= 1.01;
+              if (target.imageID == "storage")
+                game.maxEnergy += 20;
+              if (target.imageID == "speed")
+                Packet.baseSpeed *= 1.01;
               if (target.imageID == "bomber") {
                 Ship ship = new Ship(new Vector(target.position.x * game.tileSize, target.position.y * game.tileSize), "bombership", "Bomber", target);
                 target.ship = ship;
@@ -64,13 +66,8 @@ class Packet {
     Vector delta = new Vector(targetPosition.x - position.x, targetPosition.y - position.y);
     num distance = Helper.distance(targetPosition, position);
 
-    num packetSpeed = game.packetSpeed;
-    // reduce speed for collection
-    if (type == "collection")
-      packetSpeed /= 4;
-
-    speed.x = (delta.x / distance) * packetSpeed * game.speed * speedMultiplier;
-    speed.y = (delta.y / distance) * packetSpeed * game.speed * speedMultiplier;
+    speed.x = (delta.x / distance) * Packet.baseSpeed * game.speed * speedMultiplier;
+    speed.y = (delta.y / distance) * Packet.baseSpeed * game.speed * speedMultiplier;
 
     if (speed.x.abs() > delta.x.abs())
       speed.x = delta.x;
