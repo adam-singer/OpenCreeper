@@ -1,5 +1,14 @@
 part of creeper;
 
+class World {
+  List tiles;
+  Vector size;
+  
+  World(int seed) {
+    size = new Vector(Helper.randomInt(64, 127, seed), Helper.randomInt(64, 127, seed));
+  }
+}
+
 class Emitter {
   Vector position;
   String imageID;

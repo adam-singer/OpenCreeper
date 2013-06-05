@@ -1,14 +1,5 @@
 part of creeper;
 
-class World {
-  List tiles;
-  Vector size;
-  
-  World(int seed) {
-    size = new Vector(Helper.randomInt(64, 127, seed), Helper.randomInt(64, 127, seed));
-  }
-}
-
 class Game {
   final int tileSize = 16;
   int seed, currentEnergy = 0, maxEnergy = 0, activeSymbol = -1, terraformingHeight = 0;
@@ -1419,63 +1410,63 @@ class Game {
 
         if (withinWorld(iS, jS)) {
           
-          num creep = (world.tiles[iS][jS].creep).ceil();
+          int height = world.tiles[iS][jS].height;
           
+          // TODO: don't redraw everything each frame
           for (var t = 0; t <= 9; t++) {
 
-            var skip = false;
             if (world.tiles[iS][jS].creep > t) {
               
               int up = 0, down = 0, left = 0, right = 0;
               if (jS - 1 < 0)
                 up = 0;
-              else if (world.tiles[iS][jS - 1].creep > t || world.tiles[iS][jS - 1].height > world.tiles[iS][jS].height)
+              else if (world.tiles[iS][jS - 1].creep > t || world.tiles[iS][jS - 1].height > height)
                 up = 1;
               if (jS + 1 > world.size.y - 1)
                 down = 0;
-              else if (world.tiles[iS][jS + 1].creep > t || world.tiles[iS][jS + 1].height > world.tiles[iS][jS].height)
+              else if (world.tiles[iS][jS + 1].creep > t || world.tiles[iS][jS + 1].height > height)
                 down = 1;
               if (iS - 1 < 0)
                 left = 0;
-              else if (world.tiles[iS - 1][jS].creep > t || world.tiles[iS - 1][jS].height > world.tiles[iS][jS].height)
+              else if (world.tiles[iS - 1][jS].creep > t || world.tiles[iS - 1][jS].height > height)
                 left = 1;
               if (iS + 1 > world.size.x - 1)
                 right = 0;
-              else if (world.tiles[iS + 1][jS].creep > t || world.tiles[iS + 1][jS].height > world.tiles[iS][jS].height)
+              else if (world.tiles[iS + 1][jS].creep > t || world.tiles[iS + 1][jS].height > height)
                 right = 1;
   
               int index = (8 * down) + (4 * left) + (2 * up) + right;
               engine.canvas["creeperbuffer"].context.drawImageScaledFromSource(engine.images["creeper"], index * tileSize, 0, tileSize, tileSize, engine.halfWidth + i * tileSize * zoom, engine.halfHeight + j * tileSize * zoom, tileSize * zoom, tileSize * zoom);
-              skip = true;
+              continue;
             }
             
-            if (t < 9 && !skip) {
+            if (t < 9) {
               int ind = world.tiles[iS][jS].index;
+              bool indexOk = (ind != 5 && ind != 7 && ind != 10 && ind != 11 && ind != 13 && ind != 14 && ind != 14);
               int up = 0, down = 0, left = 0, right = 0;
               if (jS - 1 < 0)
                 up = 0;
-              else if (world.tiles[iS][jS - 1].creep > t && (ind == 0 || ind == 1 || ind == 2 || ind == 3 || ind == 4 || ind == 6 || ind == 8 || ind == 9 || ind == 12) && world.tiles[iS][jS - 1].height < world.tiles[iS][jS].height)
+              else if (world.tiles[iS][jS - 1].creep > t && indexOk && world.tiles[iS][jS - 1].height < height)
                 up = 1;
               if (jS + 1 > world.size.y - 1)
                 down = 0;
-              else if (world.tiles[iS][jS + 1].creep > t && (ind == 0 || ind == 1 || ind == 2 || ind == 3 || ind == 4 || ind == 6 || ind == 8 || ind == 9 || ind == 12) && world.tiles[iS][jS + 1].height < world.tiles[iS][jS].height)
+              else if (world.tiles[iS][jS + 1].creep > t && indexOk && world.tiles[iS][jS + 1].height < height)
                 down = 1;
               if (iS - 1 < 0)
                 left = 0;
-              else if (world.tiles[iS - 1][jS].creep > t && (ind == 0 || ind == 1 || ind == 2 || ind == 3 || ind == 4 || ind == 6 || ind == 8 || ind == 9 || ind == 12) && world.tiles[iS - 1][jS].height < world.tiles[iS][jS].height)
+              else if (world.tiles[iS - 1][jS].creep > t && indexOk && world.tiles[iS - 1][jS].height < height)
                 left = 1;
               if (iS + 1 > world.size.x - 1)
                 right = 0;
-              else if (world.tiles[iS + 1][jS].creep > t && (ind == 0 || ind == 1 || ind == 2 || ind == 3 || ind == 4 || ind == 6 || ind == 8 || ind == 9 || ind == 12) && world.tiles[iS + 1][jS].height < world.tiles[iS][jS].height)
+              else if (world.tiles[iS + 1][jS].creep > t && indexOk && world.tiles[iS + 1][jS].height < height)
                 right = 1;
   
               int index = (8 * down) + (4 * left) + (2 * up) + right;
               if (index != 0)
-              engine.canvas["creeperbuffer"].context.drawImageScaledFromSource(engine.images["creeper"], index * tileSize, 0, tileSize, tileSize, engine.halfWidth + i * tileSize * zoom, engine.halfHeight + j * tileSize * zoom, tileSize * zoom, tileSize * zoom);
-            
+                engine.canvas["creeperbuffer"].context.drawImageScaledFromSource(engine.images["creeper"], index * tileSize, 0, tileSize, tileSize, engine.halfWidth + i * tileSize * zoom, engine.halfHeight + j * tileSize * zoom, tileSize * zoom, tileSize * zoom);            
             }
           }
-        } // 5, 7, 10, 11, 13, 14 ,15
+        }
         
       }
     }
