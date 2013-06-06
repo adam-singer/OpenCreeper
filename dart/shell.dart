@@ -10,6 +10,7 @@ class Shell {
 
   Shell(this.position, this.targetPosition) {
     imageID = "shell";
+    init();
   }
 
   void init() {

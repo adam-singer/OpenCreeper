@@ -410,7 +410,6 @@ class Building {
             if (target != null) {
               engine.playSound("shot", position);
               Shell shell = new Shell(center, new Vector(target.x * game.tileSize + game.tileSize / 2, target.y * game.tileSize + game.tileSize / 2));
-              shell.init();
               game.shells.add(shell);
               energy -= 1;
             }
@@ -562,16 +561,8 @@ class Building {
       }
     }
 
-    // draw shots
+    // draw various stuff when operating
     if (operating) {
-//      if (imageID == "cannon") {
-//        Vector targetPosition = Helper.tiled2screen(weaponTargetPosition);
-//        context.strokeStyle = "#f00";
-//        context.beginPath();
-//        context.moveTo(center.x, center.y);
-//        context.lineTo(targetPosition.x, targetPosition.y);
-//        context.stroke();
-//      }
       if (imageID == "analyzer") {
         Vector targetPosition = Helper.tiled2screen(weaponTargetPosition);
         context.strokeStyle = '#00f';

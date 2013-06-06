@@ -10,6 +10,7 @@ class Spore {
 
   Spore(this.position, this.targetPosition) {
     imageID = "spore";
+    init();
   }
 
   void init() {

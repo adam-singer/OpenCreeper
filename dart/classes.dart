@@ -74,7 +74,6 @@ class Sporetower {
       target = game.buildings[Helper.randomInt(0, game.buildings.length - 1)];
     } while (!target.built);
     Spore spore = new Spore(getCenter(), target.getCenter());
-    spore.init();
     game.spores.add(spore);
   }
   
